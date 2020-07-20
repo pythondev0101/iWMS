@@ -3,6 +3,9 @@ from app import db
 
 
 class Admin(object):
+    functions = [{}]
+    model_description = ""
+    
     @property
     def model_name(self):
         raise NotImplementedError('Must implement model_name')
@@ -10,14 +13,6 @@ class Admin(object):
     @property
     def model_icon(self):
         raise NotImplementedError('Must implement model_icon')
-
-    @property
-    def model_description(self):
-        raise NotImplementedError('Must implement model_description')
-
-    @property
-    def functions(self):
-        raise NotImplementedError('Must implement functions')
 
 
 class AdminOptions(db.Model):

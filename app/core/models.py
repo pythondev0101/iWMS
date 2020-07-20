@@ -3,6 +3,7 @@ from datetime import datetime
 
 from app import db
 import enum
+# from sqlalchemy.ext.declarative import declared_attr
 
 
 # MODEL.BASE
@@ -14,6 +15,11 @@ class Base(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
+    # TODO: I relate na to sa users table 
+    # Sa ngayon i store nalang muna yung names kasi andaming error kapag foreign key
+    created_by = db.Column(db.String(64),nullable=True)
+    updated_by = db.Column(db.String(64),nullable=True)
+
     def __init__(self):
         self.created_at = datetime.utcnow()
         self.updated_at = datetime.utcnow()
@@ -22,6 +28,7 @@ class Base(db.Model):
 
 class HomeBestModel(Base):
     __tablename__ = 'core_model'
+    # __table_args__ = {'extend_existing': True} 
     name = db.Column(db.String(64), nullable=False, server_default="")
     module_id = db.Column(db.Integer, db.ForeignKey('core_module.id'))
     description = db.Column(db.String(128), nullable=True, server_default="")
@@ -42,6 +49,7 @@ class ModuleStatus(enum.Enum):
 
 class HomeBestModule(Base):
     __tablename__ = 'core_module'
+    # __table_args__ = {'extend_existing': True} 
     name = db.Column(db.String(64), nullable=False, server_default="")
     short_description = db.Column(db.String(64), nullable=False, server_default="")
     long_description = db.Column(db.String(255), nullable=False, server_default="")
@@ -68,13 +76,30 @@ class CoreCustomer(Base):
 
 class CoreCity(Base):
     __tablename__ = 'core_city'
+    # __table_args__ = {'extend_existing': True} 
+
     id = db.Column(db.Integer,primary_key=True, autoincrement=False)
     name = db.Column(db.String(64), nullable=False,default="")
     province_id = db.Column(db.Integer, db.ForeignKey('core_province.id'), nullable=True)
-    province = db.relationship("CoreProvince")
+    province = db.relationship("CoreProvince",backref='city')
 
 
 class CoreProvince(Base):
     __tablename__ = 'core_province'
+    # __table_args__ = {'extend_existing': True} 
+
     id = db.Column(db.Integer,primary_key=True, autoincrement=False)
     name = db.Column(db.String(64), nullable=False,default="")
+
+
+class CoreLog(db.Model):
+    __tablename__ = 'core_log'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer,db.ForeignKey('auth_user.id',ondelete="SET NULL"),nullable=True)
+    user = db.relationship('User',backref='user_logs')
+    date = db.Column(db.DateTime, default=datetime.utcnow)
+    description = db.Column(db.String(500),nullable=True)
+    data = db.Column(db.String(500),nullable=True)
+
+    model_name = 'core_log'

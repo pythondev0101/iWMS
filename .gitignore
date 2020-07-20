@@ -66,3 +66,5 @@ target/
 migrations/
 instance/
 .env
+
+homebest_env/

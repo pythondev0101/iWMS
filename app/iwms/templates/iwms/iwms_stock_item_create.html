@@ -1,0 +1,378 @@
+{% extends "admin/admin_base.html" %}
+{% block sidebar %}
+    {% include 'iwms/iwms_sidebar.html' %}
+{% endblock %}
+{% block content %}
+<div class="app-main__inner">
+    <ul class="body-tabs body-tabs-layout tabs-animated body-tabs-animated nav">
+        <li class="nav-item">
+            <a role="tab" class="nav-link show active" id="tab-0" data-toggle="tab" href="#tab-content-0" aria-selected="true">
+                <span>General Information</span>
+            </a>
+        </li>
+        <li class="nav-item">
+            <a role="tab" class="nav-link show" id="tab-1" data-toggle="tab" href="#tab-content-1" aria-selected="false">
+                <span>PLU Group</span>
+            </a>
+        </li>
+        <li class="nav-item">
+            <a role="tab" class="nav-link show" id="tab-2" data-toggle="tab" href="#tab-content-2" aria-selected="false">
+                <span>Other Information</span>
+            </a>
+        </li>
+    </ul>
+    <form action="{{ url_for('bp_iwms.stock_item_create') }}" id="edit_form" class="needs-validation" method="POST" novalidate>
+    {{ form.csrf_token }}
+    <div class="tab-content">
+        <div class="tab-pane tabs-animation fade active show" id="tab-content-0" role="tabpanel">
+            <div class="main-card mb-3 card">
+                <div class="card-body">
+                        <div class="form-row">
+                            <div class="col-md-6">
+                                <div class="position-relative form-group">
+                                    <label for="number">No.</label>
+                                    <input name="number" id="number" type="text" class="form-control" disabled>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="position-relative form-group">
+                                    <label for="status" class="">Status</label>
+                                    <select name="status" id="status" class="form-control">
+                                        {% for key,value,checked in form.status.iter_choices() %}
+                                        <option value="{{ key }}">
+                                            {{ value }}
+                                        </option>
+                                        {% endfor %}
+                                    </select>
+                                    <div class="valid-feedback">
+                                        Looks good!
+                                    </div>
+                                    <div class="invalid-feedback">
+                                        Please provide a valid
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="position-relative form-group">
+                                    <label for="type" class="">Type</label>
+                                    <select name="type" id="type" class="form-control">
+                                        {% for key,value,checked in form.type.iter_choices() %}
+                                        <option value="{{ key }}">
+                                            {{ value }}
+                                        </option>
+                                        {% endfor %}
+                                    </select>
+                                    <div class="valid-feedback">
+                                        Looks good!
+                                    </div>
+                                    <div class="invalid-feedback">
+                                        Please provide a valid
+                                    </div>
+                                </div>
+                            </div>
+                        </div> 
+                        <div class="form-row">
+                            <div class="col-md-4">
+                                <div class="position-relative form-group">
+                                    <label for="category_id" class="">Category</label>
+                                    <select name="category_id" id="category_id" class="form-control">
+                                        <option value="">Choose...</option>
+                                        {% for category in categories %}
+                                        <option value="{{ category.id }}">
+                                            {{ category.name }}
+                                        </option>
+                                        {% endfor %}
+                                    </select>
+                                    <div class="valid-feedback">
+                                        Looks good!
+                                    </div>
+                                    <div class="invalid-feedback">
+                                        Please provide a valid
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="position-relative form-group">
+                                    <label for="brand" class="">Brand</label>
+                                    <input name="brand" id="brand" type="text" class="form-control">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="col-md-6">
+                                <div class="position-relative form-group">
+                                    <label for="name" class="">Name</label>
+                                    <input name="name" id="name" type="text" class="form-control">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="position-relative form-group">
+                                    <label for="description" class="">Description</label>
+                                    <input name="description" id="description" type="text" class="form-control">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="col-md-4">
+                                <div class="position-relative form-group">
+                                    <label for="cap_size" class="">Cap Size</label>
+                                    <input name="cap_size" id="cap_size" type="text" class="form-control">
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="position-relative form-group">
+                                    <label for="cap_profile" class="">Cap Profile</label>
+                                    <input name="cap_profile" id="cap_profile" type="text" class="form-control">
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="position-relative form-group">
+                                    <label for="compound" class="">Compound</label>
+                                    <input name="compound" id="compound" type="text" class="form-control">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="col-md-6">
+                                <div class="position-relative form-group">
+                                    <label for="suppliers" class="">Supplier(s)</label>
+                                    <input name="suppliers" id="suppliers" type="text" class="form-control">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="position-relative form-group">
+                                    <label for="clients" class="">Client(s)</label>
+                                    <input name="clients" id="clients" type="text" class="form-control">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="col-md-4">
+                                <div class="position-relative form-group">
+                                    <label for="packaging" class="">Packaging</label>
+                                    <input name="packaging" id="packaging" type="text" class="form-control">
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="position-relative form-group">
+                                    <label for="tax_code" class="">Tax Code</label>
+                                    <select name="tax_code" id="tax_code" class="form-control">
+                                        <option value="">Choose...</option>
+                                        {% for key,value,checked in form.tax_code.iter_choices() %}
+                                        <option value="{{ key }}">
+                                            {{ value }}
+                                        </option>
+                                        {% endfor %}
+                                    </select>
+                                    <div class="valid-feedback">
+                                        Looks good!
+                                    </div>
+                                    <div class="invalid-feedback">
+                                        Please provide a valid
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="position-relative form-group">
+                                    <label for="reorder_qty" class="">Reorder Qty</label>
+                                    <input name="reorder_qty" id="reorder_qty" type="text" class="form-control">
+                                </div>
+                            </div>
+                        </div>
+                </div>
+            </div>
+        </div>
+        <!-- !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! -->
+        <!-- !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! -->
+        <!-- !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! -->
+        <div class="tab-pane tabs-animation fade" id="tab-content-1" role="tabpanel">
+            <div class="main-card mb-3 card">
+                <div class="card-body">
+                    <div class="form-row">
+                        <div class="col-md-4">
+                            <div class="position-relative form-group">
+                                <label for="description_plu" class="">Description</label>
+                                <input name="description_plu" id="description_plu" type="text" class="form-control">
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="position-relative form-group">
+                                <label for="unit" class="">Unit</label>
+                                <input name="unit" id="unit" type="text" class="form-control">
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="position-relative form-group">
+                                <label for="default_cost" class="">Default Cost</label>
+                                <input name="default_cost" id="default_cost" type="text" class="form-control">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="col-md-4">
+                            <div class="position-relative form-group">
+                                <label for="barcode" class="">Barcode</label>
+                                <input name="barcode" id="barcode" type="text" class="form-control">
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="position-relative form-group">
+                                <label for="qty" class="">Qty</label>
+                                <input name="qty" id="qty" type="text" class="form-control">
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="position-relative form-group">
+                                <label for="default_price" class="">Default Price</label>
+                                <input name="default_price" id="default_price" type="text" class="form-control">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="col-md-4">
+                            <div class="position-relative form-group">
+                                <label for="barcode" class="">Barcode</label>
+                                <input name="barcode" id="barcode" type="text" class="form-control">
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="position-relative form-group">
+                                <label for="cbm" class="">CBM</label>
+                                <input name="cbm" id="cbm" type="text" class="form-control">
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="position-relative form-group">
+                                <label for="weight" class="">Weight(kg)</label>
+                                <input name="weight" id="weight" type="text" class="form-control">
+                            </div>
+                        </div>
+                    </div>
+            </div>
+            </div>
+            <div class="main-card mb-3 card">
+                <div class="table-responsive">
+                    <table class="align-middle mb-0 table table-bordered table-hover">
+                        <thead>
+                        <tr>
+                            <th class="text-center">STATUS</th>
+                            <th class="text-center">DESCRIPTION</th>
+                            <th class="text-center">UNIT</th>
+                            <th class="text-center">QTY</th>
+                            <th class="text-center">BARCODE</th>
+                            <th class="text-center">DEFAULT COST</th>
+                            <th class="text-center">DEFAULT PRICE</th>
+                            <th class="text-center">LENGTH</th>
+                            <th class="text-center">WIDTH</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr>
+                            <td class="text-center">
+                                <div class="badge badge-success">Active</div>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="d-block text-center card-footer">
+                    <button class="mr-2 btn-icon btn-icon-only btn btn-outline-danger"><i class="pe-7s-trash btn-icon-wrapper"> </i></button>
+                    <button class="btn-wide btn btn-success">Add</button>
+                </div>
+            </div>
+        </div>
+        <div class="tab-pane tabs-animation fade" id="tab-content-2" role="tabpanel">
+            <div class="main-card mb-3 card">
+                <div class="card-body">
+                    <form class="">
+                        <div class="position-relative row form-group">
+                            <label for="exampleEmail" class="col-sm-2 col-form-label">Qty per Pallet</label>
+                            <div class="col-sm-10">
+                                <input name="email" id="exampleEmail" placeholder="with a placeholder" type="email" class="form-control">
+                            </div>
+                        </div>
+                        <div class="position-relative row form-group">
+                            <label for="exampleEmail" class="col-sm-2 col-form-label">Shelf Life(in months)</label>
+                            <div class="col-sm-10">
+                                <input name="email" id="exampleEmail" placeholder="with a placeholder" type="email" class="form-control">
+                            </div>
+                        </div>
+                        <div class="position-relative row form-group">
+                            <label for="exampleEmail" class="col-sm-2 col-form-label">QA Lead Time(in hours)</label>
+                            <div class="col-sm-10">
+                                <input name="email" id="exampleEmail" placeholder="with a placeholder" type="email" class="form-control">
+                            </div>
+                        </div>                        
+                    </form>
+                </div>
+            </div>
+        </div>
+        <script>
+            // Example starter JavaScript for disabling form submissions if there are invalid fields
+            (function() {
+            'use strict';
+            window.addEventListener('load', function() {
+            // Fetch all the forms we want to apply custom Bootstrap validation styles to
+            var forms = document.getElementsByClassName('needs-validation');
+            // Loop over them and prevent submission
+            var validation = Array.prototype.filter.call(forms, function(form) {
+            form.addEventListener('submit', function(event) {
+            if (form.checkValidity() === false) {
+                event.preventDefault();
+                event.stopPropagation();
+            }
+            form.classList.add('was-validated');
+            }, false);
+            });
+            }, false);
+            })();
+        </script>
+    </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block inner_footer %}
+<div class="app-footer-right">
+    <button type="button" class="btn btn-secondary" onclick="history.back(-1)" 
+    style="margin-right: 10px;">Cancel</button>
+    <button form="edit_form" type="submit" class="btn btn-primary">Save</button>
+</div>
+{% endblock %}
+
+{% block toast %}
+{% with messages = get_flashed_messages(with_categories=true) %}
+{% if messages %}
+<div id="toast-container" class="toast-top-center">
+    {% for category, message in messages %}
+        {% if category == 'success' %}
+        <div class="toast toast-success" aria-live="polite">
+            <div class="toast-progress" style="width: 0%;"></div>
+            <button type="button" class="toast-close-button" role="button" onclick="close_toast()">×</button>
+            <div class="toast-title">Success!</div>
+            <div class="toast-message">{{ message }}</div>
+        </div>
+        {% elif category == 'error' %}
+        <div class="toast toast-error" aria-live="polite">
+            <div class="toast-progress" style="width: 0%;"></div>
+            <button type="button" class="toast-close-button" role="button" onclick="close_toast()">×</button>
+            <div class="toast-title">Error!</div>
+            <div class="toast-message">{{ message }}</div>
+        </div>
+        {% endif %}
+    {% endfor %}
+</div>
+{% endif %}
+{% endwith %}
+{% endblock %}
+
+{% block scripts %}
+<script>
+    (function() {
+        var fixed_footer = document.getElementById('chkbox_fixed_footer');
+        setTimeout(function() {
+          fixed_footer.click();
+        }, 100);
+      })();
+</script>
+{% endblock %}

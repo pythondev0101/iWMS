@@ -62,7 +62,7 @@ class AdminInlineForm(object):
 class AdminField(Field):
 
     widget = widgets.TextInput()
-    
+    # if no validators argument then make required = False
     def __init__(self,input_type="text",placeholder='',model=None,required=True,*args, **kwargs):
         super(AdminField,self).__init__(*args,**kwargs)
         self.label = kwargs.get('label')

@@ -29,7 +29,7 @@
                         <thead>
                         <tr>
                             {% for field in table_fields %}
-                            <th>{{ field.upper() }}</th>
+                            <th style="text-align: center;">{{ field.upper() }}</th>
                             {% endfor %}
                         </tr>
                         </thead>
@@ -44,7 +44,8 @@
                         {% endif %}
                             {% for values in model %}
                             {% if loop.index > 1 %}
-                            <td style="font-weight: bold;">{{ values }}</td>
+                            <!-- TEMPORARY conversion ng boolean word 'true' to 'YES' and 'false' to 'NO' -->
+                            <td style="font-weight: bold; text-align:center">{% if values == True %} YES {% elif values == False %} NO {% elif values == None %}  {% else %} {{ values }} {% endif %}</td>
                             {% endif %}
                             {% endfor %}
                         </tr>
@@ -148,7 +149,7 @@
                 if(document.body.contains(document.getElementById('view_edit_button'))){
                     var url = $(id).attr('value');
                     document.getElementById("view_edit_button").setAttribute("href", url);
-                    var fields = {% if context['create_modal']['js_fields'] %} {{ context['create_modal']['js_fields'] | tojson }} {% endif %};
+                    var fields = {% if context['create_modal']['js_fields'] %} {{ context['create_modal']['js_fields'] | tojson }} {% else %} '' {% endif %};
                     var ctr;
                     var field;
                     var field_id = $(this).attr('id');
@@ -171,7 +172,16 @@
                             success: function(data) {
                                 if (data.result){
                                     field = "#view_" + data.column;
-                                    $(field).val(data.result);
+                                    var input_type = $(field).attr('type');
+                                    if (input_type == 'checkbox'){
+                                        if (data.result == '1'){
+                                            $(field).attr('checked',true);
+                                        }else{
+                                            $(field).attr('checked', false);
+                                        }
+                                    }else{
+                                        $(field).val(data.result);
+                                    }
                                 }
                             }
                         });

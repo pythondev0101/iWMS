@@ -5,10 +5,10 @@ from app.core.core import CoreModule
 
 class AdminModule(CoreModule):
     module_name = 'admin'
-    module_icon = 'fa-home'
+    module_icon = 'fa-cogs'
     module_link = 'bp_admin.dashboard'
-    module_short_description = 'Administrator'
+    module_short_description = 'Application'
     module_long_description = "Administrator Dashboard and pages"
-    models = [User]
-    no_admin_models = [Role]
+    models = []
+    no_admin_models = []
     version = '1.0'

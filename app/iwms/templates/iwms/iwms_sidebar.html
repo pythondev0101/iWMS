@@ -1,0 +1,317 @@
+{% extends "admin/admin_sidebar.html" %} {% block first_sidebar_navigation %}
+<li class="app-sidebar__heading">Administration</li>
+<li>
+  <a
+    href="{{ url_for('bp_iwms.dashboard')}}"
+    class="{% if context['active']=='main_dashboard' %} mm-active {% endif %}"
+  >
+    <i
+      class="metismenu-icon pe-7s-graph1 icon-gradient bg-premium-dark"
+      aria-hidden="true"
+    ></i>
+    Dashboard
+  </a>
+</li>
+{% endblock %} {% block second_sidebar_navigation %}
+<li class="app-sidebar__heading">APP Models</li>
+<li>
+  <a
+    href="#"
+    class="{% if context['active']=='system' %} mm-active {% endif %}"
+  >
+    <i
+      class="metismenu-icon pe-7s-browser icon-gradient bg-premium-dark"
+      aria-hidden="true"
+    ></i>
+    System
+    <i class="metismenu-state-icon pe-7s-angle-down caret-left"></i>
+  </a>
+  <ul>
+    <li>
+      <a href=""> <i class="metismenu-icon"> </i>Configuration </a>
+    </li>
+    {% if 'Users' in session['permissions'] %}
+    {% if session['permissions']['Users']['read'] %}
+    <li>
+      <a
+        href="{{ url_for('bp_iwms.users') }}"
+        class="{% if context['mm-active'] == 'Users' %} mm-active {% endif %}"
+      >
+        <i class="metismenu-icon"> </i>User
+      </a>
+    </li>
+    {% endif %}
+    {% endif %}
+    {% if 'Groups' in session['permissions'] %}
+    {% if session['permissions']['Groups']['read']  %}      
+    <li>
+      <a
+        href="{{ url_for('bp_iwms.groups') }}"
+        class="{% if context['mm-active'] == 'Groups' %} mm-active {% endif %}"
+      >
+        <i class="metismenu-icon"> </i>User Group
+      </a>
+    </li>
+    {% endif %}
+    {% endif %}
+    {% if 'email' in session['permissions'] %}
+    {% if session['permissions']['email']['read'] %}
+    <li>
+      <a
+        href="{{ url_for('bp_iwms.emails') }}"
+        class="{% if context['mm-active'] == 'email' %} mm-active {% endif %}"
+      >
+        <i class="metismenu-icon"> </i>Email Addresses
+      </a>
+    </li>
+    {% endif %}
+    {% endif %}
+    {% if 'department' in session['permissions'] %}
+    {% if session['permissions']['department']['read'] %}
+    <li>
+      <a
+        href="{{ url_for('bp_iwms.departments') }}"
+        class="{% if context['mm-active'] == 'department' %} mm-active {% endif %}"
+      >
+        <i class="metismenu-icon"> </i>Department
+      </a>
+    </li>
+    {% endif %}
+    {% endif %}
+
+    {% if 'transaction_type' in session['permissions'] %}
+    {% if session['permissions']['transaction_type']['read'] %}
+    <li>
+      <a
+        href="{{ url_for('bp_iwms.transaction_types') }}"
+        class="{% if context['mm-active'] == 'transaction_type' %} mm-active {% endif %}"
+      >
+        <i class="metismenu-icon"> </i>Transaction Type
+      </a>
+    </li>
+    {% endif %}
+    {% endif %}
+    {% if 'core_log' in session['permissions'] %}
+    {% if session['permissions']['core_log']['read'] %}
+    <li>
+      <a
+        href="{{ url_for('bp_iwms.logs') }}"
+        class="{% if context['mm-active'] == 'logs' %} mm-active {% endif %}"
+      >
+        <i class="metismenu-icon"> </i>System Log
+      </a>
+    </li>
+    {% endif %}
+    {% endif %}
+  </ul>
+</li>
+<li>
+  <a
+    href="#"
+    class="{% if context['active']=='inventory' %} mm-active {% endif %}"
+  >
+    <i
+      class="metismenu-icon pe-7s-download icon-gradient bg-premium-dark"
+      aria-hidden="true"
+    ></i>
+    Inventory
+    <i class="metismenu-state-icon pe-7s-angle-down caret-left"></i>
+  </a>
+  <ul>
+    {% if 'warehouse' in session['permissions'] %}
+    {% if session['permissions']['warehouse']['read'] %}
+    
+    <li>
+      <a
+        href="{{ url_for('bp_iwms.warehouses') }}"
+        class="{% if context['mm-active'] == 'warehouse' %} mm-active {% endif %}"
+      >
+        <i class="metismenu-icon"> </i>Warehouse
+      </a>
+    </li>
+    {% endif %}
+    {% endif %}
+    {% if 'zone' in session['permissions'] %}
+    {% if session['permissions']['zone']['read'] %}
+
+    <li>
+      <a
+        href="{{ url_for('bp_iwms.zones') }}"
+        class="{% if context['mm-active'] == 'zone' %} mm-active {% endif %}"
+      >
+        <i class="metismenu-icon"> </i>Zone
+      </a>
+    </li>
+    {% endif %}
+    {% endif %}
+
+    {% if 'bin_location' in session['permissions'] %}
+    {% if session['permissions']['bin_location']['read'] %}
+
+    <li>
+      <a
+        href="{{ url_for('bp_iwms.bin_locations') }}"
+        class="{% if context['mm-active'] == 'bin_location' %} mm-active {% endif %}"
+      >
+        <i class="metismenu-icon"> </i>Bin Location
+      </a>
+    </li>
+    {% endif %}
+    {% endif %}
+
+    {% if 'category' in session['permissions'] %}
+    {% if session['permissions']['category']['read'] %}
+
+    <li>
+      <a
+        href="{{ url_for('bp_iwms.categories') }}"
+        class="{% if context['mm-active'] == 'category' %} mm-active {% endif %}"
+      >
+        <i class="metismenu-icon"> </i>Categories
+      </a>
+    </li>
+    {% endif %}
+    {% endif %}
+
+    {% if 'stock_item' in session['permissions'] %}
+    {% if session['permissions']['stock_item']['read'] %}
+
+    <li>
+      <a
+        href="{{ url_for('bp_iwms.stock_items') }}"
+        class="{% if context['mm-active'] == 'stock_item' %} mm-active {% endif %}"
+      >
+        <i class="metismenu-icon"> </i>Stock Item
+      </a>
+    </li>
+    {% endif %}
+    {% endif %}
+
+    {% if 'unit_of_measure' in session['permissions'] %}
+    {% if session['permissions']['unit_of_measure']['read'] %}
+
+    <li>
+      <a
+        href="{{ url_for('bp_iwms.unit_of_measures') }}"
+        class="{% if context['mm-active'] == 'unit_of_measure' %} mm-active {% endif %}"
+      >
+        <i class="metismenu-icon"> </i>Unit of Measurement
+      </a>
+    </li>
+    {% endif %}
+    {% endif %}
+
+    {% if 'reason' in session['permissions'] %}
+    {% if session['permissions']['reason']['read'] %}
+
+    <li>
+      <a
+        href="{{ url_for('bp_iwms.reasons') }}"
+        class="{% if context['mm-active'] == 'reason' %} mm-active {% endif %}"
+      >
+        <i class="metismenu-icon"> </i>Reason
+      </a>
+    </li>
+    {% endif %}
+    {% endif %}
+
+    {% if 'stock_receipt' in session['permissions'] %}
+    {% if session['permissions']['stock_receipt']['read'] %}
+
+    <li>
+      <a
+        href="{{ url_for('bp_iwms.stock_receipts') }}"
+        class="{% if context['mm-active'] == 'stock_receipt' %} mm-active {% endif %}"
+      >
+        <i class="metismenu-icon"> </i>Stock Receipt
+      </a>
+    </li>
+    {% endif %}
+    {% endif %}
+
+    {% if 'putaway' in session['permissions'] %}
+    {% if session['permissions']['putaway']['read'] %}
+    <li>
+      <a
+        href="{{ url_for('bp_iwms.putaways') }}"
+        class="{% if context['mm-active'] == 'putaway' %} mm-active {% endif %}"
+      >
+        <i class="metismenu-icon"> </i>Putaway
+      </a>
+    </li>
+    {% endif %}
+    {% endif %}
+  </ul>
+</li>
+<li>
+  <a href="#" class="{% if context['active']=='sales' %} mm-active {% endif %}">
+    <i
+      class="metismenu-icon pe-7s-graph2 icon-gradient bg-premium-dark"
+      aria-hidden="true"
+    ></i>
+    Sales
+    <i class="metismenu-state-icon pe-7s-angle-down caret-left"></i>
+  </a>
+  <ul>
+    <li>
+      <a href=""> <i class="metismenu-icon"> </i>Configuration </a>
+    </li>
+  </ul>
+</li>
+<li>
+  <a
+    href="#"
+    class="{% if context['active']=='purchases' %} mm-active {% endif %}"
+  >
+    <i
+      class="metismenu-icon pe-7s-wallet icon-gradient bg-premium-dark"
+      aria-hidden="true"
+    ></i>
+    Purchases
+    <i class="metismenu-state-icon pe-7s-angle-down caret-left"></i>
+  </a>
+  <ul>
+    <li>
+      <a href=""> <i class="metismenu-icon"> </i>Configuration </a>
+    </li>
+  </ul>
+</li>
+<li>
+  <a
+    href="#"
+    class="{% if context['active']=='reports' %} mm-active {% endif %}"
+  >
+    <i
+      class="metismenu-icon pe-7s-note2 icon-gradient bg-premium-dark"
+      aria-hidden="true"
+    ></i>
+    Reports
+    <i class="metismenu-state-icon pe-7s-angle-down caret-left"></i>
+  </a>
+  <ul>
+    <li>
+      <a href=""> <i class="metismenu-icon"> </i>Configuration </a>
+    </li>
+  </ul>
+</li>
+<li>
+  <a
+    href="#"
+    class="{% if context['active']=='reports' %} mm-active {% endif %}"
+  >
+    <i
+      class="metismenu-icon pe-7s-note2 icon-gradient bg-premium-dark"
+      aria-hidden="true"
+    ></i>
+    Warehouse bin location
+    <i class="metismenu-state-icon pe-7s-angle-down caret-left"></i>
+  </a>
+  <ul>
+    <li>
+      <a href="{{ url_for('bp_iwms.bin_location') }}">
+        <i class="metismenu-icon"> </i>Configuration
+      </a>
+    </li>
+  </ul>
+</li>
+{% endblock %}

@@ -30,6 +30,15 @@ class User(UserMixin, Base, Admin):
     is_superuser = db.Column(db.Boolean,nullable=False, default="0")
     role_id = db.Column(db.Integer, db.ForeignKey('auth_role.id'),nullable=True)
     role = db.relationship('Role', cascade='all,delete', backref="userrole")
+    group_id = db.Column(db.Integer,db.ForeignKey('iwms_group.id',ondelete="SET NULL"),nullable=True)
+    group = db.relationship('Group',backref='users')
+    default_warehouse_id = db.Column(db.Integer,db.ForeignKey('iwms_warehouse.id',ondelete="SET NULL"),nullable=True)
+    default_warehouse = db.relationship('Warehouse',foreign_keys=[default_warehouse_id])
+    other_warehouse_id = db.Column(db.Integer,db.ForeignKey('iwms_warehouse.id',ondelete="SET NULL"),nullable=True)
+    other_warehouse = db.relationship('Warehouse',foreign_keys=[other_warehouse_id])
+    department_id = db.Column(db.Integer,db.ForeignKey('iwms_department.id',ondelete="SET NULL"),nullable=True)
+    department = db.relationship('Department',backref='user')
+    logs = db.relationship('CoreLog',backref='user_logs')
 
     def __init__(self):
         Base.__init__(self)

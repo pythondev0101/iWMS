@@ -52,6 +52,15 @@
                                         Please provide a valid {{ field.label }}
                                     </div>
                                 </div>
+                                <!-- FIELD FOR CHECKBOXES -->
+                                {% elif field.type == 'checkbox' %}
+                                <div class="position-relative form-group">
+                                    <div>
+                                        <div class="custom-checkbox custom-control custom-control-inline">
+                                            <input type="checkbox" id="{{ field.name }}" name="{{ field.name }}" class="custom-control-input" checked>
+                                            <label class="custom-control-label" for="{{ field.name }}">{{ field.label }}</label></div>
+                                    </div>
+                                </div>
                                 {% else %}
                                 <div class="col-md-{{ modal['fields_sizes'][row_counter.index-1] }} mb-3">
                                     <label for="{{ field.name }}">{{ field.label.upper() }}</label>

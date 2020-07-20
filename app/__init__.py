@@ -51,12 +51,14 @@ def create_app(config_name):
         from app.core import bp_core
         from app.auth import bp_auth
         from app.admin import bp_admin
+        from app.iwms import bp_iwms
         """--------------END--------------"""
 
         """EDITABLE: REGISTER HERE THE MODULE BLUEPRINTS"""
         app.register_blueprint(bp_core, url_prefix='/')
         app.register_blueprint(bp_auth, url_prefix='/auth')
         app.register_blueprint(bp_admin, url_prefix='/admin')
+        app.register_blueprint(bp_iwms,url_prefix='/iwms')
         """--------------END--------------"""
 
         db.create_all()
@@ -64,14 +66,15 @@ def create_app(config_name):
 
         """EDITABLE: INCLUDE HERE YOUR MODULE Admin models FOR ADMIN TEMPLATE"""
         from app.admin.admin import AdminModule
+        from app.iwms.iwms import IwmsModule
 
-        modules = [AdminModule]
+        modules = [AdminModule,IwmsModule]
         """--------------END--------------"""
         
         _install_modules(modules)
     return app
 
-
+# MOVE THE INSTALLATION OF MODULES AND MODELS TO FLASK CORE INSTALL COMMAND
 def _install_modules(modules):
     """
     Tatanggap to ng list ng modules tapos iinsert nya sa database yung mga models o tables nila, \
@@ -100,6 +103,7 @@ def _install_modules(modules):
             new_module.status = 'installed'
             db.session.add(new_module)
             db.session.commit()
+            print("MODULE - {}: SUCCESS".format(new_module.name))
             last_id = new_module.id
 
         model_count = 0
@@ -110,6 +114,7 @@ def _install_modules(modules):
                 new_model = HomeBestModel(model.model_name, last_id, model.model_description)
                 db.session.add(new_model)
                 db.session.commit()
+                print("MODEL - {}: SUCCESS".format(new_model.name))
             system_modules[module_count]['models'].append({'name':model.model_name,'icon': model.model_icon,
             'functions': []})
             
@@ -129,5 +134,6 @@ def _install_modules(modules):
                     new_model = HomeBestModel(xmodel.model_name, last_id, xmodel.model_description,False)
                     db.session.add(new_model)
                     db.session.commit()
+                    print("MODEL - {}: SUCCESS".format(new_model.name))
 
         module_count = module_count + 1
