@@ -23,11 +23,13 @@
     -->
     <link href="{{ url_for('static', filename='css/lib/main.css') }}" rel="stylesheet">
     <link href="{{ url_for('static', filename='css/homebest.css') }}" rel="stylesheet">
-    <link rel="shortcut icon" href="{{ url_for('static', filename='img/favicon.ico') }}">
+    <!-- <link rel="shortcut icon" href="{{ url_for('static', filename='img/favicon.ico') }}"> -->
     <link href="{{ url_for('static', filename='DataTables/datatables.css') }}" rel="stylesheet">
     <!-- <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css"> -->
     <!-- <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.5.0/jquery.min.js"></script> -->
     <!-- <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.9/jquery-ui.min.js"></script> -->
+    {% block style %}
+    {% endblock %}
 </head>
 <body>
     <div class="app-container app-theme-white body-tabs-shadow fixed-sidebar fixed-header">
@@ -88,7 +90,7 @@
 
 <!--INCLUDE HERE: MODALS-->
 {% block modals %}
-    {% if create_modal%}
+    {% if create_modal and context['create_modal']['create_url'] %}
         {% include create_modal %}
     {% endif %}
     {% if view_modal %}

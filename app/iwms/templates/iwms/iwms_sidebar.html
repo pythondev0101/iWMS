@@ -254,7 +254,16 @@
   </a>
   <ul>
     <li>
-      <a href=""> <i class="metismenu-icon"> </i>Configuration </a>
+      <a href=""> <i class="metismenu-icon"> </i>Sales Via</a>
+    </li>
+    <li>
+      <a href=""> <i class="metismenu-icon"> </i>Client Group</a>
+    </li>
+    <li>
+      <a href=""> <i class="metismenu-icon"> </i>Client</a>
+    </li>
+    <li>
+      <a href=""> <i class="metismenu-icon"> </i>Sales Order</a>
     </li>
   </ul>
 </li>
@@ -272,7 +281,16 @@
   </a>
   <ul>
     <li>
-      <a href=""> <i class="metismenu-icon"> </i>Configuration </a>
+      <a href="{{ url_for('bp_iwms.products') }}" class="{% if context['mm-active'] == 'product' %} mm-active {% endif %}"> <i class="metismenu-icon"> </i>Product</a>
+    </li>
+    <li>
+      <a href="{{ url_for('bp_iwms.suppliers') }}" class="{% if context['mm-active'] == 'supplier' %} mm-active {% endif %}"> <i class="metismenu-icon"> </i>Supplier</a>
+    </li>
+    <li>
+      <a href="" class="{% if context['mm-active'] == 'term' %} mm-active {% endif %}"> <i class="metismenu-icon"> </i>Terms</a>
+    </li>
+    <li>
+      <a href="{{ url_for('bp_iwms.purchase_orders') }}" class="{% if context['mm-active'] == 'purchase_order' %} mm-active {% endif %}"> <i class="metismenu-icon"> </i>Purchase Order</a>
     </li>
   </ul>
 </li>
@@ -290,7 +308,7 @@
   </a>
   <ul>
     <li>
-      <a href=""> <i class="metismenu-icon"> </i>Configuration </a>
+      <a href=""> <i class="metismenu-icon"> </i> </a>
     </li>
   </ul>
 </li>
@@ -300,10 +318,10 @@
     class="{% if context['active']=='reports' %} mm-active {% endif %}"
   >
     <i
-      class="metismenu-icon pe-7s-note2 icon-gradient bg-premium-dark"
+      class="metismenu-icon pe-7s-network icon-gradient bg-premium-dark"
       aria-hidden="true"
     ></i>
-    Warehouse bin location
+    Warehouse Bin Location
     <i class="metismenu-state-icon pe-7s-angle-down caret-left"></i>
   </a>
   <ul>

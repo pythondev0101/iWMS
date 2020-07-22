@@ -190,3 +190,70 @@ class Putaway(Base,Admin):
     remarks = db.Column(db.String(255),nullable=True)
     model_name = 'putaway'
     model_icon = 'pe-7s-junk'
+
+class Supplier(Base,Admin):
+    __tablename__ = 'iwms_supplier'
+    code = db.Column(db.String(255),nullable=False)
+    name = db.Column(db.String(255),nullable=False)
+    status = db.Column(db.String(255),nullable=True)
+
+    model_name = 'supplier'
+    model_icon = ''
+
+class Term(Base,Admin):
+    __tablename__  = 'iwms_term'
+    code = db.Column(db.String(255),nullable=False)
+    description = db.Column(db.String(255),nullable=True)
+    days = db.Column(db.Integer,nullable=True)
+
+    model_name = 'term'
+    model_icon = ''
+
+class ShipTo(enum.Enum):
+    warehouse = "Warehouse"
+
+
+class PurchaseOrderStatus(enum.Enum):
+    logged = "LOGGED"
+    released = "RELEASED"
+    completed = "COMPLETED"
+
+class PurchaseOrder(Base,Admin):
+    __tablename__ = 'iwms_purchase_order'
+    po_number = db.Column(db.String(255),nullable=False)
+    status = db.Column(db.Enum(PurchaseOrderStatus),default=PurchaseOrderStatus.logged)
+    supplier_id = db.Column(db.Integer,db.ForeignKey('iwms_supplier.id',ondelete="SET NULL"),nullable=True)
+    supplier = db.relationship('Supplier',backref="purchase_orders")
+    ship_to = db.Column(db.Enum(ShipTo),default=ShipTo.warehouse)
+    warehouse_id = db.Column(db.Integer,db.ForeignKey('iwms_warehouse.id',ondelete="SET NULL"),nullable=True)
+    warehouse = db.relationship('Warehouse',backref="purchase_orders")
+    address = db.Column(db.String(255),nullable=True)
+    ordered_date = db.Column(db.DateTime, default=datetime.utcnow,nullable=True)
+    delivery_date = db.Column(db.DateTime, default=datetime.utcnow,nullable=True)
+    approved_by = db.Column(db.String(255),nullable=True)
+    product_line = db.relationship('PurchaseOrderProductLine', cascade='all,delete', backref="role")
+
+    model_name = 'purchase_order'
+    model_icon = ''
+
+class PurchaseOrderProductLine(db.Model):
+    __tablename__ = 'iwms_purchase_order_product_line'
+    id = db.Column(db.Integer, primary_key=True)
+    purchase_order_id = db.Column(db.Integer, db.ForeignKey('iwms_purchase_order.id',ondelete='CASCADE'))
+    product_id = db.Column(db.Integer,db.ForeignKey('iwms_product.id',ondelete="SET NULL"),nullable=True)
+    product = db.relationship('Product',backref="po_line")
+    qty = db.Column(db.Integer,nullable=True)
+    unit_cost = db.Column(db.Numeric(10,2),nullable=True)
+    amount = db.Column(db.Numeric(10,2),nullable=True)
+    uom = db.Column(db.String(64),nullable=True)
+
+class Product(Base,Admin):
+    __tablename__ = 'iwms_product'
+
+    item_no = db.Column(db.String(255),nullable=False)
+    item_name = db.Column(db.String(255),nullable=False)
+    desciption = db.Column(db.String(255),nullable=True)
+    barcode = db.Column(db.String(255),nullable=True)
+
+    model_name = 'product'
+    model_icon = ''

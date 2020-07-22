@@ -23,7 +23,7 @@ system_modules = []
 
 context = {'system_modules': system_modules, 'module': '', 'active': '', 'errors': {}, 
         'create_modal': {}, 'header_color': "header_color15", 'sidebar_color': "sidebar_color15",
-        'app_name':"HomeBest"}
+        'app_name':"iWMS"}
 
 def create_app(config_name):
     """

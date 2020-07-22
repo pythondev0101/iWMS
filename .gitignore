@@ -67,4 +67,4 @@ migrations/
 instance/
 .env
 
-homebest_env/
+flask_env/

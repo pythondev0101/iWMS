@@ -157,10 +157,10 @@ def admin_edit(form, update_url, oid,modal_form=False, action="admin/admin_edit_
         
         if 'update_url' in kwargs:
             update_url = kwargs.get('update_url')
-    
+
     return render_template(template, context=context, form=form, update_url=update_url,
                            oid=oid,modal_form=modal_form,edit_title=form.edit_title,delete_table=delete_table,
-                           action=action,extra_modal=extra_modal,index_url=index_url)
+                           action=action,extra_modal=extra_modal,index_url=index_url,title=form.edit_title)
 
 
 def admin_index(*model, fields, form=None, url='', action="admin/admin_actions.html",

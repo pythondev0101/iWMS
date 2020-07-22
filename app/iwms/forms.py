@@ -263,11 +263,6 @@ class StockItemCreateForm(FlaskForm):
     brand = StringField('Brand')
     name = StringField('Name')
     description = StringField('Description')
-    cap_size = IntegerField('Cap Size')
-    cap_profile = StringField('Cap Profile')
-    compound = IntegerField('Compound')
-    suppliers = StringField('Supplier(s)')
-    clients = StringField('Client(s)')
     packaging = StringField('Packaging')
     tax_code = SelectField('Tax Code',choices=[('test','TestCode')])
     reorder_qty = IntegerField('Reorder Qty')
@@ -308,3 +303,58 @@ class PutawayCreateForm(FlaskForm):
     receipt_no = StringField()
     reference = StringField()
     remarks = StringField()
+
+class PurchaseOrderCreateForm(FlaskForm):
+    po_number = StringField()
+    status = StringField()
+    supplier_id = StringField()
+    ship_to = SelectField('Ship To',choices=[
+        ('warehouse','Warehouse')])
+    warehouse_id = StringField()
+    address = StringField()
+    ordered_date = StringField()
+    delivery_date = StringField()
+    approved_by = StringField()
+
+class SupplierForm(AdminIndexForm):
+    index_headers = ['code','name','status']
+    index_title = 'Suppliers'
+    
+    code = AdminField(label='Code',validators=[DataRequired()])
+    name = AdminField(label='Name',validators=[DataRequired()])
+
+    def create_fields(self):
+        return [[self.code,self.name]]
+
+
+class SupplierEditForm(AdminEditForm):
+    code = AdminField(label='Code',validators=[DataRequired()])
+    name = AdminField(label='Name',validators=[DataRequired()])
+
+    def edit_fields(self):
+        return [[self.code,self.name]]
+   
+    edit_title = 'Edit supplier'
+
+class ProductForm(AdminIndexForm):
+    index_headers = ['item no.','item name','description']
+    index_title = 'Products'
+    
+    item_no = AdminField(label='Item No.',validators=[DataRequired()])
+    item_name = AdminField(label='Item name',validators=[DataRequired()])
+    description = AdminField(label='Description',required=False)
+    barcode = AdminField(label='Barcode',required=False)
+
+    def create_fields(self):
+        return [[self.item_no,self.item_name],[self.description,self.barcode]]
+
+class ProductEditForm(AdminEditForm):
+    item_no = AdminField(label='Item No.',validators=[DataRequired()])
+    item_name = AdminField(label='Item name',validators=[DataRequired()])
+    description = AdminField(label='Description',required=False)
+    barcode = AdminField(label='Barcode',required=False)
+
+    def edit_fields(self):
+        return [[self.item_no,self.item_name],[self.description,self.barcode]]
+    
+    edit_title = 'Edit product'

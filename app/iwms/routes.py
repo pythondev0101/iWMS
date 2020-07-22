@@ -23,7 +23,7 @@ from app.admin.routes import admin_index, admin_edit
 
 from .models import Group,Department,TransactionType,Warehouse,Zone, \
     BinLocation,Category,StockItem,UnitOfMeasure,Reason,StockReceipt,Putaway, \
-        Email as EAddress
+        Email as EAddress, PurchaseOrder, Supplier, Term,Product,PurchaseOrderProductLine
 from .forms import *
 from datetime import datetime
 from app.core.models import CoreLog
@@ -686,7 +686,7 @@ def reason_edit(oid):
 def stock_items():
     fields = [StockItem.id,StockItem.description,StockItem.name]
     context['mm-active'] = 'stock_item'
-    return admin_index(StockItem,fields=fields,view_modal=False,create_modal=False,template="iwms/iwms_index.html",kwargs={
+    return admin_index(StockItem,fields=fields,view_modal=False,create_modal=True,template="iwms/iwms_index.html",kwargs={
         'index_title':'Stock items','index_headers':['Description','Name'],'index_message':'List of items',
         'active':'inventory'
         })
@@ -713,11 +713,11 @@ def stock_item_create():
             obj.brand = f.brand.data
             obj.name = f.name.data
             obj.description = f.description.data
-            obj.cap_size = f.cap_size.data
-            obj.cap_profile = f.cap_profile.data
-            obj.compound = f.compound.data
-            obj.suppliers = f.suppliers.data
-            obj.clients = f.clients.data
+            obj.cap_size = None
+            obj.cap_profile = None
+            obj.compound = None
+            obj.suppliers = None
+            obj.clients = None
             obj.packaging = f.packaging.data
             obj.tax_code = f.tax_code.data
             obj.reorder_qty = f.reorder_qty.data
@@ -748,7 +748,7 @@ def stock_item_create():
 def stock_receipts():
     fields = [StockReceipt.id,StockReceipt.sr_number,StockReceipt.status]
     context['mm-active'] = 'stock_receipt'
-    return admin_index(StockReceipt,fields=fields,view_modal=False,template="iwms/iwms_index.html",kwargs={
+    return admin_index(StockReceipt,fields=fields,view_modal=False,create_modal=True,template="iwms/iwms_index.html",kwargs={
         'index_title':'Stock receipts','index_headers':['SR No.','Status'],'index_message':'List of items',
         'active':'inventory'
         })
@@ -787,7 +787,7 @@ def stock_receipt_create():
             flash('New Stock Receipt added Successfully!','success')
             return redirect(url_for('bp_iwms.stock_receipts'))
         else:
-            for key, value in form.errors.items():
+            for key, value in f.errors.items():
                 flash(str(key) + str(value), 'error')
             return redirect(url_for('bp_iwms.stock_receipts'))
         
@@ -796,7 +796,7 @@ def stock_receipt_create():
 def putaways():
     fields = [Putaway.id,Putaway.pwy_number,Putaway.status]
     context['mm-active'] = 'putaway'
-    return admin_index(Putaway,fields=fields,view_modal=False,template="iwms/iwms_index.html",kwargs={
+    return admin_index(Putaway,fields=fields,view_modal=False,create_modal=True,template="iwms/iwms_index.html",kwargs={
         'index_title':'Putaway','index_headers':['PWY No.','Status'],'index_message':'List of items',
         'active':'inventory'
         })
@@ -812,7 +812,7 @@ def putaway_create():
         context['mm-active'] = 'putaway'
         context['module'] = 'iwms'
         context['model'] = 'stock_receipt'
-        return render_template('iwms/iwms_putaway_create.html',context=context,form=f,title="Create stock receipt",warehouses=warehouses)
+        return render_template('iwms/iwms_putaway_create.html',context=context,form=f,title="Create putaway",warehouses=warehouses)
     elif request.method == "POST":
         if f.validate_on_submit():
             obj = StockReceipt()
@@ -838,3 +838,205 @@ def putaway_create():
             for key, value in form.errors.items():
                 flash(str(key) + str(value), 'error')
             return redirect(url_for('bp_iwms.stock_receipts'))
+
+@bp_iwms.route('/purchase_orders')
+@login_required
+def purchase_orders():
+    fields = [PurchaseOrder.id,PurchaseOrder.po_number,PurchaseOrder.status.name]
+    context['mm-active'] = 'purchase_order'
+    # TEMPORARY LANG TO, may bug kasi
+    context['create_modal']['create_url'] = False
+    return admin_index(PurchaseOrder,fields=fields,view_modal=False,create_modal=True,template="iwms/iwms_index.html",kwargs={
+        'index_title':'Purchase Orders','index_headers':['PO No.','Status'],'index_message':'List of items',
+        'active':'purchases'
+        })
+
+def _generate_number(prefix, lID):
+    generated_number = ""
+    if 1 <= lID < 10:
+        generated_number = prefix +"0000000" + str(lID+1)
+    elif 10 <= lID < 100:
+        generated_number = prefix + "000000" + str(lID+1)
+    elif 100 <= lID < 1000:
+        generated_number = prefix + "00000" + str(lID+1)
+    elif 1000 <= lID < 10000:
+        generated_number = prefix + "0000" + str(lID+1)
+    elif 10000 <= lID < 100000:
+        generated_number = prefix + "000" + str(lID+1)
+    elif 100000 <= lID < 1000000:
+        generated_number = prefix + "00" + str(lID+1)
+    elif 1000000 <= lID < 10000000:
+        generated_number = prefix + "0" + str(lID+1)
+    else:
+        generated_number = prefix + str(lID+1)
+    return generated_number
+
+@bp_iwms.route('/purchase_order_create',methods=['GET','POST'])
+@login_required
+def purchase_order_create():
+    po_generated_number = ""
+    po = db.session.query(PurchaseOrder).order_by(PurchaseOrder.id.desc()).first()
+    if po:
+        po_generated_number = _generate_number("PO",po.id)
+    else:
+        # MAY issue to kasi kapag hindi na truncate yung table magkaiba na yung id at number ng po
+        # Make sure nakatruncate ang mga table ng po para reset yung auto increment na id
+        po_generated_number = "PO00000001"
+    
+    f = PurchaseOrderCreateForm()
+    if request.method == "GET":
+        # Hardcoded html ang irerender natin hindi yung builtin ng admin
+        warehouses = Warehouse.query.all()
+        suppliers = Supplier.query.all()
+        products = Product.query.all()
+        context['active'] = 'purchases'
+        context['mm-active'] = 'purchase_order'
+        context['module'] = 'iwms'
+        context['model'] = 'purchase_order'
+        return render_template('iwms/iwms_purchase_order_create.html', po_generated_number=po_generated_number, \
+            context=context,form=f,title="Create purchase order",warehouses=warehouses,suppliers=suppliers,products=products)
+    elif request.method == "POST":
+        if f.validate_on_submit():
+            r = request.form
+            po = PurchaseOrder()
+            po.po_number = po_generated_number
+            po.supplier_id = f.supplier_id.data if not f.supplier_id.data == '' else None
+            po.warehouse_id = f.warehouse_id.data if not f.warehouse_id.data == '' else None
+            po.ship_to = f.ship_to.data
+            po.address = f.address.data
+            # po.remarks = f.remarks.data
+            po.ordered_date = f.ordered_date.data if not f.ordered_date.data == '' else None
+            po.delivery_date = f.delivery_date.data if not f.delivery_date.data == '' else None
+            po.approved_by = f.approved_by.data
+            po.created_by = "{} {}".format(current_user.fname,current_user.lname)
+
+            for product_id in r.getlist('products[]'):
+                product = Product.query.get(product_id)
+                qty = r.get("qty_{}".format(product_id))
+                cost = r.get("cost_{}".format(product_id))
+                amount = r.get("amount_{}".format(product_id))
+                uom = r.get("uom_{}".format(product_id))
+                print("amount:",amount,"uom:",uom)
+                line = PurchaseOrderProductLine(product=product,qty=qty,unit_cost=cost,amount=amount,uom=uom)
+                po.product_line.append(line)
+
+            db.session.add(po)
+            db.session.commit()
+            flash('New Purchase Order added Successfully!','success')
+            return redirect(url_for('bp_iwms.purchase_orders'))
+        else:
+            for key, value in f.errors.items():
+                flash(str(key) + str(value), 'error')
+            return redirect(url_for('bp_iwms.purchase_orders'))
+
+
+@bp_iwms.route('/suppliers')
+@login_required
+def suppliers():
+    fields = [Supplier.id,Supplier.code,Supplier.name,Supplier.status]
+    context['mm-active'] = 'supplier'
+    return admin_index(Supplier,fields=fields,form=SupplierForm(), \
+        template='iwms/iwms_index.html', edit_url='bp_iwms.supplier_edit',\
+            create_url="bp_iwms.supplier_create",kwargs={'active':'purchases'})
+
+@bp_iwms.route('/supplier_create',methods=['POST'])
+@login_required
+def supplier_create():
+    f = SupplierForm()
+    if request.method == "POST":
+        if f.validate_on_submit():
+            obj = Supplier()
+            obj.code = f.code.data
+            obj.name = f.name.data
+            obj.status = "ACTIVE"
+            obj.created_by = "{} {}".format(current_user.fname,current_user.lname)
+            db.session.add(obj)
+            db.session.commit()
+            flash("New supplier added successfully!",'success')
+            return redirect(url_for('bp_iwms.suppliers'))
+        else:
+            for key, value in f.errors.items():
+                flash(str(key) + str(value), 'error')
+            return redirect(url_for('bp_iwms.suppliers'))
+
+@bp_iwms.route('/supplier_edit/<int:oid>',methods=['GET','POST'])
+@login_required
+def supplier_edit(oid):
+    obj = Supplier.query.get_or_404(oid)
+    f = SupplierEditForm(obj=obj)
+    if request.method == "GET":
+        context['mm-active'] = 'supplier'
+
+        return admin_edit(f,'bp_iwms.supplier_edit',oid, \
+            model=Supplier,template='iwms/iwms_edit.html',kwargs={'active':'purchases'})
+    elif request.method == "POST":
+        if f.validate_on_submit():
+            obj.code = f.code.data
+            obj.name = f.name.data
+            obj.status = "ACTIVE"
+            obj.updated_by = "{} {}".format(current_user.fname,current_user.lname)
+            obj.updated_at = datetime.now()
+            db.session.commit()
+            flash('Supplier update Successfully!','success')
+            return redirect(url_for('bp_iwms.suppliers'))
+        else:
+            for key, value in form.errors.items():
+                flash(str(key) + str(value), 'error')
+            return redirect(url_for('bp_iwms.suppliers'))
+
+
+@bp_iwms.route('/products')
+@login_required
+def products():
+    fields = [Product.id,Product.item_no,Product.item_name,Product.desciption]
+    context['mm-active'] = 'product'
+    return admin_index(Product,fields=fields,form=ProductForm(), \
+        template='iwms/iwms_index.html', edit_url='bp_iwms.product_edit',\
+            create_url="bp_iwms.product_create",kwargs={'active':'purchases'})
+
+@bp_iwms.route('/product_create',methods=['POST'])
+@login_required
+def product_create():
+    f = ProductForm()
+    if request.method == "POST":
+        if f.validate_on_submit():
+            obj = Product()
+            obj.item_no = f.item_no.data
+            obj.item_name = f.item_name.data
+            obj.desciption = f.description.data
+            obj.barcode = f.barcode.data
+            obj.created_by = "{} {}".format(current_user.fname,current_user.lname)
+            db.session.add(obj)
+            db.session.commit()
+            flash("New product added successfully!",'success')
+            return redirect(url_for('bp_iwms.products'))
+        else:
+            for key, value in f.errors.items():
+                flash(str(key) + str(value), 'error')
+            return redirect(url_for('bp_iwms.products'))
+
+@bp_iwms.route('/product_edit/<int:oid>',methods=['GET','POST'])
+@login_required
+def product_edit(oid):
+    obj = Product.query.get_or_404(oid)
+    f = ProductEditForm(obj=obj)
+    if request.method == "GET":
+        context['mm-active'] = 'product'
+
+        return admin_edit(f,'bp_iwms.product_edit',oid, \
+            model=Supplier,template='iwms/iwms_edit.html',kwargs={'active':'purchases'})
+    elif request.method == "POST":
+        if f.validate_on_submit():
+            obj.item_no = f.item_no.data
+            obj.item_name = f.item_name.data
+            obj.desciption = f.description.data
+            obj.barcode = f.barcode.data
+            obj.updated_by = "{} {}".format(current_user.fname,current_user.lname)
+            obj.updated_at = datetime.now()
+            db.session.commit()
+            flash('Product update Successfully!','success')
+            return redirect(url_for('bp_iwms.products'))
+        else:
+            for key, value in form.errors.items():
+                flash(str(key) + str(value), 'error')
+            return redirect(url_for('bp_iwms.products'))

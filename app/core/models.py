@@ -103,3 +103,6 @@ class CoreLog(db.Model):
     data = db.Column(db.String(500),nullable=True)
 
     model_name = 'core_log'
+    model_icon = ''
+    model_description = 'System Log'
+    functions = [{}]
