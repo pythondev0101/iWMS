@@ -160,7 +160,7 @@ def admin_edit(form, update_url, oid,modal_form=False, action="admin/admin_edit_
 
     return render_template(template, context=context, form=form, update_url=update_url,
                            oid=oid,modal_form=modal_form,edit_title=form.edit_title,delete_table=delete_table,
-                           action=action,extra_modal=extra_modal,index_url=index_url,title=form.edit_title)
+                           action=action,extra_modal=extra_modal,index_url=index_url,title=form.edit_title,rendered_model=model)
 
 
 def admin_index(*model, fields, form=None, url='', action="admin/admin_actions.html",
@@ -225,6 +225,9 @@ def admin_index(*model, fields, form=None, url='', action="admin/admin_actions.h
 
             if create_url and create_modal:
                 _set_modal(create_url, form)
+            elif create_modal:
+                _set_modal('', form)
+
         else:
             
             if 'index_headers' not in kwargs:
@@ -280,13 +283,15 @@ def _set_modal(url, form):
                 fields[row_count].append(
                     {
                         'name': field.name, 'label': field.label, 'type': field.input_type, 
-                        'data': data,'placeholder':field.placeholder,'required':field.required
+                        'data': data,'placeholder':field.placeholder,'required':field.required,'readonly':field.readonly,
+                        'auto_generated': field.auto_generated
                         })
             else:
                 fields[row_count].append(
                     {
                         'name': field.name, 'label': field.label, 'type': field.input_type,
-                        'placeholder':field.placeholder,'required':field.required
+                        'placeholder':field.placeholder,'required':field.required,'readonly':field.readonly,
+                        'auto_generated': field.auto_generated
                         })
             field_count = field_count + 1
             js_fields.append(field.name)

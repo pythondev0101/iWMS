@@ -5,8 +5,12 @@
         <div class="page-title-wrapper">
             <div class="page-title-heading">
                 <div class="page-title-icon">
+                    {% if context['model'] == 'Users' %}
                     <img width="42" class="rounded-circle"
                     src="{{url_for('static', filename=current_user.image_path)}}" alt="">
+                    {% else %}
+                    <i class="{{ rendered_model.model_icon }} icon-gradient bg-happy-itmeo"></i>
+                    {% endif %}
                 </div>
                 <div>
                     {{ edit_title }}

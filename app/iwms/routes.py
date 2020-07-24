@@ -23,11 +23,33 @@ from app.admin.routes import admin_index, admin_edit
 
 from .models import Group,Department,TransactionType,Warehouse,Zone, \
     BinLocation,Category,StockItem,UnitOfMeasure,Reason,StockReceipt,Putaway, \
-        Email as EAddress, PurchaseOrder, Supplier, Term,Product,PurchaseOrderProductLine
+        Email as EAddress, PurchaseOrder, Supplier, Term,PurchaseOrderProductLine,StockItemType,TaxCode,\
+            StockItemUomLine
 from .forms import *
 from datetime import datetime
 from app.core.models import CoreLog
 from app.auth.models import User
+
+
+def _generate_number(prefix, lID):
+    generated_number = ""
+    if 1 <= lID < 10:
+        generated_number = prefix +"0000000" + str(lID+1)
+    elif 10 <= lID < 100:
+        generated_number = prefix + "000000" + str(lID+1)
+    elif 100 <= lID < 1000:
+        generated_number = prefix + "00000" + str(lID+1)
+    elif 1000 <= lID < 10000:
+        generated_number = prefix + "0000" + str(lID+1)
+    elif 10000 <= lID < 100000:
+        generated_number = prefix + "000" + str(lID+1)
+    elif 100000 <= lID < 1000000:
+        generated_number = prefix + "00" + str(lID+1)
+    elif 1000000 <= lID < 10000000:
+        generated_number = prefix + "0" + str(lID+1)
+    else:
+        generated_number = prefix + str(lID+1)
+    return generated_number
 
 #TODO: Temporary lang to pang check, maganda sana gawing decorator siguro 
 def _check_create(model_name):
@@ -577,7 +599,7 @@ def category_edit(oid):
 @bp_iwms.route('/unit_of_measures')
 @login_required
 def unit_of_measures():
-    fields = [UnitOfMeasure.id,UnitOfMeasure.code,UnitOfMeasure.description]
+    fields = [UnitOfMeasure.id,UnitOfMeasure.code,UnitOfMeasure.description,UnitOfMeasure.active]
     context['mm-active'] = 'unit_of_measure'
     return admin_index(UnitOfMeasure,fields=fields,form=UnitOfMeasureForm(), \
         template='iwms/iwms_index.html', edit_url='bp_iwms.unit_of_measure_edit', \
@@ -592,6 +614,7 @@ def unit_of_measure_create():
             obj = UnitOfMeasure()
             obj.code = f.code.data
             obj.description = f.description.data
+            obj.active = 1 if f.active.data == 'on' else 0
             obj.created_by = "{} {}".format(current_user.fname,current_user.lname)
             db.session.add(obj)
             db.session.commit()
@@ -617,6 +640,7 @@ def unit_of_measure_edit(oid):
         if f.validate_on_submit():
             obj.code = f.code.data
             obj.description = f.description.data
+            obj.active = 1 if f.active.data == 'on' else 0
             obj.updated_by = "{} {}".format(current_user.fname,current_user.lname)
             obj.updated_at = datetime.now()
             db.session.commit()
@@ -684,64 +708,197 @@ def reason_edit(oid):
 @bp_iwms.route('/stock_items')
 @login_required
 def stock_items():
-    fields = [StockItem.id,StockItem.description,StockItem.name]
+    fields = [StockItem.id,StockItem.number,StockItem.name,StockItem.description]
     context['mm-active'] = 'stock_item'
-    return admin_index(StockItem,fields=fields,view_modal=False,create_modal=True,template="iwms/iwms_index.html",kwargs={
-        'index_title':'Stock items','index_headers':['Description','Name'],'index_message':'List of items',
+    # TODO: Kailangan idelete yung context['create_modal'] kasi naiiwan sya
+    form = StockItemView()
+    context['create_modal']['create_url'] = ''
+    return admin_index(StockItem,form=form,fields=fields,edit_url="bp_iwms.stock_item_edit",create_modal=True,template="iwms/iwms_index.html",kwargs={
         'active':'inventory'
         })
 
 @bp_iwms.route('/stock_item_create',methods=['GET','POST'])
 @login_required
 def stock_item_create():
+    si_generated_number = ""
+    si = db.session.query(StockItem).order_by(StockItem.id.desc()).first()
+    if si:
+        si_generated_number = _generate_number("SI",si.id)
+    else:
+        # MAY issue to kasi kapag hindi na truncate yung table magkaiba na yung id at number ng po
+        # Make sure nakatruncate ang mga table ng po para reset yung auto increment na id
+        si_generated_number = "SI00000001"
+
     f = StockItemCreateForm()
 
     if request.method == "GET":
-        # Hardcoded html ang irerender natin hindi yung builtin ng admin
         categories = Category.query.all()
+        types = StockItemType.query.all()
+        suppliers = Supplier.query.all()
+        tax_codes = TaxCode.query.all()
+        uoms = UnitOfMeasure.query.all()
         context['active'] = 'inventory'
         context['module'] = 'iwms'
         context['model'] = 'stock_item'
-        return render_template('iwms/iwms_stock_item_create.html',context=context,form=f,categories=categories,title="Create stock item")
+        context['mm-active'] = 'stock_item'
+
+        # Hardcoded html ang irerender natin hindi yung builtin ng admin
+        return render_template('iwms/iwms_stock_item_create.html',context=context,si_generated_number=si_generated_number,\
+            form=f,categories=categories,types=types,title="Create stock item",suppliers=suppliers,tax_codes=tax_codes,\
+                uoms=uoms)
     elif request.method == "POST":
         if f.validate_on_submit():
             obj = StockItem()
-            obj.number = f.number.data
-            obj.status = f.status.data
-            obj.type = f.type.data
-            obj.category_id = f.category_id.data
+            obj.number = si_generated_number
+            obj.status = "active"
+            obj.stock_item_type_id = f.stock_item_type_id.data if not f.stock_item_type_id.data == '' else None 
+            obj.category_id = f.category_id.data if not f.category_id.data == '' else None
+            obj.has_serial = 1 if f.has_serial.data == 'on' else 0
+            obj.monitor_expiration = 1 if f.monitor_expiration.data == 'on' else 0
             obj.brand = f.brand.data
             obj.name = f.name.data
             obj.description = f.description.data
-            obj.cap_size = None
-            obj.cap_profile = None
-            obj.compound = None
-            obj.suppliers = None
-            obj.clients = None
+            obj.cap_size,obj.cap_profile,obj.compound,obj.clients = None, None, None, None
             obj.packaging = f.packaging.data
-            obj.tax_code = f.tax_code.data
-            obj.reorder_qty = f.reorder_qty.data
-            obj.description_plu = f.reorder_qty.data
+            obj.tax_code_id = f.tax_code_id.data if not f.tax_code_id.data == '' else None
+            obj.reorder_qty = f.reorder_qty.data if not f.reorder_qty.data == '' else None
+            obj.description_plu = f.description_plu.data
             obj.barcode = f.barcode.data
+            obj.qty_plu = f.qty_plu.data if not f.qty_plu.data == '' else None
             obj.length = f.length.data
             obj.width = f.width.data
             obj.height = f.height.data
-            obj.default_cost = f.default_cost.data
-            obj.default_price = f.default_price.data
+            obj.unit_id = f.unit_id.data if not f.unit_id.data == '' else None
+            obj.default_cost = f.default_cost.data if not f.default_cost.data == '' else None
+            obj.default_price = f.default_price.data if not f.default_price.data == '' else None
             obj.weight = f.weight.data
             obj.cbm = f.cbm.data
-            obj.qty_per_pallet = f.qty_per_pallet.data
-            obj.shelf_life = f.shelf_life.data
-            obj.qa_lead_time = f.qa_lead_time.data
+            obj.qty_per_pallet = f.qty_per_pallet.data if not f.qty_per_pallet.data == '' else None
+            obj.shelf_life = f.shelf_life.data if not f.shelf_life.data == '' else None
+            obj.qa_lead_time = f.qa_lead_time.data if not f.qa_lead_time.data == '' else None
             obj.created_by = "{} {}".format(current_user.fname,current_user.lname)
+
+            supplier_ids = request.form.getlist('suppliers')
+            if supplier_ids:
+                for s_id in supplier_ids:
+                    supplier = Supplier.query.get_or_404(int(s_id))
+                    obj.suppliers.append(supplier)
+
+            uom_ids = request.form.getlist('uoms[]')
+            if uom_ids:
+                for u_id in uom_ids:
+                    uom = UnitOfMeasure.query.get(u_id)
+                    qty = request.form.get("qty_{}".format(u_id))
+                    barcode = request.form.get("barcode_{}".format(u_id))
+                    default_cost = request.form.get("default_cost_{}".format(u_id))
+                    default_price = request.form.get("default_price_{}".format(u_id))
+                    length = request.form.get("length_{}".format(u_id))
+                    width = request.form.get("width_{}".format(u_id))
+                    height = request.form.get("height_{}".format(u_id))
+                    line = StockItemUomLine(uom=uom,qty=qty,barcode=barcode,default_cost=default_cost,default_price=default_price,\
+                        length=length,width=width,height=height)
+                    obj.uom_line.append(line)
+
             db.session.add(obj)
             db.session.commit()
             flash('New Stock Item added Successfully!','success')
             return redirect(url_for('bp_iwms.stock_items'))
         else:
-            for key, value in form.errors.items():
+            for key, value in f.errors.items():
                 flash(str(key) + str(value), 'error')
             return redirect(url_for('bp_iwms.stock_items'))
+
+@bp_iwms.route('/stock_item_edit/<int:oid>',methods=['GET','POST'])
+@login_required
+def stock_item_edit(oid):
+    obj = StockItem.query.get_or_404(oid)
+    f = StockItemCreateForm(obj=obj)
+
+
+    if request.method == "GET":
+        context['active'] = 'inventory'
+        context['module'] = 'iwms'
+        context['model'] = 'stock_item'
+        context['mm-active'] = 'stock_item'
+        
+        categories = Category.query.all()
+        types = StockItemType.query.all()
+        suppliers = Supplier.query.all()
+        tax_codes = TaxCode.query.all()
+        units = UnitOfMeasure.query.all()
+
+        selected_suppliers = []
+        for selected in obj.suppliers:
+            selected_suppliers.append(selected.id)
+
+        query1 = db.session.query(StockItemUomLine.uom_id).filter_by(stock_item_id=oid)
+        uoms = db.session.query(UnitOfMeasure).filter(~UnitOfMeasure.id.in_(query1))
+        return render_template('iwms/iwms_stock_item_edit.html',context=context,form=f,types=types, uom_lines=obj.uom_line,\
+            categories=categories,selected_suppliers=selected_suppliers,suppliers=suppliers,uoms=uoms,units=units,title="Edit stock item",\
+                oid=oid)
+    elif request.method == "POST":
+        if f.validate_on_submit():
+            obj.number = f.number.data
+            obj.status = "active"
+            obj.stock_item_type_id = f.stock_item_type_id.data if not f.stock_item_type_id.data == '' else None 
+            obj.category_id = f.category_id.data if not f.category_id.data == '' else None
+            obj.has_serial = 1 if f.has_serial.data == 'on' else 0
+            obj.monitor_expiration = 1 if f.monitor_expiration.data == 'on' else 0
+            obj.brand = f.brand.data
+            obj.name = f.name.data
+            obj.description = f.description.data
+            obj.cap_size,obj.cap_profile,obj.compound,obj.clients = None, None, None, None
+            obj.packaging = f.packaging.data
+            obj.tax_code_id = f.tax_code_id.data if not f.tax_code_id.data == '' else None
+            obj.reorder_qty = f.reorder_qty.data if not f.reorder_qty.data == '' else None
+            obj.description_plu = f.description_plu.data
+            obj.barcode = f.barcode.data
+            obj.qty_plu = f.qty_plu.data if not f.qty_plu.data == '' else None
+            obj.length = f.length.data
+            obj.width = f.width.data
+            obj.height = f.height.data
+            obj.unit_id = f.unit_id.data if not f.unit_id.data == '' else None
+            obj.default_cost = f.default_cost.data if not f.default_cost.data == '' else None
+            obj.default_price = f.default_price.data if not f.default_price.data == '' else None
+            obj.weight = f.weight.data
+            obj.cbm = f.cbm.data
+            obj.qty_per_pallet = f.qty_per_pallet.data if not f.qty_per_pallet.data == '' else None
+            obj.shelf_life = f.shelf_life.data if not f.shelf_life.data == '' else None
+            obj.qa_lead_time = f.qa_lead_time.data if not f.qa_lead_time.data == '' else None
+            obj.updated_by = "{} {}".format(current_user.fname,current_user.lname)
+            obj.updated_at = datetime.now()
+
+            supplier_ids = request.form.getlist('suppliers')
+            if supplier_ids:
+                obj.suppliers = []
+                for new_sup in supplier_ids:
+                    supp = Supplier.query.get_or_404(new_sup)
+                    obj.suppliers.append(supp)
+
+            uom_ids = request.form.getlist('uoms[]')
+            if uom_ids:
+                obj.uom_line = []
+                for u_id in uom_ids:
+                    uom = UnitOfMeasure.query.get(u_id)
+                    qty = request.form.get("qty_{}".format(u_id))
+                    barcode = request.form.get("barcode_{}".format(u_id))
+                    default_cost = request.form.get("default_cost_{}".format(u_id))
+                    default_price = request.form.get("default_price_{}".format(u_id))
+                    length = request.form.get("length_{}".format(u_id))
+                    width = request.form.get("width_{}".format(u_id))
+                    height = request.form.get("height_{}".format(u_id))
+                    line = StockItemUomLine(uom=uom,qty=qty,barcode=barcode,default_cost=default_cost,default_price=default_price,\
+                        length=length,width=width,height=height)
+                    obj.uom_line.append(line)
+                    
+            db.session.commit()
+            flash('Stock Item updated Successfully!','success')
+            return redirect(url_for('bp_iwms.stock_items'))
+        else:
+            for key, value in f.errors.items():
+                flash(str(key) + str(value), 'error')
+            return redirect(url_for('bp_iwms.stock_items'))
+
 
 @bp_iwms.route('/stock_receipts')
 @login_required
@@ -851,26 +1008,6 @@ def purchase_orders():
         'active':'purchases'
         })
 
-def _generate_number(prefix, lID):
-    generated_number = ""
-    if 1 <= lID < 10:
-        generated_number = prefix +"0000000" + str(lID+1)
-    elif 10 <= lID < 100:
-        generated_number = prefix + "000000" + str(lID+1)
-    elif 100 <= lID < 1000:
-        generated_number = prefix + "00000" + str(lID+1)
-    elif 1000 <= lID < 10000:
-        generated_number = prefix + "0000" + str(lID+1)
-    elif 10000 <= lID < 100000:
-        generated_number = prefix + "000" + str(lID+1)
-    elif 100000 <= lID < 1000000:
-        generated_number = prefix + "00" + str(lID+1)
-    elif 1000000 <= lID < 10000000:
-        generated_number = prefix + "0" + str(lID+1)
-    else:
-        generated_number = prefix + str(lID+1)
-    return generated_number
-
 @bp_iwms.route('/purchase_order_create',methods=['GET','POST'])
 @login_required
 def purchase_order_create():
@@ -888,13 +1025,12 @@ def purchase_order_create():
         # Hardcoded html ang irerender natin hindi yung builtin ng admin
         warehouses = Warehouse.query.all()
         suppliers = Supplier.query.all()
-        products = Product.query.all()
         context['active'] = 'purchases'
         context['mm-active'] = 'purchase_order'
         context['module'] = 'iwms'
         context['model'] = 'purchase_order'
         return render_template('iwms/iwms_purchase_order_create.html', po_generated_number=po_generated_number, \
-            context=context,form=f,title="Create purchase order",warehouses=warehouses,suppliers=suppliers,products=products)
+            context=context,form=f,title="Create purchase order",warehouses=warehouses,suppliers=suppliers)
     elif request.method == "POST":
         if f.validate_on_submit():
             r = request.form
@@ -904,7 +1040,7 @@ def purchase_order_create():
             po.warehouse_id = f.warehouse_id.data if not f.warehouse_id.data == '' else None
             po.ship_to = f.ship_to.data
             po.address = f.address.data
-            # po.remarks = f.remarks.data
+            po.remarks = f.remarks.data
             po.ordered_date = f.ordered_date.data if not f.ordered_date.data == '' else None
             po.delivery_date = f.delivery_date.data if not f.delivery_date.data == '' else None
             po.approved_by = f.approved_by.data
@@ -935,7 +1071,17 @@ def purchase_order_create():
 def suppliers():
     fields = [Supplier.id,Supplier.code,Supplier.name,Supplier.status]
     context['mm-active'] = 'supplier'
-    return admin_index(Supplier,fields=fields,form=SupplierForm(), \
+    form = SupplierForm()
+    sup_generated_number = ""
+    sup = db.session.query(Supplier).order_by(Supplier.id.desc()).first()
+    if sup:
+        sup_generated_number = _generate_number("SUP",sup.id)
+    else:
+        # MAY issue to kasi kapag hindi na truncate yung table magkaiba na yung id at number ng po
+        # Make sure nakatruncate ang mga table ng po para reset yung auto increment na id
+        sup_generated_number = "SUP00000001"
+    form.code.auto_generated = sup_generated_number
+    return admin_index(Supplier,fields=fields,form=form, \
         template='iwms/iwms_index.html', edit_url='bp_iwms.supplier_edit',\
             create_url="bp_iwms.supplier_create",kwargs={'active':'purchases'})
 
@@ -983,60 +1129,3 @@ def supplier_edit(oid):
             for key, value in form.errors.items():
                 flash(str(key) + str(value), 'error')
             return redirect(url_for('bp_iwms.suppliers'))
-
-
-@bp_iwms.route('/products')
-@login_required
-def products():
-    fields = [Product.id,Product.item_no,Product.item_name,Product.desciption]
-    context['mm-active'] = 'product'
-    return admin_index(Product,fields=fields,form=ProductForm(), \
-        template='iwms/iwms_index.html', edit_url='bp_iwms.product_edit',\
-            create_url="bp_iwms.product_create",kwargs={'active':'purchases'})
-
-@bp_iwms.route('/product_create',methods=['POST'])
-@login_required
-def product_create():
-    f = ProductForm()
-    if request.method == "POST":
-        if f.validate_on_submit():
-            obj = Product()
-            obj.item_no = f.item_no.data
-            obj.item_name = f.item_name.data
-            obj.desciption = f.description.data
-            obj.barcode = f.barcode.data
-            obj.created_by = "{} {}".format(current_user.fname,current_user.lname)
-            db.session.add(obj)
-            db.session.commit()
-            flash("New product added successfully!",'success')
-            return redirect(url_for('bp_iwms.products'))
-        else:
-            for key, value in f.errors.items():
-                flash(str(key) + str(value), 'error')
-            return redirect(url_for('bp_iwms.products'))
-
-@bp_iwms.route('/product_edit/<int:oid>',methods=['GET','POST'])
-@login_required
-def product_edit(oid):
-    obj = Product.query.get_or_404(oid)
-    f = ProductEditForm(obj=obj)
-    if request.method == "GET":
-        context['mm-active'] = 'product'
-
-        return admin_edit(f,'bp_iwms.product_edit',oid, \
-            model=Supplier,template='iwms/iwms_edit.html',kwargs={'active':'purchases'})
-    elif request.method == "POST":
-        if f.validate_on_submit():
-            obj.item_no = f.item_no.data
-            obj.item_name = f.item_name.data
-            obj.desciption = f.description.data
-            obj.barcode = f.barcode.data
-            obj.updated_by = "{} {}".format(current_user.fname,current_user.lname)
-            obj.updated_at = datetime.now()
-            db.session.commit()
-            flash('Product update Successfully!','success')
-            return redirect(url_for('bp_iwms.products'))
-        else:
-            for key, value in form.errors.items():
-                flash(str(key) + str(value), 'error')
-            return redirect(url_for('bp_iwms.products'))

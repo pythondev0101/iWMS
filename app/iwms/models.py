@@ -93,18 +93,17 @@ class StockItemStatus(enum.Enum):
     active = "Active"
     hold = "Hold"
 
-class StockItemType(enum.Enum):
-    part = "Part"
-
-
-class StockItemTaxCode(enum.Enum):
-    testtax = "TestCode"
+suppliers = db.Table('suppliers',
+    db.Column('supplier_id', db.Integer, db.ForeignKey('iwms_supplier.id'), primary_key=True),
+    db.Column('stock_item_id', db.Integer, db.ForeignKey('iwms_stock_item.id'), primary_key=True)
+)
 
 class StockItem(Base,Admin):
     __tablename__ = 'iwms_stock_item'
     number = db.Column(db.String(255),nullable=False)
     status = db.Column(db.Enum(StockItemStatus),default=StockItemStatus.active)
-    type = db.Column(db.Enum(StockItemType),default=StockItemType.part)
+    stock_item_type_id = db.Column(db.Integer,db.ForeignKey('iwms_stock_item_type.id',ondelete="SET NULL"),nullable=True)
+    stock_item_type = db.relationship('StockItemType',backref='type_stock_items')
     category_id = db.Column(db.Integer,db.ForeignKey('iwms_category.id',ondelete="SET NULL"),nullable=True)
     category = db.relationship('Category',backref='stockitem_category')
     has_serial = db.Column(db.Boolean,default="0")
@@ -115,17 +114,20 @@ class StockItem(Base,Admin):
     cap_size = db.Column(db.Integer,nullable=True,default=0)
     cap_profile = db.Column(db.Integer,nullable=True,default=0)
     compound = db.Column(db.Integer,nullable=True,default=0)
-    suppliers = db.Column(db.String(255),nullable=True,default="")
-    clients = db.Column(db.String(255),nullable=True,default="")
+    suppliers = db.relationship('Supplier', secondary=suppliers, lazy='subquery',backref=db.backref('stock_items', lazy=True))
+    #TODO: clients = db.Column(db.String(255),nullable=True,default="")
     packaging = db.Column(db.String(255),nullable=True,default="")
-    tax_code = db.Column(db.Enum(StockItemTaxCode),default=StockItemTaxCode.testtax)
+    tax_code_id = db.Column(db.Integer,db.ForeignKey('iwms_tax_code.id',ondelete="SET NULL"),nullable=True)
+    tax_code = db.relationship("TaxCode",backref='stock_items')
     reorder_qty = db.Column(db.Integer,nullable=True,default=0)
     description_plu = db.Column(db.String(255),nullable=True,default="")
     barcode = db.Column(db.String(255),nullable=True,default="")
+    qty_plu = db.Column(db.Integer,nullable=True,default=0)
     length = db.Column(db.String(255),nullable=True,default="")
     width = db.Column(db.String(255),nullable=True,default="")
     height = db.Column(db.String(255),nullable=True,default="")
-    # unit =
+    unit_id = db.Column(db.Integer,db.ForeignKey('iwms_unit_of_measure.id',ondelete="SET NULL"),nullable=True)
+    unit = db.relationship("UnitOfMeasure",backref='unit_stock_items')
     default_cost = db.Column(db.Numeric(10,2),nullable=True,default=0)
     default_price = db.Column(db.Numeric(10,2),nullable=True,default=0)
     weight = db.Column(db.String(255),nullable=True,default="")
@@ -133,9 +135,26 @@ class StockItem(Base,Admin):
     qty_per_pallet = db.Column(db.Integer,nullable=True,default=0)
     shelf_life = db.Column(db.Integer,nullable=True,default=0)
     qa_lead_time = db.Column(db.Integer,nullable=True,default=0)
+    uom_line = db.relationship('StockItemUomLine', cascade='all,delete', backref="stock_item")
 
     model_name = 'stock_item'
     model_icon = 'pe-7s-download'
+
+
+class StockItemUomLine(db.Model):
+    __tablename__ = 'iwms_stock_item_uom_line'
+    id = db.Column(db.Integer, primary_key=True)
+    stock_item_id = db.Column(db.Integer, db.ForeignKey('iwms_stock_item.id',ondelete='CASCADE'))
+    uom_id = db.Column(db.Integer,db.ForeignKey('iwms_unit_of_measure.id',ondelete="SET NULL"),nullable=True)
+    uom = db.relationship("UnitOfMeasure",backref='si_uom_line')
+    qty = db.Column(db.Integer,nullable=True,default=0)
+    barcode = db.Column(db.String(255),nullable=True,default="")
+    default_cost = db.Column(db.Numeric(10,2),nullable=True,default=0)
+    default_price = db.Column(db.Numeric(10,2),nullable=True,default=0)
+    length = db.Column(db.String(255),nullable=True,default="")
+    width = db.Column(db.String(255),nullable=True,default="")
+    height = db.Column(db.String(255),nullable=True,default="")
+
 
 class UnitOfMeasure(Base,Admin):
     __tablename__ = 'iwms_unit_of_measure'
@@ -228,10 +247,11 @@ class PurchaseOrder(Base,Admin):
     warehouse_id = db.Column(db.Integer,db.ForeignKey('iwms_warehouse.id',ondelete="SET NULL"),nullable=True)
     warehouse = db.relationship('Warehouse',backref="purchase_orders")
     address = db.Column(db.String(255),nullable=True)
+    remarks = db.Column(db.String(255),nullable=True)
     ordered_date = db.Column(db.DateTime, default=datetime.utcnow,nullable=True)
     delivery_date = db.Column(db.DateTime, default=datetime.utcnow,nullable=True)
     approved_by = db.Column(db.String(255),nullable=True)
-    product_line = db.relationship('PurchaseOrderProductLine', cascade='all,delete', backref="role")
+    product_line = db.relationship('PurchaseOrderProductLine', cascade='all,delete', backref="po")
 
     model_name = 'purchase_order'
     model_icon = ''
@@ -240,20 +260,18 @@ class PurchaseOrderProductLine(db.Model):
     __tablename__ = 'iwms_purchase_order_product_line'
     id = db.Column(db.Integer, primary_key=True)
     purchase_order_id = db.Column(db.Integer, db.ForeignKey('iwms_purchase_order.id',ondelete='CASCADE'))
-    product_id = db.Column(db.Integer,db.ForeignKey('iwms_product.id',ondelete="SET NULL"),nullable=True)
-    product = db.relationship('Product',backref="po_line")
+    stock_item_id = db.Column(db.Integer,db.ForeignKey('iwms_stock_item.id',ondelete="SET NULL"),nullable=True)
+    stock_item = db.relationship('StockItem',backref="po_line")
     qty = db.Column(db.Integer,nullable=True)
     unit_cost = db.Column(db.Numeric(10,2),nullable=True)
     amount = db.Column(db.Numeric(10,2),nullable=True)
-    uom = db.Column(db.String(64),nullable=True)
+    uom_id = db.Column(db.Integer,db.ForeignKey('iwms_unit_of_measure.id',ondelete="SET NULL"),nullable=True)
+    uom = db.relationship("UnitOfMeasure",backref='po_line_uom')
 
-class Product(Base,Admin):
-    __tablename__ = 'iwms_product'
+class StockItemType(Base,Admin):
+    __tablename__ = 'iwms_stock_item_type'
+    name = db.Column(db.String(255),nullable=False)
 
-    item_no = db.Column(db.String(255),nullable=False)
-    item_name = db.Column(db.String(255),nullable=False)
-    desciption = db.Column(db.String(255),nullable=True)
-    barcode = db.Column(db.String(255),nullable=True)
-
-    model_name = 'product'
-    model_icon = ''
+class TaxCode(Base,Admin):
+    __tablename__ = 'iwms_tax_code'
+    name = db.Column(db.String(255),nullable=False)

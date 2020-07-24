@@ -68,7 +68,10 @@
                                            id="{{ field.name }}"
                                            name="{{ field.name }}"
                                            placeholder="{{ field.placeholder }}"
-                                           {% if field.required %}required{% endif %}>
+                                           {% if field.required %}required{% endif %} 
+                                           {% if field.readonly %}readonly{% endif %}
+                                           value="{{field.auto_generated}}"
+                                    >
                                     <div id="{{ field.name }}-valid-feedback" class="valid-feedback">
                                         Looks good!
                                     </div>

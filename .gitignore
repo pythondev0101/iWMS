@@ -67,4 +67,4 @@ migrations/
 instance/
 .env
 
-flask_env/
+flask_venv/

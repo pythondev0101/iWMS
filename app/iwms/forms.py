@@ -118,10 +118,11 @@ class CategoryEditForm(AdminEditForm):
 class UnitOfMeasureEditForm(AdminEditForm):
     code = AdminField(label='Code',validators=[DataRequired()])
     description = AdminField(label='Description',validators=[DataRequired()])
+    active = AdminField(label='Active',required=False,input_type='checkbox')
 
     def edit_fields(self):
         return [
-            [self.code,self.description]
+            [self.code,self.description],[self.active]
         ]
 
     edit_title = 'Edit unit of measure'
@@ -234,14 +235,15 @@ class CategoryForm(AdminIndexForm):
         return [[self.code,self.description]]
 
 class UnitOfMeasureForm(AdminIndexForm):
-    index_headers = ['code','description']
+    index_headers = ['code','description','active']
     index_title = 'Unit of Measurements'
     
     code = AdminField(label='Code',validators=[DataRequired()])
     description = AdminField(label='Description',validators=[DataRequired()])
+    active = AdminField(label='Active',required=False,input_type='checkbox')
 
     def create_fields(self):
-        return [[self.code,self.description]]
+        return [[self.code,self.description],[self.active]]
 
 class ReasonForm(AdminIndexForm):
     index_headers = ['code','type','description']
@@ -255,29 +257,42 @@ class ReasonForm(AdminIndexForm):
         return [[self.code,self.description],[self.type]]
 
 class StockItemCreateForm(FlaskForm):
-    from .models import Category
-    number = StringField('No.')
-    status = SelectField('Status',choices=[('active','Active'),('hold','Hold')])
-    type = SelectField('Type',choices=[('part','Part')])
-    category_id = AdminField(label='Category',required=False,model=Category)
-    brand = StringField('Brand')
-    name = StringField('Name')
-    description = StringField('Description')
-    packaging = StringField('Packaging')
-    tax_code = SelectField('Tax Code',choices=[('test','TestCode')])
-    reorder_qty = IntegerField('Reorder Qty')
-    description_plu = StringField('Description')
-    barcode = StringField('Barcode')
-    length = StringField('Length')
-    width = StringField('Width')
-    height = StringField('Height')
-    default_cost = DecimalField('Default Cost')
-    default_price = DecimalField('Default Price')
-    weight = StringField('Weight')
-    cbm = StringField('CBM')
-    qty_per_pallet = IntegerField('Qty per Pallet')
-    shelf_life = IntegerField('Shelf Life(in months)')
-    qa_lead_time = IntegerField('QA Lead Time(in hours)')
+    number = AdminField(label='number')
+    status = AdminField(label='status',required=False)
+    stock_item_type_id = AdminField(label='stock_item_type_id',required=False)
+    category_id = AdminField(label='category_id',required=False)
+    has_serial = AdminField(label='has_serial',required=False)
+    monitor_expiration = AdminField(label='monitor_expiration',required=False)
+    brand = AdminField(label='brand',required=False)
+    name = AdminField(label='name',required=False)
+    description = AdminField(label='description',required=False)
+    packaging = AdminField(label='packaging',required=False)
+    tax_code_id = AdminField(label='tax_code_id',required=False)
+    reorder_qty = AdminField(label='reorder_qty',required=False)
+    description_plu = AdminField(label='description_plu',required=False)
+    barcode = AdminField(label='barcode',required=False)
+    qty_plu = AdminField(label='qty_plu',required=False)
+    length = AdminField(label='length',required=False)
+    width = AdminField(label='width',required=False)
+    height = AdminField(label='height',required=False)
+    unit_id = AdminField(label='unit_id',required=False)
+    default_cost = AdminField(label='default_cost',required=False)
+    default_price = AdminField(label='default_price',required=False)
+    weight = AdminField(label='weight',required=False)
+    cbm = AdminField(label='cbm',required=False)
+    qty_per_pallet = AdminField(label='qty_per_pallet',required=False)
+    shelf_life = AdminField(label='shelf_life',required=False)
+    qa_lead_time = AdminField(label='qa_lead_time',required=False)
+
+class StockItemView(AdminIndexForm):
+    index_headers = ['SI No.','Name','Description']
+    index_title = 'Stock Items'
+    number = AdminField(label='SI No.')
+    name = AdminField(label='Name',required=False)
+    description = AdminField(label='Description',required=False)
+    
+    def create_fields(self):
+        return [[self.number],[self.name,self.description]]
 
 class StockReceiptCreateForm(FlaskForm):
     sr_number = StringField('Sr No.',validators=[DataRequired()])
@@ -320,7 +335,7 @@ class SupplierForm(AdminIndexForm):
     index_headers = ['code','name','status']
     index_title = 'Suppliers'
     
-    code = AdminField(label='Code',validators=[DataRequired()])
+    code = AdminField(label='Code',validators=[DataRequired()],readonly=True)
     name = AdminField(label='Name',validators=[DataRequired()])
 
     def create_fields(self):
@@ -335,26 +350,3 @@ class SupplierEditForm(AdminEditForm):
         return [[self.code,self.name]]
    
     edit_title = 'Edit supplier'
-
-class ProductForm(AdminIndexForm):
-    index_headers = ['item no.','item name','description']
-    index_title = 'Products'
-    
-    item_no = AdminField(label='Item No.',validators=[DataRequired()])
-    item_name = AdminField(label='Item name',validators=[DataRequired()])
-    description = AdminField(label='Description',required=False)
-    barcode = AdminField(label='Barcode',required=False)
-
-    def create_fields(self):
-        return [[self.item_no,self.item_name],[self.description,self.barcode]]
-
-class ProductEditForm(AdminEditForm):
-    item_no = AdminField(label='Item No.',validators=[DataRequired()])
-    item_name = AdminField(label='Item name',validators=[DataRequired()])
-    description = AdminField(label='Description',required=False)
-    barcode = AdminField(label='Barcode',required=False)
-
-    def edit_fields(self):
-        return [[self.item_no,self.item_name],[self.description,self.barcode]]
-    
-    edit_title = 'Edit product'
