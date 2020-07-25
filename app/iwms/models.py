@@ -212,9 +212,14 @@ class Putaway(Base,Admin):
 
 class Supplier(Base,Admin):
     __tablename__ = 'iwms_supplier'
+
     code = db.Column(db.String(255),nullable=False)
     name = db.Column(db.String(255),nullable=False)
     status = db.Column(db.String(255),nullable=True)
+    address = db.Column(db.String(255),nullable=True)
+    email_address = db.Column(db.String(255),nullable=True)
+    contact_number = db.Column(db.String(255),nullable=True)
+    contact_person = db.Column(db.String(255),nullable=True)
 
     model_name = 'supplier'
     model_icon = ''

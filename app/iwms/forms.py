@@ -347,16 +347,23 @@ class SupplierForm(AdminIndexForm):
     
     code = AdminField(label='Code',validators=[DataRequired()],readonly=True)
     name = AdminField(label='Name',validators=[DataRequired()])
-
+    address = AdminField(label='Address',required=False)
+    email_address = AdminField(label='Email Address',required=False,input_type='email')
+    contact_number = AdminField(label='Contact Number',required=False)
+    contact_person = AdminField(label='Contact Person',required=False)
     def create_fields(self):
-        return [[self.code,self.name]]
+        return [[self.code,self.name],[self.address,self.email_address],[self.contact_number,self.contact_person]]
 
 
 class SupplierEditForm(AdminEditForm):
     code = AdminField(label='Code',validators=[DataRequired()])
     name = AdminField(label='Name',validators=[DataRequired()])
-
+    address = AdminField(label='Address',required=False)
+    email_address = AdminField(label='Email Address',required=False,input_type='email')
+    contact_number = AdminField(label='Contact Number',required=False)
+    contact_person = AdminField(label='Contact Person',required=False)
+    
     def edit_fields(self):
-        return [[self.code,self.name]]
+        return [[self.code,self.name],[self.address,self.email_address],[self.contact_number,self.contact_person]]
    
     edit_title = 'Edit supplier'

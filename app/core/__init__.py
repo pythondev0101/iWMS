@@ -77,6 +77,7 @@ def install():
     from .models import CoreCity,CoreProvince
     from app.auth.models import Role, RolePermission
     from app.iwms.models import UnitOfMeasure
+    from app.auth.models import User
 
     print("Installing...")
 
@@ -130,17 +131,21 @@ def install():
         db.session.commit()
         print("Individual role inserted!")
 
-    if UnitOfMeasure.query.count() < 0:
+    if not UnitOfMeasure.query.count() > 0:
         print("Inserting unit of measures...")
-        pc = UnitOfMeasure(code="PC",description="PCs")
+        pc = UnitOfMeasure()
+        pc.code,pc.description = "PC", "PCs"
         db.session.add(pc)
-        ctn = UnitOfMeasure(code="CTN",description="CTNs")
+        ctn = UnitOfMeasure()
+        ctn.code = "CTN"
+        ctn.description = "CARTON"
         db.session.add(ctn)    
         db.session.commit()
         print("PC and CTN in unit of measure inserted!")
 
-    print("Create a SuperUser/owner...")
-    _create_superuser()
+    if not User.query.count() > 0:
+        print("Creating a SuperUser/owner...")
+        _create_superuser()
 
     print("Installation complete!")
 

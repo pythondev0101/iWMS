@@ -1130,6 +1130,10 @@ def supplier_create():
             obj.code = f.code.data
             obj.name = f.name.data
             obj.status = "ACTIVE"
+            obj.address = f.address.data
+            obj.email_address = f.email_address.data
+            obj.contact_person = f.contact_person.data
+            obj.contact_number = f.contact_number.data
             obj.created_by = "{} {}".format(current_user.fname,current_user.lname)
             db.session.add(obj)
             db.session.commit()
@@ -1155,6 +1159,10 @@ def supplier_edit(oid):
             obj.code = f.code.data
             obj.name = f.name.data
             obj.status = "ACTIVE"
+            obj.address = f.address.data
+            obj.email_address = f.email_address.data
+            obj.contact_person = f.contact_person.data
+            obj.contact_number = f.contact_number.data
             obj.updated_by = "{} {}".format(current_user.fname,current_user.lname)
             obj.updated_at = datetime.now()
             db.session.commit()
