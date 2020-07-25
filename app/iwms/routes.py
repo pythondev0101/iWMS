@@ -1005,8 +1005,9 @@ def _get_suppliers():
         db_items = StockItem.query.filter(StockItem.suppliers.any(id=sup_id)).all()
         list_items = []
         for item in db_items:
-            list_items.append({'id':item.id,'number':item.number,'name':item.name,'description':item.description,'barcode':item.barcode})
+            list_items.append({'id':item.id,'number':item.number,'name':item.name,'description':item.description,'barcode':item.barcode,'default_cost':str(item.default_cost)})
         res = jsonify(items=list_items)
+        print(list_items)
         res.status_code = 200
         return res
 

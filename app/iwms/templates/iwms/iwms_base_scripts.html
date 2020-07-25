@@ -1,0 +1,163 @@
+{% extends "admin/admin_base.html" %}
+{% block sidebar %}
+    {% include 'iwms/iwms_sidebar.html' %}
+{% endblock %}
+{% block style %}
+<style>
+    .myHiddenColumn {
+        display: none;
+    }
+</style>
+{% endblock %}
+
+
+{% block inner_footer %}
+<div class="app-footer-right">
+    <button type="button" class="btn btn-secondary" onclick="history.back(-1)" 
+    style="margin-right: 10px;">Cancel</button>
+    <button form="edit_form" type="submit" class="btn btn-primary">Save</button>
+</div>
+{% endblock %}
+
+{% block toast %}
+{% with messages = get_flashed_messages(with_categories=true) %}
+{% if messages %}
+<div id="toast-container" class="toast-top-center">
+    {% for category, message in messages %}
+        {% if category == 'success' %}
+        <div class="toast toast-success" aria-live="polite">
+            <div class="toast-progress" style="width: 0%;"></div>
+            <button type="button" class="toast-close-button" role="button" onclick="close_toast()">×</button>
+            <div class="toast-title">Success!</div>
+            <div class="toast-message">{{ message }}</div>
+        </div>
+        {% elif category == 'error' %}
+        <div class="toast toast-error" aria-live="polite">
+            <div class="toast-progress" style="width: 0%;"></div>
+            <button type="button" class="toast-close-button" role="button" onclick="close_toast()">×</button>
+            <div class="toast-title">Error!</div>
+            <div class="toast-message">{{ message }}</div>
+        </div>
+        {% endif %}
+    {% endfor %}
+</div>
+{% endif %}
+{% endwith %}
+{% endblock %}
+
+{% block scripts %}
+<script>
+    (function() {
+        var fixed_footer = document.getElementById('chkbox_fixed_footer');
+        setTimeout(function() {
+          fixed_footer.click();
+        }, 100);
+      })();
+
+    $(document).ready(function(){
+            var table_product = $('#tbl_product_modal').DataTable({
+            });
+
+            $('#tbl_line_items').on('change', 'input', function(){
+                var row = $(this).closest("tr");
+                var cost = row.find('.input_cost').val();
+                var qty = row.find('.input_qty').val();
+                var amount = parseFloat(qty) * parseFloat(cost); 
+                row.find('.amount').val(amount.toFixed(2));
+            });
+            
+            $("#supplier_id").change(function(){
+                var csrf_token = "{{ csrf_token() }}";
+                var supplier_id = $(this).val();
+                $.ajaxSetup({
+                    beforeSend: function(xhr, settings) {
+                        if (!/^(GET|HEAD|OPTIONS|TRACE)$/i.test(settings.type) && !this.crossDomain) {
+                            xhr.setRequestHeader("X-CSRFToken", csrf_token);
+                        }
+                    }
+                });
+                $.ajax({
+                    url: "/iwms/_get_suppliers",
+                    type: "POST",
+                    dataType: "json",
+                    data: JSON.stringify({'sup_id': supplier_id}),
+                    contentType: "application/json; charset=utf-8",
+                    success: function(data) {
+                        table_product.clear().draw();;
+                        for(i=0;i < data.items.length; ++i){
+                            var row = table_product.row.add([
+                            data.items[i].id,
+                            data.items[i].default_cost,
+                            "<input class='chkbox' type='checkbox'>",
+                            data.items[i].number,
+                            data.items[i].name,
+                            data.items[i].description,
+                            data.items[i].barcode
+                            ]);
+                            table_product.row(row).column(0).nodes().to$().addClass('myHiddenColumn');
+                            table_product.row(row).column(1).nodes().to$().addClass('myHiddenColumn');
+                            table_product.row(row).draw();
+                        }
+                    }
+                });
+            });
+
+            
+            $("#btn_add_product").click(function(){
+                $("tr").each(function() {
+                    var check = $(this).find("input.chkbox").is(':checked');
+                    if(check){
+                        var counter = 1;
+                        var item_no = $(this).find("td").eq(3).html();
+                        var item_name = $(this).find("td").eq(4).html();
+                        var item_id = $(this).find("td").eq(0).html();
+                        var item_default_cost = $(this).find("td").eq(1).html();
+                        $('#tbl_line_items tr:last').after(
+                            `<tr>
+                                <td style="display:none;"><input name="products[]" type="hidden" value="${item_id}"></td>
+                                <td><input class="chkbox" type="checkbox"></td>
+                                <td class='text-center'>${counter}</td><td class='text-center'>${item_no}</td>
+                                <td class='text-center'>${item_name}</td>
+                                <td class='text-center'>
+                                    <select name="uom_${item_id}" style='width: 100%;'>
+                                        <option value="1">PC</option>
+                                    </select>
+                                </td>
+                                <td class='text-center'><input class="input_qty" name="qty_${item_id}" type="number" style="width:50px" value="0"></td>
+                                <td class='text-center'><input class="input_cost" name="cost_${item_id}" type="number" value="${item_default_cost}" readonly></td>
+                                <td class='text-center'><input class="amount" name="amount_${item_id}" type="number" value="0.00" readonly></td>
+                            </tr>
+                            `
+                            );
+                        counter = counter + 1;
+                        table_product.row($(this)).remove().draw();
+                    }
+                });
+            });
+
+
+            $("#btn_delete_line").click(function(){
+                $("#tbl_line_items tr").each(function() {
+                    var check = $(this).find("input.chkbox").is(':checked');
+                    if (check){
+                        var row = table_product.row.add([
+                            $(this).find("input").eq(0).val(),
+                            "<input class='chkbox' type='checkbox'>",
+                            $(this).find("td").eq(3).html(),
+                            $(this).find("td").eq(4).html(),
+                            "",""
+                        ]);
+                        table_product.row(row).column(0).nodes().to$().addClass('myHiddenColumn');
+                        table_product.row(row).draw();
+                        $(this).remove();
+                    }
+                });
+            });
+    });
+
+</script>
+{% endblock %}
+
+{% block modals %}
+    {% include "iwms/add_product_modal.html" %}
+{% endblock %}
