@@ -76,6 +76,7 @@ def install():
     from app import db
     from .models import CoreCity,CoreProvince
     from app.auth.models import Role, RolePermission
+    from app.iwms.models import UnitOfMeasure
 
     print("Installing...")
 
@@ -129,6 +130,15 @@ def install():
         db.session.commit()
         print("Individual role inserted!")
 
+    if UnitOfMeasure.query.count() < 0:
+        print("Inserting unit of measures...")
+        pc = UnitOfMeasure(code="PC",description="PCs")
+        db.session.add(pc)
+        ctn = UnitOfMeasure(code="CTN",description="CTNs")
+        db.session.add(ctn)    
+        db.session.commit()
+        print("PC and CTN in unit of measure inserted!")
+
     print("Create a SuperUser/owner...")
     _create_superuser()
 
@@ -139,11 +149,17 @@ def _create_superuser():
     from app.auth.models import User
     from app import db
     user = User()
-    user.fname = input("Enter First name: ")
-    user.lname = input("Enter Last name: ")
-    user.username = input("Enter Username: ")
-    user.email = input("Enter Email: ")
-    user.set_password(input("Enter password: "))
+    # FOR DEVELOPMENT ONLY
+    # user.fname = input("Enter First name: ")
+    # user.lname = input("Enter Last name: ")
+    # user.username = input("Enter Username: ")
+    # user.email = input("Enter Email: ")
+    # user.set_password(input("Enter password: "))
+    user.fname = "Admin"
+    user.lname = "Administrator"
+    user.username = "admin"
+    user.email = "admin@admin.com"
+    user.set_password("admin")
     user.is_superuser = 1
     user.role_id = 1
     db.session.add(user)

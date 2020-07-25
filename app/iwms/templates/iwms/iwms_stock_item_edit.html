@@ -20,9 +20,9 @@
                 </div>
                 <div>{{ form.number.data }}
                     <div class="page-title-subheading">
-                        {% if form.status.data == 'StockItemStatus.active' %}
+                        {% if form.status.data.name == 'active' %}
                         <div class="mb-2 mr-2 badge badge-pill badge-success">ACTIVE</div>
-                        {% elif form.status.data == 'StockItemStatus.hold' %}
+                        {% elif form.status.data.name == 'hold' %}
                         <div class="mb-2 mr-2 badge badge-pill badge-warning">HOLD</div>
                         {% endif %}
                     </div>
@@ -192,7 +192,7 @@
                         <div class="col-md-4">
                             <div class="position-relative form-group">
                                 <label for="unit_id" class="">Unit</label>
-                                <select name="unit_id" id="unit_id" class="form-control">
+                                <select name="unit_id" id="unit_id" class="form-control input_required" required>
                                     <option value="">Choose...</option>
                                     {% for uom in units %}
                                     <option value="{{ uom.id }}" {% if form.unit_id.data == uom.id %}selected{% endif %}>
@@ -259,7 +259,7 @@
                         <div class="col-md-3">
                             <div class="position-relative form-group">
                                 <label for="cbm" class="">CBM</label>
-                                <input name="cbm" id="cbm" type="text" class="form-control" value="{{form.cbm.data}}">
+                                <input name="cbm" id="cbm" type="text" class="form-control" value="{{form.cbm.data}}" readonly>
                             </div>
                         </div>
                         <div class="col-md-3">

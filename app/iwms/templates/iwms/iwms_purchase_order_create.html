@@ -229,6 +229,41 @@
                 row.find('.amount').val(amount.toFixed(2));
             });
             
+            $("#supplier_id").change(function(){
+                var csrf_token = "{{ csrf_token() }}";
+                var supplier_id = $(this).val();
+                $.ajaxSetup({
+                    beforeSend: function(xhr, settings) {
+                        if (!/^(GET|HEAD|OPTIONS|TRACE)$/i.test(settings.type) && !this.crossDomain) {
+                            xhr.setRequestHeader("X-CSRFToken", csrf_token);
+                        }
+                    }
+                });
+                $.ajax({
+                    url: "/iwms/_get_suppliers",
+                    type: "POST",
+                    dataType: "json",
+                    data: JSON.stringify({'sup_id': supplier_id}),
+                    contentType: "application/json; charset=utf-8",
+                    success: function(data) {
+                        table_product.clear().draw();;
+                        for(i=0;i < data.items.length; ++i){
+                            var row = table_product.row.add([
+                            data.items[i].id,
+                            "<input class='chkbox' type='checkbox'>",
+                            data.items[i].number,
+                            data.items[i].name,
+                            data.items[i].description,
+                            data.items[i].barcode
+                            ]);
+                            table_product.row(row).column(0).nodes().to$().addClass('myHiddenColumn');
+                            table_product.row(row).draw();
+                        }
+                    }
+                });
+            });
+
+            
             $("#btn_add_product").click(function(){
                 $("tr").each(function() {
                     var check = $(this).find("input.chkbox").is(':checked');
@@ -238,13 +273,13 @@
                         var item_id = $(this).find("td").eq(0).html();
                         $('#tbl_line_items tr:last').after(
                             `<tr>
-                                <td style="display:none;"><input name="products[]" type="hidden" value="${item_id}"></input></td>
+                                <td style="display:none;"><input name="products[]" type="hidden" value="${item_id}"></td>
                                 <td><input class="chkbox" type="checkbox"></td>
                                 <td class='text-center'>1</td><td class='text-center'>${item_no}</td>
                                 <td class='text-center'>${item_name}</td>
                                 <td class='text-center'>
                                     <select name="uom_${item_id}" style='width: 100%;'>
-                                        <option value="CTN">CTN</option>
+                                        <option value="1">PC</option>
                                     </select>
                                 </td>
                                 <td class='text-center'><input class="input_qty" name="qty_${item_id}" type="number" style="width:50px" value="0"></td>
@@ -257,6 +292,7 @@
                     }
                 });
             });
+
 
             $("#btn_delete_line").click(function(){
                 $("#tbl_line_items tr").each(function() {

@@ -11,30 +11,32 @@
                 <div class="modal-body">
                     <div class="main-card mb-3 card">
                         <div class="card-body">
-                            <table style="width:100%;" id="tbl_product_modal" class="mb-0 table table-sm">
-                                <thead>
-                                <tr>
-                                    <th style="display:none;">ID</th>
-                                    <th>Add</th>
-                                    <th>Item No</th>
-                                    <th>Item Name</th>
-                                    <th>Description</th>
-                                    <th>Barcode</th>
-                                </tr>
-                                </thead>
-                                <tbody>
-                                {% for product in products %}
-                                <tr class="item" id="{{ product.id }}">
-                                    <td style="display:none;">{{ product.id }}</td>
-                                    <td><input class="chkbox" type="checkbox"></td>
-                                    <td>{{ product.item_no}}</td>
-                                    <td>{{ product.item_name}}</td>
-                                    <td>{{ product.description}}</td>
-                                    <td>{{ product.barcode}}</td>
-                                </tr>
-                                {% endfor %}
-                                </tbody>
-                            </table>
+                            <div class="table-responsive">
+                                <table id="tbl_product_modal" class="mb-0 table" style="width: 100%;">
+                                    <thead>
+                                        <tr>
+                                            <th style="display:none;">ID</th>
+                                            <th>ADD</th>
+                                            <th>ITEM NO.</th>
+                                            <th>NAME</th>
+                                            <th>DESCRIPTION</th>
+                                            <th>BARCODE</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <!-- {% for item in stock_items %}
+                                        <tr class="item" id="{{ item.id }}">
+                                            <td style="display:none;">{{ item.id }}</td>
+                                            <td><input class="chkbox" type="checkbox"></td>
+                                            <td>{{item.number}}</td>
+                                            <td>{{item.name}}</td>
+                                            <td>{{item.description}}</td>
+                                            <td>{{item.barcode}}</td>
+                                        </tr>
+                                        {% endfor %} -->
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
                     </div>
                     <div class="modal-footer">

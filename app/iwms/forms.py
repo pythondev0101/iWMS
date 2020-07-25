@@ -294,6 +294,15 @@ class StockItemView(AdminIndexForm):
     def create_fields(self):
         return [[self.number],[self.name,self.description]]
 
+class PurchaseOrderViewForm(AdminIndexForm):
+    index_headers = ['Po no.','date created','created by','status']
+    index_title = 'Purchase Orders'
+    po_number = AdminField(label='PO No.')
+    status = AdminField(label="Status")
+
+    def create_fields(self):
+        return [[self.po_number,self.status]]
+
 class StockReceiptCreateForm(FlaskForm):
     sr_number = StringField('Sr No.',validators=[DataRequired()])
     status = StringField('Status')
@@ -330,6 +339,7 @@ class PurchaseOrderCreateForm(FlaskForm):
     ordered_date = StringField()
     delivery_date = StringField()
     approved_by = StringField()
+    remarks = StringField()
 
 class SupplierForm(AdminIndexForm):
     index_headers = ['code','name','status']

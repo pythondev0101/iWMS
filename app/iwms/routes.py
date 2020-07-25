@@ -790,8 +790,10 @@ def stock_item_create():
                     uom = UnitOfMeasure.query.get(u_id)
                     qty = request.form.get("qty_{}".format(u_id))
                     barcode = request.form.get("barcode_{}".format(u_id))
-                    default_cost = request.form.get("default_cost_{}".format(u_id))
-                    default_price = request.form.get("default_price_{}".format(u_id))
+                    _cost = request.form.get("default_cost_{}".format(u_id))
+                    _price = request.form.get("default_price_{}".format(u_id))
+                    default_cost = _cost if not _cost == '' else None
+                    default_price = _price if not _price == '' else None
                     length = request.form.get("length_{}".format(u_id))
                     width = request.form.get("width_{}".format(u_id))
                     height = request.form.get("height_{}".format(u_id))
@@ -996,17 +998,27 @@ def putaway_create():
                 flash(str(key) + str(value), 'error')
             return redirect(url_for('bp_iwms.stock_receipts'))
 
+@bp_iwms.route("/_get_suppliers",methods=['POST'])
+def _get_suppliers():
+    if request.method == 'POST':
+        sup_id = request.json['sup_id']
+        db_items = StockItem.query.filter(StockItem.suppliers.any(id=sup_id)).all()
+        list_items = []
+        for item in db_items:
+            list_items.append({'id':item.id,'number':item.number,'name':item.name,'description':item.description,'barcode':item.barcode})
+        res = jsonify(items=list_items)
+        res.status_code = 200
+        return res
+
 @bp_iwms.route('/purchase_orders')
 @login_required
 def purchase_orders():
-    fields = [PurchaseOrder.id,PurchaseOrder.po_number,PurchaseOrder.status.name]
+    fields = [PurchaseOrder.id,PurchaseOrder.po_number,PurchaseOrder.created_at,PurchaseOrder.created_by,PurchaseOrder.status.name]
     context['mm-active'] = 'purchase_order'
     # TEMPORARY LANG TO, may bug kasi
     context['create_modal']['create_url'] = False
-    return admin_index(PurchaseOrder,fields=fields,view_modal=False,create_modal=True,template="iwms/iwms_index.html",kwargs={
-        'index_title':'Purchase Orders','index_headers':['PO No.','Status'],'index_message':'List of items',
-        'active':'purchases'
-        })
+    return admin_index(PurchaseOrder,fields=fields,form=PurchaseOrderViewForm(),create_modal=True,template="iwms/iwms_index.html",kwargs={
+        'active':'purchases'},edit_url="bp_iwms.purchase_order_edit")
 
 @bp_iwms.route('/purchase_order_create',methods=['GET','POST'])
 @login_required
@@ -1022,9 +1034,10 @@ def purchase_order_create():
     
     f = PurchaseOrderCreateForm()
     if request.method == "GET":
-        # Hardcoded html ang irerender natin hindi yung builtin ng admin
         warehouses = Warehouse.query.all()
         suppliers = Supplier.query.all()
+        # stock_items = StockItem.query.all()
+        # Hardcoded html ang irerender natin hindi yung builtin ng admin
         context['active'] = 'purchases'
         context['mm-active'] = 'purchase_order'
         context['module'] = 'iwms'
@@ -1047,13 +1060,13 @@ def purchase_order_create():
             po.created_by = "{} {}".format(current_user.fname,current_user.lname)
 
             for product_id in r.getlist('products[]'):
-                product = Product.query.get(product_id)
+                product = StockItem.query.get(product_id)
                 qty = r.get("qty_{}".format(product_id))
                 cost = r.get("cost_{}".format(product_id))
                 amount = r.get("amount_{}".format(product_id))
                 uom = r.get("uom_{}".format(product_id))
                 print("amount:",amount,"uom:",uom)
-                line = PurchaseOrderProductLine(product=product,qty=qty,unit_cost=cost,amount=amount,uom=uom)
+                line = PurchaseOrderProductLine(stock_item=product,qty=qty,unit_cost=cost,amount=amount)
                 po.product_line.append(line)
 
             db.session.add(po)
@@ -1064,6 +1077,27 @@ def purchase_order_create():
             for key, value in f.errors.items():
                 flash(str(key) + str(value), 'error')
             return redirect(url_for('bp_iwms.purchase_orders'))
+
+@bp_iwms.route('/purchase_order_edit/<int:oid>',methods=['GET','POST'])
+@login_required
+def purchase_order_edit(oid):
+    obj = PurchaseOrder.query.get_or_404(oid)
+    f = PurchaseOrderCreateForm(obj=obj)
+    if request.method == "GET":
+        warehouses = Warehouse.query.all()
+        suppliers = Supplier.query.all()
+        # stock_items = StockItem.query.all()
+        # Hardcoded html ang irerender natin hindi yung builtin ng admin
+        context['active'] = 'purchases'
+        context['mm-active'] = 'purchase_order'
+        context['module'] = 'iwms'
+        context['model'] = 'purchase_order'
+
+        # query1 = db.session.query(StockItemUomLine.uom_id).filter_by(stock_item_id=oid)
+        # stock_items = db.session.query(UnitOfMeasure).filter(~UnitOfMeasure.id.in_(query1))
+
+        return render_template('iwms/iwms_purchase_order_edit.html', oid=oid,stock_items='',line_items=obj.product_line, \
+            context=context,form=f,title="Edit purchase order",warehouses=warehouses,suppliers=suppliers)
 
 
 @bp_iwms.route('/suppliers')
