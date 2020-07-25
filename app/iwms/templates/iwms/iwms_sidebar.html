@@ -187,6 +187,20 @@
     {% endif %}
     {% endif %}
 
+    {% if 'stock_item_type' in session['permissions'] %}
+    {% if session['permissions']['stock_item_type']['read'] %}
+
+    <li>
+      <a
+        href="{{ url_for('bp_iwms.stock_item_types') }}"
+        class="{% if context['mm-active'] == 'stock_item_type' %} mm-active {% endif %}"
+      >
+        <i class="metismenu-icon"> </i>Type
+      </a>
+    </li>
+    {% endif %}
+    {% endif %}
+
     {% if 'unit_of_measure' in session['permissions'] %}
     {% if session['permissions']['unit_of_measure']['read'] %}
 

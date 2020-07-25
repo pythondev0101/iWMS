@@ -276,6 +276,8 @@ class PurchaseOrderProductLine(db.Model):
 class StockItemType(Base,Admin):
     __tablename__ = 'iwms_stock_item_type'
     name = db.Column(db.String(255),nullable=False)
+    model_name = 'stock_item_type'
+    model_icon = ''
 
 class TaxCode(Base,Admin):
     __tablename__ = 'iwms_tax_code'

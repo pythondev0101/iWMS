@@ -362,8 +362,25 @@ class SupplierEditForm(AdminEditForm):
     email_address = AdminField(label='Email Address',required=False,input_type='email')
     contact_number = AdminField(label='Contact Number',required=False)
     contact_person = AdminField(label='Contact Person',required=False)
-    
+
     def edit_fields(self):
         return [[self.code,self.name],[self.address,self.email_address],[self.contact_number,self.contact_person]]
    
     edit_title = 'Edit supplier'
+
+
+class TypeForm(AdminIndexForm):
+    index_headers = ['name','created by','created at']
+    index_title = 'Types'
+    
+    name = AdminField(label='Name',validators=[DataRequired()])
+
+    def create_fields(self):
+        return [[self.name]]
+
+class TypeEditForm(AdminEditForm):
+    name = AdminField(label='Name',validators=[DataRequired()])
+    def edit_fields(self):
+        return [[self.name]]
+   
+    edit_title = 'Edit type'

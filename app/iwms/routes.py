@@ -1172,3 +1172,53 @@ def supplier_edit(oid):
             for key, value in form.errors.items():
                 flash(str(key) + str(value), 'error')
             return redirect(url_for('bp_iwms.suppliers'))
+
+
+@bp_iwms.route('/stock_item_types')
+@login_required
+def stock_item_types():
+    fields = [StockItemType.id,StockItemType.name,StockItemType.created_by,StockItemType.created_at]
+    context['mm-active'] = 'stock_item_type'
+    return admin_index(StockItemType,fields=fields,form=TypeForm(), \
+        template='iwms/iwms_index.html', edit_url='bp_iwms.type_edit',\
+            create_url="bp_iwms.type_create",kwargs={'active':'inventory'})
+
+@bp_iwms.route('/type_create',methods=['POST'])
+@login_required
+def type_create():
+    f = TypeForm()
+    if request.method == "POST":
+        if f.validate_on_submit():
+            obj = StockItemType()
+            obj.name = f.name.data
+            obj.created_by = "{} {}".format(current_user.fname,current_user.lname)
+            db.session.add(obj)
+            db.session.commit()
+            flash("New type added successfully!",'success')
+            return redirect(url_for('bp_iwms.stock_item_types'))
+        else:
+            for key, value in f.errors.items():
+                flash(str(key) + str(value), 'error')
+            return redirect(url_for('bp_iwms.stock_item_types'))
+
+@bp_iwms.route('/type_edit/<int:oid>',methods=['GET','POST'])
+@login_required
+def type_edit(oid):
+    obj = StockItemType.query.get_or_404(oid)
+    f = TypeEditForm(obj=obj)
+    if request.method == "GET":
+        context['mm-active'] = 'stock_item_type'
+        return admin_edit(f,'bp_iwms.type_edit',oid, \
+            model=StockItemType,template='iwms/iwms_edit.html',kwargs={'active':'inventory'})
+    elif request.method == "POST":
+        if f.validate_on_submit():
+            obj.name = f.name.data
+            obj.updated_by = "{} {}".format(current_user.fname,current_user.lname)
+            obj.updated_at = datetime.now()
+            db.session.commit()
+            flash('Type update Successfully!','success')
+            return redirect(url_for('bp_iwms.stock_item_types'))
+        else:
+            for key, value in form.errors.items():
+                flash(str(key) + str(value), 'error')
+            return redirect(url_for('bp_iwms.stock_item_types'))
