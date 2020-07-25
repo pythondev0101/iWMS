@@ -162,7 +162,10 @@
 </script>
 
 {% elif context['model'] == 'stock_item' %}
-<!-- FOR STOCK ITEM -->
+<!-- FOR STOCK ITEM!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! -->
+<!-- FOR STOCK ITEM!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! -->
+<!-- FOR STOCK ITEM!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! -->
+<!-- FOR STOCK ITEM!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! -->
 <script>
     (function() {
         var fixed_footer = document.getElementById('chkbox_fixed_footer');
@@ -173,6 +176,13 @@
     
       $(document).ready(function(){
         var table_uom = $('#tbl_uom_modal').DataTable({
+        });
+
+        $("#length, #width, #height").change(function(){
+            var length = $("#length").val();
+            var width = $("#width").val();
+            var height = $("#height").val();
+            $("#cbm").val(length*width*height);
         });
 
         $("#description").change(function(){
@@ -214,9 +224,6 @@
                     var barcode = $("#barcode").val();
                     var default_cost= $("#default_cost").val();
                     var default_price = $("#default_price").val();
-                    var length = $("#length").val();
-                    var width = $("#width").val();
-                    var height = $("#height").val();
 
                     $('#tbl_uom_line tr:last').after(
                         `<tr>
@@ -230,9 +237,9 @@
                             <td class='text-center'><input name="barcode_${uom_id}" type="text" style="width:100px" value='${barcode}'></td>
                             <td class='text-center'><input name="default_cost_${uom_id}" type="number" style="width:50px" value="${default_cost}"></td>
                             <td class='text-center'><input name="default_price_${uom_id}" type="number" style="width:50px" value="${default_price}"></td>
-                            <td class='text-center'><input name="length_${uom_id}" type="number" style="width:50px" value="${length}"></td>
-                            <td class='text-center'><input name="width_${uom_id}" type="number" style="width:50px" value="${width}"></td>
-                            <td class='text-center'><input name="height_${uom_id}" type="number" style="width:50px" value="${height}"></td>
+                            <td class='text-center'><input name="length_${uom_id}" type="number" style="width:50px" value=""></td>
+                            <td class='text-center'><input name="width_${uom_id}" type="number" style="width:50px" value=""></td>
+                            <td class='text-center'><input name="height_${uom_id}" type="number" style="width:50px" value=""></td>
                         </tr>
                         `
                         );
