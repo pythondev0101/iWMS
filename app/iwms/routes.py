@@ -840,7 +840,6 @@ def stock_item_edit(oid):
                 oid=oid)
     elif request.method == "POST":
         if f.validate_on_submit():
-            obj.number = f.number.data
             obj.status = "active"
             obj.stock_item_type_id = f.stock_item_type_id.data if not f.stock_item_type_id.data == '' else None 
             obj.category_id = f.category_id.data if not f.category_id.data == '' else None
@@ -1007,7 +1006,6 @@ def _get_suppliers():
         for item in db_items:
             list_items.append({'id':item.id,'number':item.number,'name':item.name,'description':item.description,'barcode':item.barcode,'default_cost':str(item.default_cost)})
         res = jsonify(items=list_items)
-        print(list_items)
         res.status_code = 200
         return res
 
@@ -1060,15 +1058,16 @@ def purchase_order_create():
             po.approved_by = f.approved_by.data
             po.created_by = "{} {}".format(current_user.fname,current_user.lname)
 
-            for product_id in r.getlist('products[]'):
-                product = StockItem.query.get(product_id)
-                qty = r.get("qty_{}".format(product_id))
-                cost = r.get("cost_{}".format(product_id))
-                amount = r.get("amount_{}".format(product_id))
-                uom = r.get("uom_{}".format(product_id))
-                print("amount:",amount,"uom:",uom)
-                line = PurchaseOrderProductLine(stock_item=product,qty=qty,unit_cost=cost,amount=amount)
-                po.product_line.append(line)
+            product_list = r.getlist('products[]')
+            if product_list:
+                for product_id in r.getlist('products[]'):
+                    product = StockItem.query.get(product_id)
+                    qty = r.get("qty_{}".format(product_id))
+                    cost = r.get("cost_{}".format(product_id))
+                    amount = r.get("amount_{}".format(product_id))
+                    uom = UnitOfMeasure.query.get(r.get("uom_{}".format(product_id)))
+                    line = PurchaseOrderProductLine(stock_item=product,qty=qty,unit_cost=cost,amount=amount,uom=uom)
+                    po.product_line.append(line)
 
             db.session.add(po)
             db.session.commit()
@@ -1082,8 +1081,8 @@ def purchase_order_create():
 @bp_iwms.route('/purchase_order_edit/<int:oid>',methods=['GET','POST'])
 @login_required
 def purchase_order_edit(oid):
-    obj = PurchaseOrder.query.get_or_404(oid)
-    f = PurchaseOrderCreateForm(obj=obj)
+    po = PurchaseOrder.query.get_or_404(oid)
+    f = PurchaseOrderCreateForm(obj=po)
     if request.method == "GET":
         warehouses = Warehouse.query.all()
         suppliers = Supplier.query.all()
@@ -1097,8 +1096,55 @@ def purchase_order_edit(oid):
         # query1 = db.session.query(StockItemUomLine.uom_id).filter_by(stock_item_id=oid)
         # stock_items = db.session.query(UnitOfMeasure).filter(~UnitOfMeasure.id.in_(query1))
 
-        return render_template('iwms/iwms_purchase_order_edit.html', oid=oid,stock_items='',line_items=obj.product_line, \
+        return render_template('iwms/iwms_purchase_order_edit.html', oid=oid,stock_items='',line_items=po.product_line, \
             context=context,form=f,title="Edit purchase order",warehouses=warehouses,suppliers=suppliers)
+    elif request.method == "POST":
+        if f.validate_on_submit():
+            po.supplier_id = f.supplier_id.data if not f.supplier_id.data == '' else None
+            po.warehouse_id = f.warehouse_id.data if not f.warehouse_id.data == '' else None
+            po.ship_to = f.ship_to.data
+            po.address = f.address.data
+            po.remarks = f.remarks.data
+            po.ordered_date = f.ordered_date.data if not f.ordered_date.data == '' else None
+            po.delivery_date = f.delivery_date.data if not f.delivery_date.data == '' else None
+            po.approved_by = f.approved_by.data
+            po.updated_by = "{} {}".format(current_user.fname,current_user.lname)
+
+            product_list = request.form.getlist('products[]')
+            if product_list:
+                po.product_line = []
+                for product_id in product_list:
+                    product = StockItem.query.get(product_id)
+                    qty = request.form.get("qty_{}".format(product_id))
+                    cost = request.form.get("cost_{}".format(product_id))
+                    amount = request.form.get("amount_{}".format(product_id))
+                    uom = UnitOfMeasure.query.get(request.form.get("uom_{}".format(product_id)))
+                    line = PurchaseOrderProductLine(stock_item=product,qty=qty,unit_cost=cost,amount=amount,uom=uom)
+                    po.product_line.append(line)
+                    
+            db.session.commit()
+            flash('Purchase Order updated Successfully!','success')
+            return redirect(url_for('bp_iwms.purchase_orders'))
+        else:
+            for key, value in f.errors.items():
+                flash(str(key) + str(value), 'error')
+            return redirect(url_for('bp_iwms.purchase_orders'))
+
+
+@bp_iwms.route('/_get_uom_line',methods=['POST'])
+def _get_uom_line():
+    if request.method == 'POST':
+        stock_item_id = request.json['stock_item_id']
+        obj = StockItem.query.get_or_404(stock_item_id)
+        uom_line = []
+        for line in obj.uom_line:
+            default = "false"
+            if line.uom_id == obj.unit_id:
+                default = 'true'
+            uom_line.append({'id':line.uom_id,'code':line.uom.code,'default':default})
+        res = jsonify(uom_lines=uom_line)
+        res.status_code = 200
+        return res
 
 
 @bp_iwms.route('/suppliers')

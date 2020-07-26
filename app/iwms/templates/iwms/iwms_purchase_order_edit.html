@@ -146,7 +146,9 @@
                                 <td class='text-center'>{{line.stock_item.name}}</td>
                                 <td class='text-center'>
                                     <select name="uom_{{line.stock_item_id}}" style='width: 100%;'>
-                                        <option value="1">PC</option>
+                                        {% for uom in line.stock_item.uom_line %}
+                                        <option value="{{uom.uom_id}}" {% if uom.uom_id == line.uom_id %}selected{% endif %}>{{uom.uom.code}}</option>
+                                        {% endfor %}
                                     </select>
                                 </td>
                                 <td class='text-center'><input class="input_qty" name="qty_{{line.stock_item_id}}" type="number" style="width:50px" value="{{line.qty}}"></td>

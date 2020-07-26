@@ -108,6 +108,14 @@
 
             
             $("#btn_add_product").click(function(){
+                var csrf_token = "{{ csrf_token() }}";
+                $.ajaxSetup({
+                    beforeSend: function(xhr, settings) {
+                        if (!/^(GET|HEAD|OPTIONS|TRACE)$/i.test(settings.type) && !this.crossDomain) {
+                            xhr.setRequestHeader("X-CSRFToken", csrf_token);
+                        }
+                    }
+                });
                 $("tr").each(function() {
                     var check = $(this).find("input.chkbox").is(':checked');
                     if(check){
@@ -116,6 +124,25 @@
                         var item_name = $(this).find("td").eq(4).html();
                         var item_id = $(this).find("td").eq(0).html();
                         var item_default_cost = $(this).find("td").eq(1).html();
+                        var item_uom = `<select name="uom_${item_id}" style='width':100%;'>`;
+                        $.ajax({
+                            url: "/iwms/_get_uom_line",
+                            type: 'POST',
+                            async: false,
+                            dataType: 'json',
+                            data: JSON.stringify({'stock_item_id':item_id}),
+                            contentType: "application/json; charset=utf-8",
+                            success: function(data){
+                                for (i=0; i < data.uom_lines.length; ++i){
+                                    if (data.uom_lines[i].default == 'true'){
+                                        item_uom += `<option value='${data.uom_lines[i].id}' selected>${data.uom_lines[i].code}</option>`;
+                                    }else{
+                                        item_uom += `<option value='${data.uom_lines[i].id}'>${data.uom_lines[i].code}</option>`;
+                                    }
+                                }
+                            }
+                        });
+
                         $('#tbl_line_items tr:last').after(
                             `<tr>
                                 <td style="display:none;"><input name="products[]" type="hidden" value="${item_id}"></td>
@@ -123,8 +150,7 @@
                                 <td class='text-center'>${counter}</td><td class='text-center'>${item_no}</td>
                                 <td class='text-center'>${item_name}</td>
                                 <td class='text-center'>
-                                    <select name="uom_${item_id}" style='width: 100%;'>
-                                        <option value="1">PC</option>
+                                    ${item_uom}
                                     </select>
                                 </td>
                                 <td class='text-center'><input class="input_qty" name="qty_${item_id}" type="number" style="width:50px" value="0"></td>
@@ -146,12 +172,14 @@
                     if (check){
                         var row = table_product.row.add([
                             $(this).find("input").eq(0).val(),
+                            $(this).find("input").eq(3).val(),
                             "<input class='chkbox' type='checkbox'>",
                             $(this).find("td").eq(3).html(),
                             $(this).find("td").eq(4).html(),
                             "",""
                         ]);
                         table_product.row(row).column(0).nodes().to$().addClass('myHiddenColumn');
+                        table_product.row(row).column(1).nodes().to$().addClass('myHiddenColumn');
                         table_product.row(row).draw();
                         $(this).remove();
                     }
