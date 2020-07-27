@@ -1,7 +1,7 @@
 """ ROUTES """
 
 """ FLASK IMPORTS """
-from flask import render_template, flash, redirect, url_for, request, jsonify, current_app
+from flask import render_template, flash, redirect, url_for, request, jsonify, current_app, send_from_directory
 from flask_login import current_user, login_user, logout_user, login_required
 from werkzeug.urls import url_parse
 import base64
@@ -29,7 +29,7 @@ from .forms import *
 from datetime import datetime
 from app.core.models import CoreLog
 from app.auth.models import User
-
+import pdfkit
 
 def _generate_number(prefix, lID):
     generated_number = ""
@@ -1068,11 +1068,18 @@ def purchase_order_create():
                     uom = UnitOfMeasure.query.get(r.get("uom_{}".format(product_id)))
                     line = PurchaseOrderProductLine(stock_item=product,qty=qty,unit_cost=cost,amount=amount,uom=uom)
                     po.product_line.append(line)
-
             db.session.add(po)
             db.session.commit()
-            flash('New Purchase Order added Successfully!','success')
-            return redirect(url_for('bp_iwms.purchase_orders'))
+
+            if request.form['btn_submit'] == 'Save and Print':
+                file_name = po_generated_number + '.pdf'
+                file_path = current_app.config['PDF_FOLDER'] + po_generated_number + '.pdf'
+                pdfkit.from_string(_makePOPDF(po.supplier,po.product_line),file_path)
+                flash('New Purchase Order added Successfully!','success')
+                return send_from_directory(directory=current_app.config['PDF_FOLDER'],filename=file_name,as_attachment=True)
+            else:
+                flash('New Purchase Order added Successfully!','success')
+                return redirect(url_for('bp_iwms.purchase_orders'))
         else:
             for key, value in f.errors.items():
                 flash(str(key) + str(value), 'error')
@@ -1121,8 +1128,16 @@ def purchase_order_edit(oid):
                     uom = UnitOfMeasure.query.get(request.form.get("uom_{}".format(product_id)))
                     line = PurchaseOrderProductLine(stock_item=product,qty=qty,unit_cost=cost,amount=amount,uom=uom)
                     po.product_line.append(line)
-                    
+
             db.session.commit()
+
+            if request.form['btn_submit'] == 'Save and Print':
+                file_name = po.po_number + '.pdf'
+                file_path = current_app.config['PDF_FOLDER'] + po.po_number + '.pdf'
+                pdfkit.from_string(_makePOPDF(po.supplier,po.product_line),file_path)
+                flash('Purchase Order updated Successfully!','success')
+                return send_from_directory(directory=current_app.config['PDF_FOLDER'],filename=file_name,as_attachment=True)
+
             flash('Purchase Order updated Successfully!','success')
             return redirect(url_for('bp_iwms.purchase_orders'))
         else:
@@ -1268,3 +1283,94 @@ def type_edit(oid):
             for key, value in form.errors.items():
                 flash(str(key) + str(value), 'error')
             return redirect(url_for('bp_iwms.stock_item_types'))
+
+
+@bp_iwms.route('/po_pdf')
+def po_pdf():
+    pass
+    pdfkit.from_string('hello world','po.pdf')
+
+
+def _makePOPDF(vendor,line_items):
+    total = 0
+    html = """<html><head><style>
+    #invoice-POS{box-shadow: 0 0 1in -0.25in rgba(0, 0, 0, 0.5);padding:2mm;margin: 0 auto;width: 50%;background: #FFF;}
+    ::selection {background: #f31544; color: #FFF;}
+    ::moz-selection {background: #f31544; color: #FFF;}
+    h1{font-size: 1.5em;color: #222;}
+    h2{font-size: .9em;}
+    h3{font-size: 1.2em;font-weight: 300;line-height: 2em;}
+    p{font-size: .7em;color: #666;line-height: 1.2em;}
+    #top, #mid,#bot{ /* Targets all id with 'col-' */border-bottom: 1px solid #EEE;}
+    #mid{min-height: 80px;} 
+    #bot{ min-height: 50px;}
+    /*#top .logo{//float: left;height: 60px;width: 60px;background: url(http://michaeltruong.ca/images/logo1.png) no-repeat;background-size: 60px 60px;}*/
+    /*.clientlogo{float: left;height: 60px;width: 60px;background: url(http://michaeltruong.ca/images/client.jpg) no-repeat;background-size: 60px 60px;border-radius: 50px;}*/
+    .info{display: block;//float:left;margin-left: 0;}
+    .title{float: right;}.title p{text-align: right;} 
+    table{width: 100%;border-collapse: collapse;}
+    td{//padding: 5px 0 5px 15px;//border: 1px solid #EEE}
+    .tabletitle{//padding: 5px;font-size: .5em;background: #EEE;}
+    .service{border-bottom: 1px solid #EEE;}
+    .item{width: 24mm;}
+    .itemtext{font-size: .5em;}
+    #legalcopy{margin-top: 5mm;}
+    </style>
+    </head>
+    <body><div id="invoice-POS">
+    <center id="top"><div class="info">
+    <h2>Purchase Order</h2></div><!--End Info-->
+    </center><!--End InvoiceTop-->
+    
+    <div id="mid">
+      <div class="info">
+        <h2>Vendor</h2>"""
+    html = html + """<p> 
+            Company Name : {name}</br>
+            Address : {add}</br>
+            Email   : {email}</br>
+            Phone   : {phone}</br>
+        </p>""".format(name=vendor.name,add=vendor.address,email=vendor.email_address,phone=vendor.contact_number)
+    
+    html = html + """</div>
+    </div><!--End Invoice Mid-->
+    <div id="bot">
+    <div id="table">
+    <table>
+    <tr class="tabletitle">
+    <td class="item"><h2>Item</h2></td>
+    <td class="item"><h2>Description</h2></td>
+    <td class="Hours"><h2>Qty</h2></td>
+    <td class="Hours"><h2>Unit Price</h2></td>
+    <td class="Rate"><h2>Total</h2></td></tr>
+    """
+
+    for line in line_items:
+        html = html + """
+            <tr class='service'><td class='tableitem'><p class='itemtext'>{no}</p></td>
+            <td class="tableitem"><p class="itemtext">{desc}</p></td>
+            <td class="tableitem"><p class="itemtext">{qty}</p></td>
+            <td class="tableitem"><p class="itemtext">{price}</p></td>
+            <td class="tableitem"><p class="itemtext">{amount}</p></td>
+            </tr>""".format(no=line.stock_item.number,desc=line.stock_item.description,\
+                qty=line.qty,price=line.unit_cost,amount=line.amount)
+        total = total + line.amount
+
+    html = html + """
+    <tr class="tabletitle">
+    <td></td><td></td><td></td>
+    <td class="Rate"><h2>Total</h2></td>
+    <td class="payment"><h2>{total}</h2></td>
+    </tr>
+    </table>
+    </div><!--End Table-->
+    <div id="legalcopy">
+    <p class="legal" style="text-align: center;">
+    If you have any question about this purchase order,please contact
+	</p>
+    </div>
+    </div><!--End InvoiceBot-->
+    </div><!--End Invoice-->
+    </body></html>
+    """.format(total=total)
+    return html

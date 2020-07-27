@@ -15,7 +15,7 @@ class Config(object):
     SECRET_KEY = os.environ.get('SECRET_KEY')
     CORS_HEADERS = 'Content-Type'
     DATA_PER_PAGE = 7
-
+    PDF_FOLDER = basedir + '/app/static/pdfs/'
 
 class DevelopmentConfig(Config):
     """
