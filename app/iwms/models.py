@@ -259,7 +259,7 @@ class PurchaseOrder(Base,Admin):
     product_line = db.relationship('PurchaseOrderProductLine', cascade='all,delete', backref="po")
 
     model_name = 'purchase_order'
-    model_icon = ''
+    model_icon = 'pe-7s-wallet'
 
 class PurchaseOrderProductLine(db.Model):
     __tablename__ = 'iwms_purchase_order_product_line'

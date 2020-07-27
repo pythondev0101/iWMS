@@ -8,7 +8,7 @@
         <div class="page-title-wrapper">
             <div class="page-title-heading">
                 <div class="page-title-icon">
-                    <i class="text-success">
+                    <i class="text-success pe-7s-wallet">
                     </i>
                 </div>
                 <div>{{ form.po_number.data }}
@@ -29,7 +29,7 @@
                             <div class="col-md-4">
                                 <div class="position-relative form-group">
                                     <label for="supplier_id" class="">Supplier</label>
-                                    <select name="supplier_id" id="supplier_id" class="form-control">
+                                    <select name="supplier_id" id="supplier_id" class="form-control" required>
                                         <option value="">Choose...</option>
                                         {% for supplier in suppliers %}
                                         <option value="{{ supplier.id }}" {% if supplier.id == form.supplier_id.data %}selected{% endif %}>
@@ -41,7 +41,7 @@
                                         Looks good!
                                     </div>
                                     <div class="invalid-feedback">
-                                        Please provide a valid
+                                        Please provide a supplier
                                     </div>
                                 </div>
                             </div>
@@ -60,7 +60,7 @@
                                         Looks good!
                                     </div>
                                     <div class="invalid-feedback">
-                                        Please provide a valid
+                                        Please provide a warehouse
                                     </div>
                                 </div>
                             </div>
@@ -78,7 +78,7 @@
                                         Looks good!
                                     </div>
                                     <div class="invalid-feedback">
-                                        Please provide a valid
+                                        Please provide a ship to
                                     </div>
                                 </div>
                             </div>
@@ -88,12 +88,24 @@
                                 <div class="position-relative form-group">
                                     <label for="address">Address</label>
                                     <input name="address" id="address" type="text" class="form-control" value="{{form.address.data}}">
+                                    <div class="valid-feedback">
+                                        Looks good!
+                                    </div>
+                                    <div class="invalid-feedback">
+                                        Please provide a valid address
+                                    </div>
                                 </div>
                             </div>
                             <div class="col-md-6">
                                 <div class="position-relative form-group">
                                     <label for="remarks" class="">Remarks</label>
                                     <input name="remarks" id="remarks" type="text" class="form-control" value="{{form.remarks.data}}">
+                                    <div class="valid-feedback">
+                                        Looks good!
+                                    </div>
+                                    <div class="invalid-feedback">
+                                        Please provide a valid remarks
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -102,18 +114,36 @@
                                 <div class="position-relative form-group">
                                     <label for="ordered_date" class="">Ordered</label>
                                     <input name="ordered_date" id="ordered_date" type="date" class="form-control" value="{{form.ordered_date.data.strftime('%Y-%m-%d')}}">
+                                    <div class="valid-feedback">
+                                        Looks good!
+                                    </div>
+                                    <div class="invalid-feedback">
+                                        Please provide a valid ordered date
+                                    </div>
                                 </div>
                             </div>
                             <div class="col-md-4">
                                 <div class="position-relative form-group">
                                     <label for="delivery_date" class="">Delivery</label>
                                     <input name="delivery_date" id="delivery_date" type="date" class="form-control" value="{{form.delivery_date.data.strftime('%Y-%m-%d')}}">
+                                    <div class="valid-feedback">
+                                        Looks good!
+                                    </div>
+                                    <div class="invalid-feedback">
+                                        Please provide a valid delivery date
+                                    </div>
                                 </div>
                             </div>
                             <div class="col-md-4">
                                 <div class="position-relative form-group">
                                     <label for="approved_by" class="">Approved by</label>
                                     <input name="approved_by" id="approved_by" type="text" class="form-control" value="{{form.approved_by.data}}">
+                                    <div class="valid-feedback">
+                                        Looks good!
+                                    </div>
+                                    <div class="invalid-feedback">
+                                        Please provide a valid approved by
+                                    </div>
                                 </div>
                             </div>
                         </div>
