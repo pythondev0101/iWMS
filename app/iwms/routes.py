@@ -63,6 +63,38 @@ def _check_create(model_name):
                     return False
         return False
 
+@bp_iwms.route('/_get_po_line',methods=["POST"])
+def _get_po_line():
+    if request.method == "POST":
+        po_id = request.json['po_id']
+        po = PurchaseOrder.query.get_or_404(po_id)
+        po_line = []
+        for line in po.product_line:
+            po_line.append({
+                'id':line.stock_item.id,'name':line.stock_item.name,
+                'uom':line.uom.code,'number':line.stock_item.number,
+                'qty':line.qty
+                })
+        print("test",po_line)
+        res = jsonify(items=po_line)
+        res.status_code = 200
+        return res
+
+@bp_iwms.route('/_get_uom_line',methods=['POST'])
+def _get_uom_line():
+    if request.method == 'POST':
+        stock_item_id = request.json['stock_item_id']
+        obj = StockItem.query.get_or_404(stock_item_id)
+        uom_line = []
+        for line in obj.uom_line:
+            default = "false"
+            if line.uom_id == obj.unit_id:
+                default = 'true'
+            uom_line.append({'id':line.uom_id,'code':line.uom.code,'default':default})
+        res = jsonify(uom_lines=uom_line)
+        res.status_code = 200
+        return res
+
 @bp_iwms.route('/authorization_error')
 def authorization_error():
     return render_template('auth/authorization_error.html')
@@ -914,19 +946,30 @@ def stock_receipts():
 @bp_iwms.route('/stock_receipt_create',methods=['GET','POST'])
 @login_required
 def stock_receipt_create():
+    sr_generated_number = ""
+    sr = db.session.query(StockReceipt).order_by(StockReceipt.id.desc()).first()
+    if sr:
+        sr_generated_number = _generate_number("SR",po.id)
+    else:
+        # MAY issue to kasi kapag hindi na truncate yung table magkaiba na yung id at number ng po
+        # Make sure nakatruncate ang mga table ng po para reset yung auto increment na id
+        sr_generated_number = "SR00000001"
+    
     f = StockReceiptCreateForm()
     if request.method == "GET":
         # Hardcoded html ang irerender natin hindi yung builtin ng admin
         warehouses = Warehouse.query.all()
+        po_list = PurchaseOrder.query.all()
         context['active'] = 'inventory'
         context['mm-active'] = 'stock_receipt'
         context['module'] = 'iwms'
         context['model'] = 'stock_receipt'
-        return render_template('iwms/iwms_stock_receipt_create.html',context=context,form=f,title="Create stock receipt",warehouses=warehouses)
+        return render_template('iwms/iwms_stock_receipt_create.html',context=context,po_list=po_list,\
+            form=f,title="Create stock receipt",warehouses=warehouses,sr_generated_number=sr_generated_number)
     elif request.method == "POST":
         if f.validate_on_submit():
             obj = StockReceipt()
-            obj.sr_number = f.sr_number.data
+            obj.sr_number = sr_generated_number
             # No field yet so hardcoded muna
             obj.status = "Active"
             obj.warehouse_id = f.warehouse_id.data if not f.warehouse_id.data == '' else None
@@ -1144,22 +1187,6 @@ def purchase_order_edit(oid):
             for key, value in f.errors.items():
                 flash(str(key) + str(value), 'error')
             return redirect(url_for('bp_iwms.purchase_orders'))
-
-
-@bp_iwms.route('/_get_uom_line',methods=['POST'])
-def _get_uom_line():
-    if request.method == 'POST':
-        stock_item_id = request.json['stock_item_id']
-        obj = StockItem.query.get_or_404(stock_item_id)
-        uom_line = []
-        for line in obj.uom_line:
-            default = "false"
-            if line.uom_id == obj.unit_id:
-                default = 'true'
-            uom_line.append({'id':line.uom_id,'code':line.uom.code,'default':default})
-        res = jsonify(uom_lines=uom_line)
-        res.status_code = 200
-        return res
 
 
 @bp_iwms.route('/suppliers')

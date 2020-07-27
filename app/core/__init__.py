@@ -136,12 +136,8 @@ def install():
         pc = UnitOfMeasure()
         pc.code,pc.description = "PC", "PCs"
         db.session.add(pc)
-        ctn = UnitOfMeasure()
-        ctn.code = "CTN"
-        ctn.description = "CARTON"
-        db.session.add(ctn)    
         db.session.commit()
-        print("PC and CTN in unit of measure inserted!")
+        print("PC unit of measure inserted!")
 
     if not User.query.count() > 0:
         print("Creating a SuperUser/owner...")

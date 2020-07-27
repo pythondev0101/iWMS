@@ -1,7 +1,8 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, BooleanField, SubmitField,IntegerField, DecimalField, SelectField
+from wtforms import StringField, PasswordField, BooleanField, SubmitField,IntegerField, DecimalField, SelectField,DateTimeField
 from wtforms.validators import DataRequired, ValidationError, Email, EqualTo
 from app.admin.forms import AdminIndexForm,AdminEditForm, AdminInlineForm, AdminField
+from datetime import datetime
 
 
 class GroupForm(AdminIndexForm):
@@ -317,7 +318,7 @@ class StockReceiptCreateForm(FlaskForm):
     si_number = StringField('SI Number')
     bol = StringField('BOL')
     remarks = StringField('Remarks')
-    date_received = StringField('Date Received')
+    date_received = DateTimeField(default=datetime.today)
     putaway_txn = StringField('Putaway Txn')
 
 class PutawayCreateForm(FlaskForm):

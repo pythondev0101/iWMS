@@ -28,31 +28,7 @@
 {% endif %}
 {% endblock %}
 
-{% block toast %}
-{% with messages = get_flashed_messages(with_categories=true) %}
-{% if messages %}
-<div id="toast-container" class="toast-top-center">
-    {% for category, message in messages %}
-        {% if category == 'success' %}
-        <div class="toast toast-success" aria-live="polite">
-            <div class="toast-progress" style="width: 0%;"></div>
-            <button type="button" class="toast-close-button" role="button" onclick="close_toast()">×</button>
-            <div class="toast-title">Success!</div>
-            <div class="toast-message">{{ message }}</div>
-        </div>
-        {% elif category == 'error' %}
-        <div class="toast toast-error" aria-live="polite">
-            <div class="toast-progress" style="width: 0%;"></div>
-            <button type="button" class="toast-close-button" role="button" onclick="close_toast()">×</button>
-            <div class="toast-title">Error!</div>
-            <div class="toast-message">{{ message }}</div>
-        </div>
-        {% endif %}
-    {% endfor %}
-</div>
-{% endif %}
-{% endwith %}
-{% endblock %}
+
 
 <!-- CHECK KUNG PO O SI ANG MAIINCLUDE NA SCRIPT -->
 {% block scripts %}
@@ -96,7 +72,13 @@
                     data: JSON.stringify({'sup_id': supplier_id}),
                     contentType: "application/json; charset=utf-8",
                     success: function(data) {
-                        table_product.clear().draw();;
+                        table_product.clear().draw();
+                        $("#tbl_line_items tr").each(function() {
+                            if ($(this).find("input").eq(0).val()){
+                                $(this).remove();
+                            }
+                        });
+
                         for(i=0;i < data.items.length; ++i){
                             var row = table_product.row.add([
                             data.items[i].id,
@@ -125,10 +107,10 @@
                         }
                     }
                 });
+                var counter = 1;
                 $("tr").each(function() {
                     var check = $(this).find("input.chkbox").is(':checked');
                     if(check){
-                        var counter = 1;
                         var item_no = $(this).find("td").eq(3).html();
                         var item_name = $(this).find("td").eq(4).html();
                         var item_id = $(this).find("td").eq(0).html();
@@ -308,16 +290,168 @@
             });
         });
 });
+</script>
 
+{% elif context['model'] == 'stock_receipt' %}
+<script>
+    $(document).ready(function(){
+        var table_po = $('#tbl_po_modal').DataTable({
+            "pageLength": 8
+        });
+
+        var table_po_line = $('#tbl_po_line_modal').DataTable({
+            "pageLength": 8,
+            "bInfo" : false,
+            "bPaginate": false,
+            "bFilter": false,
+            "scrollY": '45vh',
+            "scrollCollapse": true,
+            "paging": false
+        });
+
+        $("#tbl_po_modal tr").click(function(){
+            $(this).addClass('selected').siblings().removeClass('selected');    
+         });
+
+
+         
+        $("#tbl_po_line_modal").on('click','tr',function(){
+            $(this).addClass('selected').siblings().removeClass('selected');
+            $("#item_name").val($("#tbl_po_line_modal tr.selected td:nth-child(4)").html());
+            $("#unit").val($("#tbl_po_line_modal tr.selected td:nth-child(5)").html());
+            if (!($("#item_name").val() == '')){
+                $('#btn_add_po_line').prop('disabled', false);
+            }
+        });
+
+        $("#btn_add_po_line").click(function(){
+            if (confirm("Confirm item?")){
+                var stock_id = $("#tbl_po_line_modal tr.selected td:first").html();
+                var item_no = $("#tbl_po_line_modal tr.selected td:nth-child(3)").html();
+                var item_name = $("#tbl_po_line_modal tr.selected td:nth-child(4)").html();
+                var base_uom = $("#tbl_po_line_modal tr.selected td:nth-child(5)").html();
+                var e_qty = $("#tbl_po_line_modal tr.selected td:nth-child(6)").html();
+                var lot_no = $("#lot_no").val();
+                var expiry_date = $("#expiry_date").val();
+                var net_weight = $("#net_weight").val();
+                var row = $("#tbl_po_line_modal tr.selected");
+                $('#tbl_sr_line tr:last').after(
+                    `<tr>
+                        <td style="display:none;"><input name="sr_items[]" type="hidden" value="${stock_id}"></input></td>
+                        <td><input class="chkbox" type="checkbox"></td>
+                        <td class='text-center'>1</td>
+                        <td class='text-center'>${item_no}</td>
+                        <td class='text-center'>${item_name}</td>
+                        <td class='text-center'>${lot_no}</td>
+                        <td class='text-center'>${expiry_date}</td>
+                        <td class='text-center'>${base_uom}</td>
+                        <td class='text-center'>${e_qty}</td>
+                        <td class='text-center'>${net_weight}</td>
+                        <td class='text-center'></td>
+                    </tr>
+                    `
+                    );
+                table_po_line.row(row).remove().draw();
+                $('#btn_add_po_line').prop('disabled', true);
+            }
+
+        });
+
+        $('#btn_select_po').click(function(){
+            // Clearing SR line and PO line table
+            table_po_line.clear().draw();
+            $("#tbl_sr_line tr").each(function() {
+                if ($(this).find("input").eq(0).val()){
+                    $(this).remove();
+                }
+            });
+
+            var number = $("#tbl_po_modal tr.selected td:nth-child(2)").html();
+            var supplier = $("#tbl_po_modal tr.selected td:nth-child(3)").html();
+            var po_id = $("#tbl_po_modal tr.selected td:first").html();
+            $("#po_number").val(number);
+            $("#supplier").val(supplier);
+            
+            var csrf_token = "{{ csrf_token() }}";
+            $.ajaxSetup({
+                beforeSend: function(xhr, settings) {
+                    if (!/^(GET|HEAD|OPTIONS|TRACE)$/i.test(settings.type) && !this.crossDomain) {
+                        xhr.setRequestHeader("X-CSRFToken", csrf_token);
+                    }
+                }
+            });
+
+            $.ajax({
+                url: '/iwms/_get_po_line',
+                type: 'POST',
+                dataType: 'json',
+                data: JSON.stringify({'po_id':po_id}),
+                contentType: "application/json; charset=utf-8",
+                success: function(data){
+                    for (i=0; i < data.items.length;  ++i){
+                        var row = table_po_line.row.add([
+                        data.items[i].id,
+                        i+1,
+                        data.items[i].number,
+                        data.items[i].name,
+                        data.items[i].uom,
+                        data.items[i].qty,'','',''
+                        ]);
+                        table_po_line.row(row).column(0).nodes().to$().addClass('myHiddenColumn');
+                        table_po_line.row(row).draw();
+                    }
+                }
+            });
+        });
+         
+    });
+
+    (function() {
+        var fixed_footer = document.getElementById('chkbox_fixed_footer');
+        setTimeout(function() {
+          fixed_footer.click();
+        }, 100);
+      })();
 </script>
 <!-- END NG CHECKING -->
 {% endif %}
 {% endblock %}
+
 
 {% block modals %}
     {% if context['model'] == 'purchase_order' %}
         {% include "iwms/add_product_modal.html" %}
     {% elif context['model'] == 'stock_item' %}
         {% include "iwms/add_uom_modal.html" %}
+    {% elif context['model'] == 'stock_receipt' %}
+        {% include "iwms/search_po_modal.html" %}
+        {% include "iwms/po_line_modal.html" %}
     {% endif %}
+{% endblock %}
+
+
+{% block toast %}
+{% with messages = get_flashed_messages(with_categories=true) %}
+{% if messages %}
+<div id="toast-container" class="toast-top-center">
+    {% for category, message in messages %}
+        {% if category == 'success' %}
+        <div class="toast toast-success" aria-live="polite">
+            <div class="toast-progress" style="width: 0%;"></div>
+            <button type="button" class="toast-close-button" role="button" onclick="close_toast()">×</button>
+            <div class="toast-title">Success!</div>
+            <div class="toast-message">{{ message }}</div>
+        </div>
+        {% elif category == 'error' %}
+        <div class="toast toast-error" aria-live="polite">
+            <div class="toast-progress" style="width: 0%;"></div>
+            <button type="button" class="toast-close-button" role="button" onclick="close_toast()">×</button>
+            <div class="toast-title">Error!</div>
+            <div class="toast-message">{{ message }}</div>
+        </div>
+        {% endif %}
+    {% endfor %}
+</div>
+{% endif %}
+{% endwith %}
 {% endblock %}
