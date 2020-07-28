@@ -93,7 +93,7 @@ class StockItemStatus(enum.Enum):
     active = "Active"
     hold = "Hold"
 
-suppliers = db.Table('suppliers',
+suppliers = db.Table('iwms_suppliers',
     db.Column('supplier_id', db.Integer, db.ForeignKey('iwms_supplier.id'), primary_key=True),
     db.Column('stock_item_id', db.Integer, db.ForeignKey('iwms_stock_item.id'), primary_key=True)
 )
@@ -121,7 +121,7 @@ class StockItem(Base,Admin):
     tax_code = db.relationship("TaxCode",backref='stock_items')
     reorder_qty = db.Column(db.Integer,nullable=True,default=0)
     description_plu = db.Column(db.String(255),nullable=True,default="")
-    barcode = db.Column(db.String(255),nullable=True,default="")
+    barcode = db.Column(db.String(255),nullable=True,default=None,unique=True)
     qty_plu = db.Column(db.Integer,nullable=True,default=0)
     length = db.Column(db.String(255),nullable=True,default="")
     width = db.Column(db.String(255),nullable=True,default="")
@@ -194,10 +194,23 @@ class StockReceipt(Base,Admin):
     remarks = db.Column(db.String(255),nullable=True,default="")
     date_received = db.Column(db.DateTime, default=datetime.utcnow,nullable=True)
     putaway_txn = db.Column(db.String(255),nullable=True,default="")
+    item_line = db.relationship('StockReceiptItemLine', cascade='all,delete', backref="stock_receipt")
 
     model_name = 'stock_receipt'
     model_icon = 'pe-7s-news-paper'
     
+class StockReceiptItemLine(db.Model):
+    __tablename__ = 'iwms_stock_receipt_item_line'
+    id = db.Column(db.Integer, primary_key=True)
+    stock_receipt_id = db.Column(db.Integer, db.ForeignKey('iwms_stock_receipt.id',ondelete='CASCADE'))
+    lot_no = db.Column(db.String(255),nullable=True,default="")
+    expiry_date = db.Column(db.DateTime,nullable=True)
+    uom = db.Column(db.String(255),nullable=True, default="")
+    received_qty = db.Column(db.Integer,nullable=True,default=None)
+    net_weight = db.Column(db.Integer,nullable=True,default=None)
+    timestamp = db.Column(db.String(255),nullable=True,default="")
+
+
 class Putaway(Base,Admin):
     __tablename__ = 'iwms_putaway'
     pwy_number = db.Column(db.String(255),nullable=False)

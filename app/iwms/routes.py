@@ -95,9 +95,19 @@ def _get_uom_line():
         res.status_code = 200
         return res
 
-@bp_iwms.route('/authorization_error')
-def authorization_error():
-    return render_template('auth/authorization_error.html')
+@bp_iwms.route('/_barcode_check', methods=['POST'])
+def _barcode_check():
+    if request.method == 'POST':
+        barcode = request.json['barcode']
+        check = StockItem.query.filter(StockItem.barcode == barcode).first()
+        if check:
+            resp = jsonify(result=0)
+            resp.status_code = 200
+            return resp
+        else:
+            resp = jsonify(result=1)
+            resp.status_code = 200
+            return resp
 
 def _log_create(description,data):
     log = CoreLog()
@@ -795,7 +805,7 @@ def stock_item_create():
             obj.tax_code_id = f.tax_code_id.data if not f.tax_code_id.data == '' else None
             obj.reorder_qty = f.reorder_qty.data if not f.reorder_qty.data == '' else None
             obj.description_plu = f.description_plu.data
-            obj.barcode = f.barcode.data
+            obj.barcode = f.barcode.data if not f.barcode.data == '' else None
             obj.qty_plu = f.qty_plu.data if not f.qty_plu.data == '' else None
             obj.length = f.length.data
             obj.width = f.width.data
@@ -885,7 +895,7 @@ def stock_item_edit(oid):
             obj.tax_code_id = f.tax_code_id.data if not f.tax_code_id.data == '' else None
             obj.reorder_qty = f.reorder_qty.data if not f.reorder_qty.data == '' else None
             obj.description_plu = f.description_plu.data
-            obj.barcode = f.barcode.data
+            obj.barcode = f.barcode.data if not f.barcode.data == '' else None
             obj.qty_plu = f.qty_plu.data if not f.qty_plu.data == '' else None
             obj.length = f.length.data
             obj.width = f.width.data
@@ -983,6 +993,19 @@ def stock_receipt_create():
             obj.date_received = f.date_received.data
             obj.putaway_txn = f.putaway_txn.data
             obj.created_by = "{} {}".format(current_user.fname,current_user.lname)
+
+            item_list = r.getlist('sr_items[]')
+            if product_list:
+                for product_id in r.getlist('products[]'):
+                    product = StockItem.query.get(product_id)
+                    qty = r.get("qty_{}".format(product_id))
+                    cost = r.get("cost_{}".format(product_id))
+                    amount = r.get("amount_{}".format(product_id))
+                    uom = UnitOfMeasure.query.get(r.get("uom_{}".format(product_id)))
+                    line = PurchaseOrderProductLine(stock_item=product,qty=qty,unit_cost=cost,amount=amount,uom=uom)
+                    po.product_line.append(line)
+
+
             db.session.add(obj)
             db.session.commit()
             flash('New Stock Receipt added Successfully!','success')
