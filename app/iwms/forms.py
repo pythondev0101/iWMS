@@ -305,9 +305,8 @@ class PurchaseOrderViewForm(AdminIndexForm):
         return [[self.po_number,self.status]]
 
 class StockReceiptCreateForm(FlaskForm):
-    sr_number = StringField('Sr No.',validators=[DataRequired()])
     status = StringField('Status')
-    warehouse_id = IntegerField('Warehouse')
+    warehouse_id = AdminField(label='warehouse',required=False)
     source = SelectField('Source',choices=[
         ('purchase_order','Purchase Order'),
         ('stock_issuance','Stock Issuance'),
@@ -318,7 +317,7 @@ class StockReceiptCreateForm(FlaskForm):
     si_number = StringField('SI Number')
     bol = StringField('BOL')
     remarks = StringField('Remarks')
-    date_received = DateTimeField(default=datetime.today)
+    date_received = StringField(default=datetime.today)
     putaway_txn = StringField('Putaway Txn')
 
 class PutawayCreateForm(FlaskForm):

@@ -24,7 +24,7 @@ from app.admin.routes import admin_index, admin_edit
 from .models import Group,Department,TransactionType,Warehouse,Zone, \
     BinLocation,Category,StockItem,UnitOfMeasure,Reason,StockReceipt,Putaway, \
         Email as EAddress, PurchaseOrder, Supplier, Term,PurchaseOrderProductLine,StockItemType,TaxCode,\
-            StockItemUomLine
+            StockItemUomLine,StockReceiptItemLine
 from .forms import *
 from datetime import datetime
 from app.core.models import CoreLog
@@ -959,7 +959,7 @@ def stock_receipt_create():
     sr_generated_number = ""
     sr = db.session.query(StockReceipt).order_by(StockReceipt.id.desc()).first()
     if sr:
-        sr_generated_number = _generate_number("SR",po.id)
+        sr_generated_number = _generate_number("SR",sr.id)
     else:
         # MAY issue to kasi kapag hindi na truncate yung table magkaiba na yung id at number ng po
         # Make sure nakatruncate ang mga table ng po para reset yung auto increment na id
@@ -994,17 +994,20 @@ def stock_receipt_create():
             obj.putaway_txn = f.putaway_txn.data
             obj.created_by = "{} {}".format(current_user.fname,current_user.lname)
 
-            item_list = r.getlist('sr_items[]')
-            if product_list:
-                for product_id in r.getlist('products[]'):
-                    product = StockItem.query.get(product_id)
-                    qty = r.get("qty_{}".format(product_id))
-                    cost = r.get("cost_{}".format(product_id))
-                    amount = r.get("amount_{}".format(product_id))
-                    uom = UnitOfMeasure.query.get(r.get("uom_{}".format(product_id)))
-                    line = PurchaseOrderProductLine(stock_item=product,qty=qty,unit_cost=cost,amount=amount,uom=uom)
-                    po.product_line.append(line)
-
+            item_list = request.form.getlist('sr_items[]')
+            print(item_list)
+            if item_list:
+                for item_id in item_list:
+                    item = StockItem.query.get(item_id)
+                    lot_no = request.form.get("lot_no_{}".format(item_id))
+                    expiry_date = request.form.get("expiry_date_{}".format(item_id))
+                    uom = request.form.get("uom_{}".format(item_id))
+                    received_qty = request.form.get("received_qty_{}".format(item_id))
+                    net_weight = request.form.get("net_weight_{}".format(item_id))
+                    # timestamp = r.get("timestamp_{}".format(item_id))
+                    line = StockReceiptItemLine(stock_item=item,lot_no=lot_no,expiry_date=expiry_date,\
+                        uom=uom,received_qty=received_qty,net_weight=net_weight)
+                    obj.item_line.append(line)
 
             db.session.add(obj)
             db.session.commit()

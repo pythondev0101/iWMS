@@ -203,6 +203,8 @@ class StockReceiptItemLine(db.Model):
     __tablename__ = 'iwms_stock_receipt_item_line'
     id = db.Column(db.Integer, primary_key=True)
     stock_receipt_id = db.Column(db.Integer, db.ForeignKey('iwms_stock_receipt.id',ondelete='CASCADE'))
+    stock_item_id = db.Column(db.Integer,db.ForeignKey('iwms_stock_item.id',ondelete="SET NULL"),nullable=True)
+    stock_item = db.relationship('StockItem',backref="sr_line")
     lot_no = db.Column(db.String(255),nullable=True,default="")
     expiry_date = db.Column(db.DateTime,nullable=True)
     uom = db.Column(db.String(255),nullable=True, default="")

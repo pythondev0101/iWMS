@@ -373,11 +373,11 @@
                         <td class='text-center'>1</td>
                         <td class='text-center'>${item_no}</td>
                         <td class='text-center'>${item_name}</td>
-                        <td class='text-center'>${lot_no}</td>
-                        <td class='text-center'>${expiry_date}</td>
-                        <td class='text-center'>${base_uom}</td>
-                        <td class='text-center'>${e_qty}</td>
-                        <td class='text-center'>${net_weight}</td>
+                        <td class='text-center'><input name="lot_no_${stock_id}" type="text" value="${lot_no}" readonly></td>
+                        <td class='text-center'><input name="expiry_date_${stock_id}" type="date" value="${expiry_date}" readonly></td>
+                        <td class='text-center'><input name="uom_${stock_id}" type="text" value="${base_uom}" style="width:50px" readonly></td>
+                        <td class='text-center'><input name="received_qty_${stock_id}" type="number" value="${e_qty}" style="width:50px" readonly></td>
+                        <td class='text-center'><input name="net_weight_${stock_id}" type="text" value="${net_weight}" style="width:50px" readonly></td>
                         <td class='text-center'></td>
                     </tr>
                     `
