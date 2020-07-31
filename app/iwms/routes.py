@@ -10,7 +10,7 @@ import base64
 
 """ APP IMPORTS  """
 from app.iwms import bp_iwms
-from app import db
+from app import db, mail
 
 """--------------END--------------"""
 
@@ -30,6 +30,7 @@ from datetime import datetime
 from app.core.models import CoreLog
 from app.auth.models import User
 import pdfkit
+from flask_mail import Message
 
 def _generate_number(prefix, lID):
     generated_number = ""
@@ -1243,6 +1244,14 @@ def purchase_order_create():
                 file_name = po_generated_number + '.pdf'
                 file_path = current_app.config['PDF_FOLDER'] + po_generated_number + '.pdf'
                 pdfkit.from_string(_makePOPDF(po.supplier,po.product_line),file_path)
+
+                # SEND EMAIL
+                msg = Message('Purchase Order', sender = 'rmontemayor0101@gmail.com', recipients = ['thynejoyavila@gmail.com'])
+                msg.body = "Here attached purchase order quotation"
+
+                with open(file_path,'rb') as pdf_file:
+                    msg.attach(filename=file_path,disposition="attachment",content_type="application/pdf",data=pdf_file.read())
+                mail.send(msg)
                 flash('New Purchase Order added Successfully!','success')
                 return send_from_directory(directory=current_app.config['PDF_FOLDER'],filename=file_name,as_attachment=True)
             else:

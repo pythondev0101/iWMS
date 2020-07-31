@@ -3,7 +3,8 @@ from dotenv import load_dotenv
 
 basedir = os.path.abspath(os.path.dirname(__file__))
 
-def get_database():
+
+def _get_database():
     host = os.environ.get('DATABASE_HOST')
     user = os.environ.get('DATABASE_USER')
     password = os.environ.get('DATABASE_PASSWORD')
@@ -16,13 +17,19 @@ class Config(object):
     CORS_HEADERS = 'Content-Type'
     DATA_PER_PAGE = 7
     PDF_FOLDER = basedir + '/app/static/pdfs/'
+    MAIL_SERVER = "smtp.gmail.com"
+    MAIL_PORT = 465
+    MAIL_USERNAME = "rmontemayor0101@gmail.com"
+    MAIL_PASSWORD = "xusxeecqychjduvv"
+    MAIL_USE_TLS = False
+    MAIL_USE_SSL = True
 
 class DevelopmentConfig(Config):
     """
     Development configurations
     """
 
-    SQLALCHEMY_DATABASE_URI = get_database()
+    SQLALCHEMY_DATABASE_URI = _get_database()
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     DEBUG = True
     # SQLALCHEMY_ECHO = True
@@ -31,7 +38,7 @@ class ProductionConfig(Config):
     """
     Production configurations
     """
-    SQLALCHEMY_DATABASE_URI = get_database()
+    SQLALCHEMY_DATABASE_URI = _get_database()
     DEBUG = False
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     

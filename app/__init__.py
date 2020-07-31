@@ -3,13 +3,13 @@ app/__init__.py
 ====================================
 Create our application
 """
-
 from flask import Flask,g
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from flask_login import LoginManager
 from flask_wtf.csrf import CSRFProtect
 from flask_cors import CORS
+from flask_mail import Mail
 # LOCAL IMPORTS
 from config import app_config
 
@@ -18,6 +18,7 @@ db = SQLAlchemy()
 migrate = Migrate()
 csrf = CSRFProtect()
 login_manager = LoginManager()
+mail = Mail()
 
 system_modules = []
 
@@ -41,6 +42,7 @@ def create_app(config_name):
     login_manager.init_app(app)
     CORS(app)
     csrf.init_app(app)
+    mail.init_app(app)
 
     login_manager.login_view = 'bp_auth.login'
     login_manager.login_message = "You must be logged in to access this page."
