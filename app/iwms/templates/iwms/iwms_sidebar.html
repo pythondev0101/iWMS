@@ -229,6 +229,20 @@
     {% endif %}
     {% endif %}
 
+    {% if 'source' in session['permissions'] %}
+    {% if session['permissions']['source']['read'] %}
+
+    <li>
+      <a
+        href="{{ url_for('bp_iwms.sources') }}"
+        class="{% if context['mm-active'] == 'source' %} mm-active {% endif %}"
+      >
+        <i class="metismenu-icon"> </i>Source
+      </a>
+    </li>
+    {% endif %}
+    {% endif %}
+
     {% if 'stock_receipt' in session['permissions'] %}
     {% if session['permissions']['stock_receipt']['read'] %}
 
@@ -326,7 +340,7 @@
 <li>
   <a
     href="#"
-    class="{% if context['active']=='reports' %} mm-active {% endif %}"
+    class="{% if context['active']=='warehouse_bin_location' %} mm-active {% endif %}"
   >
     <i
       class="metismenu-icon pe-7s-network icon-gradient bg-premium-dark"
@@ -337,8 +351,8 @@
   </a>
   <ul>
     <li>
-      <a href="{{ url_for('bp_iwms.bin_location') }}">
-        <i class="metismenu-icon"> </i>Configuration
+      <a href="{{ url_for('bp_iwms.warehouse_bin_location') }}">
+        <i class="metismenu-icon"> </i>Warehouse Floor Plan
       </a>
     </li>
   </ul>

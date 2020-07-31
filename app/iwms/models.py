@@ -173,20 +173,23 @@ class Reason(Base,Admin):
     model_name = 'reason'
     model_icon = 'pe-7s-news-paper'
 
-class StockReceiptSource(enum.Enum):
-    purchase_order = "Purchase Order"
-    stock_issuance = "Stock Issuance"
-    rturn = "Return"
-    ud = "Unscheduled Delivery"
+class Source(Base,Admin):
+    __tablename__ = 'iwms_source'
+    name = db.Column(db.String(64),nullable=False)
+    description = db.Column(db.String(255),nullable=True)
+    model_name = 'source'
+    model_icon = 'pe-7s-news-paper'
 
 class StockReceipt(Base,Admin):
     __tablename__ = 'iwms_stock_receipt'
     sr_number = db.Column(db.String(255),nullable=True,default="")
     status = db.Column(db.String(255),nullable=True,default="")
+    purchase_order_id = db.Column(db.Integer,db.ForeignKey('iwms_purchase_order.id',ondelete="SET NULL"),nullable=True)
+    purchase_order = db.relationship('PurchaseOrder',backref='stockreceipt')
     warehouse_id = db.Column(db.Integer,db.ForeignKey('iwms_warehouse.id',ondelete="SET NULL"),nullable=True)
     warehouse = db.relationship('Warehouse',backref='stockreceipt')
-    source = db.Column(db.Enum(StockReceiptSource),default=StockReceiptSource.purchase_order)
-    po_number = db.Column(db.String(255),nullable=True,default="")
+    source_id = db.Column(db.Integer,db.ForeignKey('iwms_source.id',ondelete="SET NULL"),nullable=True)
+    source = db.relationship('Source',backref='stockreceipt')
     supplier = db.Column(db.String(255),nullable=True,default="")
     reference = db.Column(db.String(255),nullable=True,default="")
     si_number = db.Column(db.String(255),nullable=True,default="")
@@ -216,18 +219,34 @@ class StockReceiptItemLine(db.Model):
 class Putaway(Base,Admin):
     __tablename__ = 'iwms_putaway'
     pwy_number = db.Column(db.String(255),nullable=False)
+    stock_receipt_id = db.Column(db.Integer,db.ForeignKey('iwms_stock_receipt.id',ondelete="SET NULL"),nullable=True)
+    stock_receipt = db.relationship('StockReceipt',backref="putaway")
     status = db.Column(db.String(255),nullable=True)
     warehouse_id = db.Column(db.Integer,db.ForeignKey('iwms_warehouse.id',ondelete="SET NULL"),nullable=True)
     warehouse = db.relationship('Warehouse',backref='pwy_warehouse')
-    receipt_no = db.Column(db.String(255),nullable=True)
     reference = db.Column(db.String(255),nullable=True)
     remarks = db.Column(db.String(255),nullable=True)
+    item_line = db.relationship('PutawayItemLine', cascade='all,delete', backref="putaway")
     model_name = 'putaway'
     model_icon = 'pe-7s-junk'
 
+
+class PutawayItemLine(db.Model):
+    __tablename__ = 'iwms_putaway_item_line'
+    id = db.Column(db.Integer, primary_key=True)
+    putaway_id = db.Column(db.Integer, db.ForeignKey('iwms_putaway.id',ondelete='CASCADE'))
+    stock_item_id = db.Column(db.Integer,db.ForeignKey('iwms_stock_item.id',ondelete="SET NULL"),nullable=True)
+    stock_item = db.relationship('StockItem',backref="pwy_line")
+    lot_no = db.Column(db.String(255),nullable=True,default="")
+    expiry_date = db.Column(db.DateTime,nullable=True)
+    uom = db.Column(db.String(255),nullable=True, default="")
+    qty = db.Column(db.Integer,nullable=True,default=None)
+    serials = db.Column(db.Integer,nullable=True,default=None)
+    timestamp = db.Column(db.String(255),nullable=True,default="")
+
+
 class Supplier(Base,Admin):
     __tablename__ = 'iwms_supplier'
-
     code = db.Column(db.String(255),nullable=False)
     name = db.Column(db.String(255),nullable=False)
     status = db.Column(db.String(255),nullable=True)

@@ -142,7 +142,7 @@
             }
         });
 
-        $(".row_object").click(function(){
+        $("#index_table tbody").on('click','.row_object',function(){
             var view_modal = '{{ view_modal }}';
             if (view_modal != 'False'){
                 var id = '#param_' + $(this).attr('id');

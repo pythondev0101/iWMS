@@ -76,7 +76,7 @@ def install():
     from app import db
     from .models import CoreCity,CoreProvince
     from app.auth.models import Role, RolePermission
-    from app.iwms.models import UnitOfMeasure
+    from app.iwms.models import UnitOfMeasure, Source
     from app.auth.models import User
 
     print("Installing...")
@@ -138,6 +138,14 @@ def install():
         db.session.add(pc)
         db.session.commit()
         print("PC unit of measure inserted!")
+
+    if not Source.query.count() > 0:
+        print("Inserting sources...")
+        s = Source()
+        s.name,s.description = "Purchase Order", "Purchase Order"
+        db.session.add(s)
+        db.session.commit()
+        print("Sources inserted!")        
 
     if not User.query.count() > 0:
         print("Creating a SuperUser/owner...")

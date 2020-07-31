@@ -139,6 +139,16 @@ class ReasonEditForm(AdminEditForm):
         ]    
     edit_title = 'Edit reasons'
 
+class SourceEditForm(AdminEditForm):
+    name = AdminField(label='Name',validators=[DataRequired()])
+    description = AdminField(label='Description',required=False)
+
+    def edit_fields(self):
+        return [
+            [self.name,self.description]
+        ]    
+    edit_title = 'Edit reasons'
+
 class EmailForm(AdminIndexForm):
     index_headers = ['Module Code','Description','Type','Email Address']
     index_title = "Email Addresses"
@@ -257,6 +267,16 @@ class ReasonForm(AdminIndexForm):
     def create_fields(self):
         return [[self.code,self.description],[self.type]]
 
+class SourceForm(AdminIndexForm):
+    index_headers = ['name','description']
+    index_title = 'Sources'
+    
+    name = AdminField(label='Name',validators=[DataRequired()])
+    description = AdminField(label='Description',required=False)
+
+    def create_fields(self):
+        return [[self.name,self.description]]
+
 class StockItemCreateForm(FlaskForm):
     number = AdminField(label='number')
     status = AdminField(label='status',required=False)
@@ -307,10 +327,7 @@ class PurchaseOrderViewForm(AdminIndexForm):
 class StockReceiptCreateForm(FlaskForm):
     status = StringField('Status')
     warehouse_id = AdminField(label='warehouse',required=False)
-    source = SelectField('Source',choices=[
-        ('purchase_order','Purchase Order'),
-        ('stock_issuance','Stock Issuance'),
-        ('rturn','Return'),('ud','Unscheduled Delivery')])
+    source = AdminField(label='Source',required=False)
     po_number = StringField('PO No.')
     supplier = StringField('Supplier')
     reference = StringField('Reference')
@@ -323,7 +340,6 @@ class StockReceiptCreateForm(FlaskForm):
 class PutawayCreateForm(FlaskForm):
     pwy_number = StringField()
     status = StringField()
-    warehouse_id = IntegerField('Warehouse')
     receipt_no = StringField()
     reference = StringField()
     remarks = StringField()

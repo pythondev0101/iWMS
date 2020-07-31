@@ -24,7 +24,7 @@ from app.admin.routes import admin_index, admin_edit
 from .models import Group,Department,TransactionType,Warehouse,Zone, \
     BinLocation,Category,StockItem,UnitOfMeasure,Reason,StockReceipt,Putaway, \
         Email as EAddress, PurchaseOrder, Supplier, Term,PurchaseOrderProductLine,StockItemType,TaxCode,\
-            StockItemUomLine,StockReceiptItemLine
+            StockItemUomLine,StockReceiptItemLine, PutawayItemLine,Source
 from .forms import *
 from datetime import datetime
 from app.core.models import CoreLog
@@ -80,6 +80,29 @@ def _get_po_line():
         res.status_code = 200
         return res
 
+@bp_iwms.route('/_get_sr_line',methods=["POST"])
+def _get_sr_line():
+    if request.method == "POST":
+        sr_id = request.json['sr_id']
+        sr = StockReceipt.query.get_or_404(sr_id)
+        sr_line = []
+        for line in sr.item_line:
+            if line:
+                _expiry_date = ''
+                if line.expiry_date is not None:
+                    _expiry_date = line.expiry_date.strftime("%Y-%m-%d")
+                sr_line.append({
+                    'id':line.stock_item.id,'name':line.stock_item.name,
+                    'uom':line.uom,'number':line.stock_item.number,
+                    'lot_no':line.lot_no,'expiry_date': _expiry_date,
+                    'received_qty':line.received_qty
+                    })
+
+        print("test",sr_line)
+        res = jsonify(items=sr_line)
+        res.status_code = 200
+        return res
+
 @bp_iwms.route('/_get_uom_line',methods=['POST'])
 def _get_uom_line():
     if request.method == 'POST':
@@ -130,8 +153,12 @@ def dashboard():
 
 @bp_iwms.route('/bin_location')
 @login_required
-def bin_location():
-    return render_template('iwms/iwms_draggable.html',context=context)
+def warehouse_bin_location():
+    context['active'] = 'warehouse_bin_location'
+    context['mm-active'] = 'warehouse_bin_location'
+    context['module'] = 'iwms'
+    context['model'] = 'warehouse_bin_location'
+    return render_template('iwms/iwms_warehouse_bin_location.html',context=context)
 
 @bp_iwms.route('/users')
 @login_required
@@ -747,6 +774,59 @@ def reason_edit(oid):
                 flash(str(key) + str(value), 'error')
             return redirect(url_for('bp_iwms.reasons'))
 
+
+@bp_iwms.route('/sources')
+@login_required
+def sources():
+    fields = [Source.id,Source.name,Source.description]
+    context['mm-active'] = 'source'
+    return admin_index(Source,fields=fields,form=SourceForm(), \
+        template='iwms/iwms_index.html', edit_url='bp_iwms.source_edit',\
+            create_url="bp_iwms.source_create",kwargs={'active':'inventory'})
+
+@bp_iwms.route('/source_create',methods=['POST'])
+@login_required
+def source_create():
+    f = SourceForm()
+    if request.method == "POST":
+        if f.validate_on_submit():
+            obj = Source()
+            obj.name = f.name.data
+            obj.description = f.description.data
+            obj.created_by = "{} {}".format(current_user.fname,current_user.lname)
+            db.session.add(obj)
+            db.session.commit()
+            flash("New source added successfully!",'success')
+            return redirect(url_for('bp_iwms.sources'))
+        else:
+            for key, value in f.errors.items():
+                flash(str(key) + str(value), 'error')
+            return redirect(url_for('bp_iwms.sources'))
+
+@bp_iwms.route('/source_edit/<int:oid>',methods=['GET','POST'])
+@login_required
+def source_edit(oid):
+    obj = Source.query.get_or_404(oid)
+    f = SourceEditForm(obj=obj)
+    if request.method == "GET":
+        context['mm-active'] = 'source'
+        return admin_edit(f,'bp_iwms.source_edit',oid, \
+            model=Source,template='iwms/iwms_edit.html',kwargs={'active':'inventory'})
+    elif request.method == "POST":
+        if f.validate_on_submit():
+            obj.name = f.name.data
+            obj.description = f.description.data
+            obj.updated_by = "{} {}".format(current_user.fname,current_user.lname)
+            obj.updated_at = datetime.now()
+            db.session.commit()
+            flash('Source update Successfully!','success')
+            return redirect(url_for('bp_iwms.sources'))
+        else:
+            for key, value in form.errors.items():
+                flash(str(key) + str(value), 'error')
+            return redirect(url_for('bp_iwms.sources'))
+
+
 @bp_iwms.route('/stock_items')
 @login_required
 def stock_items():
@@ -754,7 +834,7 @@ def stock_items():
     context['mm-active'] = 'stock_item'
     # TODO: Kailangan idelete yung context['create_modal'] kasi naiiwan sya
     form = StockItemView()
-    context['create_modal']['create_url'] = ''
+    context['create_modal']['create_url'] = False
     return admin_index(StockItem,form=form,fields=fields,edit_url="bp_iwms.stock_item_edit",create_modal=True,template="iwms/iwms_index.html",kwargs={
         'active':'inventory'
         })
@@ -948,6 +1028,7 @@ def stock_item_edit(oid):
 def stock_receipts():
     fields = [StockReceipt.id,StockReceipt.sr_number,StockReceipt.status]
     context['mm-active'] = 'stock_receipt'
+    context['create_modal']['create_url'] = False
     return admin_index(StockReceipt,fields=fields,view_modal=False,create_modal=True,template="iwms/iwms_index.html",kwargs={
         'index_title':'Stock receipts','index_headers':['SR No.','Status'],'index_message':'List of items',
         'active':'inventory'
@@ -970,20 +1051,23 @@ def stock_receipt_create():
         # Hardcoded html ang irerender natin hindi yung builtin ng admin
         warehouses = Warehouse.query.all()
         po_list = PurchaseOrder.query.all()
+        sources = Source.query.all()
         context['active'] = 'inventory'
         context['mm-active'] = 'stock_receipt'
         context['module'] = 'iwms'
         context['model'] = 'stock_receipt'
-        return render_template('iwms/iwms_stock_receipt_create.html',context=context,po_list=po_list,\
+        return render_template('iwms/iwms_stock_receipt_create.html',context=context,po_list=po_list,sources=sources,\
             form=f,title="Create stock receipt",warehouses=warehouses,sr_generated_number=sr_generated_number)
     elif request.method == "POST":
         if f.validate_on_submit():
             obj = StockReceipt()
             obj.sr_number = sr_generated_number
             # No field yet so hardcoded muna
-            obj.status = "Active"
+            po = PurchaseOrder.query.filter_by(po_number=f.po_number.data)
+            obj.purchase_order = po
+            obj.status = "LOGGED"
             obj.warehouse_id = f.warehouse_id.data if not f.warehouse_id.data == '' else None
-            obj.source = f.source.data
+            obj.source_id = f.source.data if not f.source.data == '' else None
             obj.po_number = f.po_number.data
             obj.supplier = f.supplier.data
             obj.reference = f.reference.data
@@ -995,15 +1079,14 @@ def stock_receipt_create():
             obj.created_by = "{} {}".format(current_user.fname,current_user.lname)
 
             item_list = request.form.getlist('sr_items[]')
-            print(item_list)
             if item_list:
                 for item_id in item_list:
                     item = StockItem.query.get(item_id)
                     lot_no = request.form.get("lot_no_{}".format(item_id))
-                    expiry_date = request.form.get("expiry_date_{}".format(item_id))
+                    expiry_date = request.form.get("expiry_date_{}".format(item_id)) if not request.form.get("expiry_date_{}".format(item_id)) == '' else None
                     uom = request.form.get("uom_{}".format(item_id))
-                    received_qty = request.form.get("received_qty_{}".format(item_id))
-                    net_weight = request.form.get("net_weight_{}".format(item_id))
+                    received_qty = request.form.get("received_qty_{}".format(item_id)) if not request.form.get("received_qty_{}".format(item_id)) == '' else None
+                    net_weight = request.form.get("net_weight_{}".format(item_id)) if not request.form.get("net_weight_{}".format(item_id)) == '' else None
                     # timestamp = r.get("timestamp_{}".format(item_id))
                     line = StockReceiptItemLine(stock_item=item,lot_no=lot_no,expiry_date=expiry_date,\
                         uom=uom,received_qty=received_qty,net_weight=net_weight)
@@ -1022,7 +1105,8 @@ def stock_receipt_create():
 @login_required
 def putaways():
     fields = [Putaway.id,Putaway.pwy_number,Putaway.status]
-    context['mm-active'] = 'putaway'
+    context['mm-active'] = 'putaway' 
+    context['create_modal']['create_url'] = False
     return admin_index(Putaway,fields=fields,view_modal=False,create_modal=True,template="iwms/iwms_index.html",kwargs={
         'index_title':'Putaway','index_headers':['PWY No.','Status'],'index_message':'List of items',
         'active':'inventory'
@@ -1031,40 +1115,55 @@ def putaways():
 @bp_iwms.route('/putaway_create',methods=['GET','POST'])
 @login_required
 def putaway_create():
+    pwy_generated_number = ""
+    pwy = db.session.query(Putaway).order_by(Putaway.id.desc()).first()
+    if pwy:
+        pwy_generated_number = _generate_number("PWY",pwy.id)
+    else:
+        # MAY issue to kasi kapag hindi na truncate yung table magkaiba na yung id at number ng po
+        # Make sure nakatruncate ang mga table ng po para reset yung auto increment na id
+        pwy_generated_number = "PWY00000001"
+
     f = PutawayCreateForm()
     if request.method == "GET":
         # Hardcoded html ang irerender natin hindi yung builtin ng admin
         warehouses = Warehouse.query.all()
+        sr_list = StockReceipt.query.all()
+        bin_locations = BinLocation.query.all()
         context['active'] = 'inventory'
         context['mm-active'] = 'putaway'
         context['module'] = 'iwms'
-        context['model'] = 'stock_receipt'
-        return render_template('iwms/iwms_putaway_create.html',context=context,form=f,title="Create putaway",warehouses=warehouses)
+        context['model'] = 'putaway'
+        return render_template('iwms/iwms_putaway_create.html',context=context,form=f,title="Create putaway",\
+            warehouses=warehouses,pwy_generated_number=pwy_generated_number,sr_list=sr_list,bin_locations=bin_locations)
     elif request.method == "POST":
         if f.validate_on_submit():
-            obj = StockReceipt()
-            obj.sr_number = f.sr_number.data
-            # No field yet so hardcoded muna
-            obj.status = "Active"
-            obj.warehouse_id = f.warehouse_id.data if not f.warehouse_id.data == '' else None
-            obj.source = f.source.data
-            obj.po_number = f.po_number.data
-            obj.supplier = f.supplier.data
+            obj = Putaway()
+            obj.pwy_number = pwy_generated_number
+            obj.status = "LOGGED"
+            # obj.warehouse_id = 
             obj.reference = f.reference.data
-            obj.si_number = f.si_number.data
-            obj.bol = f.bol.data
             obj.remarks = f.remarks.data
-            obj.date_received = f.date_received.data
-            obj.putaway_txn = f.putaway_txn.data
             obj.created_by = "{} {}".format(current_user.fname,current_user.lname)
+            items_list = request.form.getlist('pwy_items[]')
+            if items_list:
+                for item_id in items_list:
+                    item = StockItem.query.get(item_id)
+                    lot_no = request.form.get('lot_no_{}'.format(item_id))
+                    expiry_date = request.form.get('expiry_{}'.format(item_id)) if not request.form.get('expiry_{}'.format(item_id)) == '' else None
+                    uom = request.form.get('uom_{}'.format(item_id))
+                    qty = request.form.get('qty_{}'.format(item_id)) if not request.form.get('qty_{}'.format(item_id)) == '' else None
+                    line = PutawayItemLine(stock_item=item,lot_no=lot_no,expiry_date=expiry_date,uom=uom,qty=qty)
+                    obj.item_line.append(line)
+
             db.session.add(obj)
             db.session.commit()
-            flash('New Stock Receipt added Successfully!','success')
-            return redirect(url_for('bp_iwms.stock_receipts'))
+            flash('New Putaway added Successfully!','success')
+            return redirect(url_for('bp_iwms.putaways'))
         else:
-            for key, value in form.errors.items():
+            for key, value in f.errors.items():
                 flash(str(key) + str(value), 'error')
-            return redirect(url_for('bp_iwms.stock_receipts'))
+            return redirect(url_for('bp_iwms.putaways'))
 
 @bp_iwms.route("/_get_suppliers",methods=['POST'])
 def _get_suppliers():

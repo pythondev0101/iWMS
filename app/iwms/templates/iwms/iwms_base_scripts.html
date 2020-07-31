@@ -335,12 +335,11 @@
             "bInfo" : false,
             "bPaginate": false,
             "bFilter": false,
-            "scrollY": '45vh',
-            "scrollCollapse": true,
-            "paging": false
+            "paging": false,
+            "bSort": false,
         });
 
-        $("#tbl_po_modal tr").click(function(){
+        $("#tbl_po_modal").on('click','tr', function(){
             $(this).addClass('selected').siblings().removeClass('selected');    
          });
 
@@ -444,6 +443,134 @@
         }, 100);
       })();
 </script>
+
+<!-- !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!PUTAWAY!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! -->
+<!-- !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!PUTAWAY!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! -->
+{% elif context['model'] == 'putaway' %}
+<script>
+    $(document).ready(function(){
+        var table_sr = $('#tbl_sr_modal').DataTable({
+            "pageLength": 8
+        });
+
+        var table_sr_line = $('#tbl_sr_line_modal').DataTable({
+            "pageLength": 8,
+            "bInfo" : false,
+            "bPaginate": false,
+            "bFilter": false,
+            "paging": false,
+            "bSort": false
+        });
+
+        $("#tbl_sr_modal tr").click(function(){
+            $(this).addClass('selected').siblings().removeClass('selected');    
+         });
+
+
+         
+        $("#tbl_sr_line_modal").on('click','tr',function(){
+            $(this).addClass('selected').siblings().removeClass('selected');
+            $("#item_name").val($("#tbl_sr_line_modal tr.selected td:nth-child(4)").html());
+            $("#unit").val($("#tbl_sr_line_modal tr.selected td:nth-child(7)").html());
+            $("#lot_no").val($("#tbl_sr_line_modal tr.selected td:nth-child(5)").html());
+            $("#expiry").val($("#tbl_sr_line_modal tr.selected td:nth-child(6)").html());
+            $("#quantity").val($("#tbl_sr_line_modal tr.selected td:nth-child(8)").html());
+            if (!($("#item_name").val() == '')){
+                $('#btn_add_sr_line').prop('disabled', false);
+            }
+        });
+
+        $("#btn_add_sr_line").click(function(){
+            if (confirm("Confirm item?")){
+                var stock_id = $("#tbl_sr_line_modal tr.selected td:first").html();
+                var item_no = $("#tbl_sr_line_modal tr.selected td:nth-child(3)").html();
+                var item_name = $("#tbl_sr_line_modal tr.selected td:nth-child(4)").html();
+                var base_uom = $("#tbl_sr_line_modal tr.selected td:nth-child(7)").html();
+                var lot_no = $("#lot_no").val();
+                var expiry_date = $("#expiry").val();
+                var bin_location = $.trim(($("#bin_location option:selected").text()));
+                var quantity = $("#quantity").val();
+
+                var row = $("#tbl_sr_line_modal tr.selected");
+                $('#tbl_pwy_item_line tr:last').after(
+                    `<tr>
+                        <td style="display:none;"><input name="pwy_items[]" type="hidden" value="${stock_id}"></input></td>
+                        <td><input class="chkbox" type="checkbox"></td>
+                        <td class='text-center'>1</td>
+                        <td class='text-center'>${item_no}</td>
+                        <td class='text-center'>${item_name}</td>
+                        <td class='text-center'><input name="uom_${stock_id}" type="text" value="${base_uom}" style="width:50px" readonly></td>
+                        <td class='text-center'><input name="bin_location_${stock_id}" type="text" value="${bin_location}" readonly></td>
+                        <td class='text-center'><input name="lot_no_${stock_id}" type="text" value="${lot_no}" style="width:50px" readonly></td>
+                        <td class='text-center'><input name="expiry_${stock_id}" type="text" value="${expiry_date}" style="width:50px" readonly></td>
+                        <td class='text-center'></td>
+                        <td class='text-center'><input name="qty_${stock_id}" type="text" value="${quantity}" style="width:50px" readonly></td>
+                        <td class='text-center'></td>
+                    </tr>
+                    `
+                    );
+                table_sr_line.row(row).remove().draw();
+                $('#btn_add_sr_line').prop('disabled', true);
+            }
+
+        });
+
+        $('#btn_select_sr').click(function(){
+            // Clearing SR line and PO line table
+            table_sr_line.clear().draw();
+            $("#tbl_pwy_item_line tr").each(function() {
+                if ($(this).find("input").eq(0).val()){
+                    $(this).remove();
+                }
+            });
+
+            var number = $("#tbl_sr_modal tr.selected td:nth-child(2)").html();
+            var sr_id = $("#tbl_sr_modal tr.selected td:first").html();
+            $("#sr_number").val(number);
+            
+            var csrf_token = "{{ csrf_token() }}";
+            $.ajaxSetup({
+                beforeSend: function(xhr, settings) {
+                    if (!/^(GET|HEAD|OPTIONS|TRACE)$/i.test(settings.type) && !this.crossDomain) {
+                        xhr.setRequestHeader("X-CSRFToken", csrf_token);
+                    }
+                }
+            });
+
+            $.ajax({
+                url: '/iwms/_get_sr_line',
+                type: 'POST',
+                dataType: 'json',
+                data: JSON.stringify({'sr_id':sr_id}),
+                contentType: "application/json; charset=utf-8",
+                success: function(data){
+                    for (i=0; i < data.items.length;  ++i){
+                        var row = table_sr_line.row.add([
+                        data.items[i].id,
+                        i+1,
+                        data.items[i].number,
+                        data.items[i].name,
+                        data.items[i].lot_no,
+                        data.items[i].expiry_date,
+                        data.items[i].uom,
+                        data.items[i].received_qty,'',''
+                        ]);
+                        table_sr_line.row(row).column(0).nodes().to$().addClass('myHiddenColumn');
+                        table_sr_line.row(row).draw();
+                    }
+                }
+            });
+        });
+         
+    });
+
+    (function() {
+        var fixed_footer = document.getElementById('chkbox_fixed_footer');
+        setTimeout(function() {
+          fixed_footer.click();
+        }, 100);
+      })();
+</script>
 <!-- END NG CHECKING -->
 {% endif %}
 {% endblock %}
@@ -457,6 +584,9 @@
     {% elif context['model'] == 'stock_receipt' %}
         {% include "iwms/search_po_modal.html" %}
         {% include "iwms/po_line_modal.html" %}
+    {% elif context['model'] == 'putaway' %}
+        {% include "iwms/search_sr_modal.html" %}
+        {% include "iwms/sr_line_modal.html" %}
     {% endif %}
 {% endblock %}
 

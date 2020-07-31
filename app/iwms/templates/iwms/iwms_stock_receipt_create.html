@@ -58,9 +58,10 @@
                                 <div class="position-relative form-group">
                                     <label for="source" class="">Source</label>
                                     <select name="source" id="source" class="form-control">
-                                        {% for key,value,checked in form.source.iter_choices() %}
-                                        <option value="{{ key }}">
-                                            {{ value }}
+                                        <option value="">Choose...</option>
+                                        {% for source in sources %}
+                                        <option value="{{ source.id }}">
+                                            {{ source.name }}
                                         </option>
                                         {% endfor %}
                                     </select>
