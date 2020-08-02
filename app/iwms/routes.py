@@ -2,10 +2,7 @@
 
 """ FLASK IMPORTS """
 from flask import render_template, flash, redirect, url_for, request, jsonify, current_app, send_from_directory
-from flask_login import current_user, login_user, logout_user, login_required
-from werkzeug.urls import url_parse
-import base64
-
+from flask_login import current_user, login_required
 """--------------END--------------"""
 
 """ APP IMPORTS  """
@@ -14,10 +11,6 @@ from app import db, mail
 
 """--------------END--------------"""
 
-""" MODULE: AUTH,ADMIN IMPORTS """
-# from .models import YourModel
-
-"""--------------END--------------"""
 from app import context
 from app.admin.routes import admin_index, admin_edit
 
@@ -25,12 +18,16 @@ from .models import Group,Department,TransactionType,Warehouse,Zone, \
     BinLocation,Category,StockItem,UnitOfMeasure,Reason,StockReceipt,Putaway, \
         Email as EAddress, PurchaseOrder, Supplier, Term,PurchaseOrderProductLine,StockItemType,TaxCode,\
             StockItemUomLine,StockReceiptItemLine, PutawayItemLine,Source
+
 from .forms import *
 from datetime import datetime
 from app.core.models import CoreLog
 from app.auth.models import User
 import pdfkit
 from flask_mail import Message
+
+
+"""----------------------INTERNAL FUNCTIONS-------------------------"""
 
 def _generate_number(prefix, lID):
     generated_number = ""
@@ -52,8 +49,8 @@ def _generate_number(prefix, lID):
         generated_number = prefix + str(lID+1)
     return generated_number
 
-#TODO: Temporary lang to pang check, maganda sana gawing decorator siguro 
 def _check_create(model_name):
+    #TODO: Temporary lang to pang check, maganda sana gawing decorator siguro 
     if current_user.is_superuser:
         return True
     else:
@@ -63,6 +60,19 @@ def _check_create(model_name):
                 if not perm.create:
                     return False
         return False
+
+def _log_create(description,data):
+    log = CoreLog()
+    log.user_id = current_user.id
+    log.date = datetime.utcnow()
+    log.description = description
+    log.data = data
+    db.session.add(log)
+    db.session.commit()
+    print("Log created!")
+
+
+"""----------------------APIs-------------------------"""
 
 @bp_iwms.route('/_get_po_line',methods=["POST"])
 def _get_po_line():
@@ -98,8 +108,6 @@ def _get_sr_line():
                     'lot_no':line.lot_no,'expiry_date': _expiry_date,
                     'received_qty':line.received_qty
                     })
-
-        print("test",sr_line)
         res = jsonify(items=sr_line)
         res.status_code = 200
         return res
@@ -133,15 +141,8 @@ def _barcode_check():
             resp.status_code = 200
             return resp
 
-def _log_create(description,data):
-    log = CoreLog()
-    log.user_id = current_user.id
-    log.date = datetime.utcnow()
-    log.description = description
-    log.data = data
-    db.session.add(log)
-    db.session.commit()
-    print("Log created!")
+
+"""----------------------ROUTE FUNCTIONS-------------------------"""
 
 @bp_iwms.route('/')
 @bp_iwms.route('/dashboard')
@@ -866,7 +867,7 @@ def stock_item_create():
         context['mm-active'] = 'stock_item'
 
         # Hardcoded html ang irerender natin hindi yung builtin ng admin
-        return render_template('iwms/iwms_stock_item_create.html',context=context,si_generated_number=si_generated_number,\
+        return render_template('iwms/stock_item/iwms_stock_item_create.html',context=context,si_generated_number=si_generated_number,\
             form=f,categories=categories,types=types,title="Create stock item",suppliers=suppliers,tax_codes=tax_codes,\
                 uoms=uoms)
     elif request.method == "POST":
@@ -938,8 +939,6 @@ def stock_item_create():
 def stock_item_edit(oid):
     obj = StockItem.query.get_or_404(oid)
     f = StockItemCreateForm(obj=obj)
-
-
     if request.method == "GET":
         context['active'] = 'inventory'
         context['module'] = 'iwms'
@@ -1030,7 +1029,7 @@ def stock_receipts():
     fields = [StockReceipt.id,StockReceipt.sr_number,StockReceipt.status]
     context['mm-active'] = 'stock_receipt'
     context['create_modal']['create_url'] = False
-    return admin_index(StockReceipt,fields=fields,view_modal=False,create_modal=True,template="iwms/iwms_index.html",kwargs={
+    return admin_index(StockReceipt,fields=fields,create_modal=True,template="iwms/iwms_index.html",kwargs={
         'index_title':'Stock receipts','index_headers':['SR No.','Status'],'index_message':'List of items',
         'active':'inventory'
         })
@@ -1057,14 +1056,14 @@ def stock_receipt_create():
         context['mm-active'] = 'stock_receipt'
         context['module'] = 'iwms'
         context['model'] = 'stock_receipt'
-        return render_template('iwms/iwms_stock_receipt_create.html',context=context,po_list=po_list,sources=sources,\
+        return render_template('iwms/stock_receipt/iwms_stock_receipt_create.html',context=context,po_list=po_list,sources=sources,\
             form=f,title="Create stock receipt",warehouses=warehouses,sr_generated_number=sr_generated_number)
     elif request.method == "POST":
         if f.validate_on_submit():
             obj = StockReceipt()
             obj.sr_number = sr_generated_number
             # No field yet so hardcoded muna
-            po = PurchaseOrder.query.filter_by(po_number=f.po_number.data)
+            po = PurchaseOrder.query.filter_by(po_number=f.po_number.data).first()
             obj.purchase_order = po
             obj.status = "LOGGED"
             obj.warehouse_id = f.warehouse_id.data if not f.warehouse_id.data == '' else None
@@ -1135,7 +1134,7 @@ def putaway_create():
         context['mm-active'] = 'putaway'
         context['module'] = 'iwms'
         context['model'] = 'putaway'
-        return render_template('iwms/iwms_putaway_create.html',context=context,form=f,title="Create putaway",\
+        return render_template('iwms/putaway/iwms_putaway_create.html',context=context,form=f,title="Create putaway",\
             warehouses=warehouses,pwy_generated_number=pwy_generated_number,sr_list=sr_list,bin_locations=bin_locations)
     elif request.method == "POST":
         if f.validate_on_submit():
@@ -1210,7 +1209,7 @@ def purchase_order_create():
         context['mm-active'] = 'purchase_order'
         context['module'] = 'iwms'
         context['model'] = 'purchase_order'
-        return render_template('iwms/iwms_purchase_order_create.html', po_generated_number=po_generated_number, \
+        return render_template('iwms/purchase_order/iwms_purchase_order_create.html', po_generated_number=po_generated_number, \
             context=context,form=f,title="Create purchase order",warehouses=warehouses,suppliers=suppliers)
     elif request.method == "POST":
         if f.validate_on_submit():
@@ -1444,12 +1443,6 @@ def type_edit(oid):
             for key, value in form.errors.items():
                 flash(str(key) + str(value), 'error')
             return redirect(url_for('bp_iwms.stock_item_types'))
-
-
-@bp_iwms.route('/po_pdf')
-def po_pdf():
-    pass
-    pdfkit.from_string('hello world','po.pdf')
 
 
 def _makePOPDF(vendor,line_items):

@@ -316,3 +316,25 @@ class StockItemType(Base,Admin):
 class TaxCode(Base,Admin):
     __tablename__ = 'iwms_tax_code'
     name = db.Column(db.String(255),nullable=False)
+
+
+class SalesVia(Base,Admin):
+    __tablename__ = 'iwms_sales_via'
+    description = db.Column(db.String(255),nullable=False)
+    model_name = 'sales_via'
+    model_icon = ''
+
+class ClientGroup(Base,Admin):
+    __tablename__ = 'iwms_client_group'
+    name = db.Column(db.String(255),nullable=False)
+    model_name = 'client_group'
+    model_icon = ''
+
+class Client(Base,Admin):
+    __tablename__ = 'iwms_client'
+    status = db.Column(db.String(255),nullable=True)
+    code = db.Column(db.String(255),nullable=False)
+    name = db.Column(db.String(255),nullable=True)
+    model_name = 'client'
+    model_icon = ''
+

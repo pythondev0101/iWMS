@@ -322,6 +322,9 @@
 
 });
 </script>
+<!-- !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!STOCKRECEIPT!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! -->
+<!-- !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!STOCKRECEIPT!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! -->
+<!-- !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!STOCKRECEIPT!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! -->
 
 {% elif context['model'] == 'stock_receipt' %}
 <script>
@@ -373,7 +376,7 @@
                         <td class='text-center'>${item_no}</td>
                         <td class='text-center'>${item_name}</td>
                         <td class='text-center'><input name="lot_no_${stock_id}" type="text" value="${lot_no}" readonly></td>
-                        <td class='text-center'><input name="expiry_date_${stock_id}" type="date" value="${expiry_date}" readonly></td>
+                        <td class='text-center'>${expiry_date}</td>
                         <td class='text-center'><input name="uom_${stock_id}" type="text" value="${base_uom}" style="width:50px" readonly></td>
                         <td class='text-center'><input name="received_qty_${stock_id}" type="number" value="${e_qty}" style="width:50px" readonly></td>
                         <td class='text-center'><input name="net_weight_${stock_id}" type="text" value="${net_weight}" style="width:50px" readonly></td>
@@ -578,15 +581,15 @@
 
 {% block modals %}
     {% if context['model'] == 'purchase_order' %}
-        {% include "iwms/add_product_modal.html" %}
+        {% include "iwms/purchase_order/add_product_modal.html" %}
     {% elif context['model'] == 'stock_item' %}
-        {% include "iwms/add_uom_modal.html" %}
+        {% include "iwms/stock_item/add_uom_modal.html" %}
     {% elif context['model'] == 'stock_receipt' %}
-        {% include "iwms/search_po_modal.html" %}
-        {% include "iwms/po_line_modal.html" %}
+        {% include "iwms/stock_receipt/search_po_modal.html" %}
+        {% include "iwms/stock_receipt/po_line_modal.html" %}
     {% elif context['model'] == 'putaway' %}
-        {% include "iwms/search_sr_modal.html" %}
-        {% include "iwms/sr_line_modal.html" %}
+        {% include "iwms/putaway/search_sr_modal.html" %}
+        {% include "iwms/putaway/sr_line_modal.html" %}
     {% endif %}
 {% endblock %}
 
