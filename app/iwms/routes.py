@@ -17,7 +17,7 @@ from app.admin.routes import admin_index, admin_edit
 from .models import Group,Department,TransactionType,Warehouse,Zone, \
     BinLocation,Category,StockItem,UnitOfMeasure,Reason,StockReceipt,Putaway, \
         Email as EAddress, PurchaseOrder, Supplier, Term,PurchaseOrderProductLine,StockItemType,TaxCode,\
-            StockItemUomLine,StockReceiptItemLine, PutawayItemLine,Source, SalesVia, ClientGroup
+            StockItemUomLine,StockReceiptItemLine, PutawayItemLine,Source, SalesVia, ClientGroup, Client
 
 from .forms import *
 from datetime import datetime
@@ -70,6 +70,90 @@ def _log_create(description,data):
     db.session.add(log)
     db.session.commit()
     print("Log created!")
+
+def _makePOPDF(vendor,line_items):
+    total = 0
+    html = """<html><head><style>
+    #invoice-POS{box-shadow: 0 0 1in -0.25in rgba(0, 0, 0, 0.5);padding:2mm;margin: 0 auto;width: 50%;background: #FFF;}
+    ::selection {background: #f31544; color: #FFF;}
+    ::moz-selection {background: #f31544; color: #FFF;}
+    h1{font-size: 1.5em;color: #222;}
+    h2{font-size: .9em;}
+    h3{font-size: 1.2em;font-weight: 300;line-height: 2em;}
+    p{font-size: .7em;color: #666;line-height: 1.2em;}
+    #top, #mid,#bot{ /* Targets all id with 'col-' */border-bottom: 1px solid #EEE;}
+    #mid{min-height: 80px;} 
+    #bot{ min-height: 50px;}
+    /*#top .logo{//float: left;height: 60px;width: 60px;background: url(http://michaeltruong.ca/images/logo1.png) no-repeat;background-size: 60px 60px;}*/
+    /*.clientlogo{float: left;height: 60px;width: 60px;background: url(http://michaeltruong.ca/images/client.jpg) no-repeat;background-size: 60px 60px;border-radius: 50px;}*/
+    .info{display: block;//float:left;margin-left: 0;}
+    .title{float: right;}.title p{text-align: right;} 
+    table{width: 100%;border-collapse: collapse;}
+    td{//padding: 5px 0 5px 15px;//border: 1px solid #EEE}
+    .tabletitle{//padding: 5px;font-size: .5em;background: #EEE;}
+    .service{border-bottom: 1px solid #EEE;}
+    .item{width: 24mm;}
+    .itemtext{font-size: .5em;}
+    #legalcopy{margin-top: 5mm;}
+    </style>
+    </head>
+    <body><div id="invoice-POS">
+    <center id="top"><div class="info">
+    <h2>Purchase Order</h2></div><!--End Info-->
+    </center><!--End InvoiceTop-->
+    
+    <div id="mid">
+      <div class="info">
+        <h2>Vendor</h2>"""
+    html = html + """<p> 
+            Company Name : {name}</br>
+            Address : {add}</br>
+            Email   : {email}</br>
+            Phone   : {phone}</br>
+        </p>""".format(name=vendor.name,add=vendor.address,email=vendor.email_address,phone=vendor.contact_number)
+    
+    html = html + """</div>
+    </div><!--End Invoice Mid-->
+    <div id="bot">
+    <div id="table">
+    <table>
+    <tr class="tabletitle">
+    <td class="item"><h2>Item</h2></td>
+    <td class="item"><h2>Description</h2></td>
+    <td class="Hours"><h2>Qty</h2></td>
+    <td class="Hours"><h2>Unit Price</h2></td>
+    <td class="Rate"><h2>Total</h2></td></tr>
+    """
+
+    for line in line_items:
+        html = html + """
+            <tr class='service'><td class='tableitem'><p class='itemtext'>{no}</p></td>
+            <td class="tableitem"><p class="itemtext">{desc}</p></td>
+            <td class="tableitem"><p class="itemtext">{qty}</p></td>
+            <td class="tableitem"><p class="itemtext">{price}</p></td>
+            <td class="tableitem"><p class="itemtext">{amount}</p></td>
+            </tr>""".format(no=line.stock_item.number,desc=line.stock_item.description,\
+                qty=line.qty,price=line.unit_cost,amount=line.amount)
+        total = total + line.amount
+
+    html = html + """
+    <tr class="tabletitle">
+    <td></td><td></td><td></td>
+    <td class="Rate"><h2>Total</h2></td>
+    <td class="payment"><h2>{total}</h2></td>
+    </tr>
+    </table>
+    </div><!--End Table-->
+    <div id="legalcopy">
+    <p class="legal" style="text-align: center;">
+    If you have any question about this purchase order,please contact
+	</p>
+    </div>
+    </div><!--End InvoiceBot-->
+    </div><!--End Invoice-->
+    </body></html>
+    """.format(total=total)
+    return html
 
 
 """----------------------APIs-------------------------"""
@@ -1598,87 +1682,54 @@ def client_group_edit(oid):
                 flash(str(key) + str(value), 'error')
             return redirect(url_for('bp_iwms.client_groups'))
 
+@bp_iwms.route('/clients')
+@login_required
+def clients():
+    fields = [Client.id,Client.status,Client.code,Client.name,Client.updated_by,Client.updated_at]
+    context['mm-active'] = 'client'
+    return admin_index(Client,fields=fields,form=ClientForm(), \
+        template='iwms/iwms_index.html', edit_url='bp_iwms.client_edit',\
+            create_url="bp_iwms.client_create",kwargs={'active':'sales'})
 
-def _makePOPDF(vendor,line_items):
-    total = 0
-    html = """<html><head><style>
-    #invoice-POS{box-shadow: 0 0 1in -0.25in rgba(0, 0, 0, 0.5);padding:2mm;margin: 0 auto;width: 50%;background: #FFF;}
-    ::selection {background: #f31544; color: #FFF;}
-    ::moz-selection {background: #f31544; color: #FFF;}
-    h1{font-size: 1.5em;color: #222;}
-    h2{font-size: .9em;}
-    h3{font-size: 1.2em;font-weight: 300;line-height: 2em;}
-    p{font-size: .7em;color: #666;line-height: 1.2em;}
-    #top, #mid,#bot{ /* Targets all id with 'col-' */border-bottom: 1px solid #EEE;}
-    #mid{min-height: 80px;} 
-    #bot{ min-height: 50px;}
-    /*#top .logo{//float: left;height: 60px;width: 60px;background: url(http://michaeltruong.ca/images/logo1.png) no-repeat;background-size: 60px 60px;}*/
-    /*.clientlogo{float: left;height: 60px;width: 60px;background: url(http://michaeltruong.ca/images/client.jpg) no-repeat;background-size: 60px 60px;border-radius: 50px;}*/
-    .info{display: block;//float:left;margin-left: 0;}
-    .title{float: right;}.title p{text-align: right;} 
-    table{width: 100%;border-collapse: collapse;}
-    td{//padding: 5px 0 5px 15px;//border: 1px solid #EEE}
-    .tabletitle{//padding: 5px;font-size: .5em;background: #EEE;}
-    .service{border-bottom: 1px solid #EEE;}
-    .item{width: 24mm;}
-    .itemtext{font-size: .5em;}
-    #legalcopy{margin-top: 5mm;}
-    </style>
-    </head>
-    <body><div id="invoice-POS">
-    <center id="top"><div class="info">
-    <h2>Purchase Order</h2></div><!--End Info-->
-    </center><!--End InvoiceTop-->
-    
-    <div id="mid">
-      <div class="info">
-        <h2>Vendor</h2>"""
-    html = html + """<p> 
-            Company Name : {name}</br>
-            Address : {add}</br>
-            Email   : {email}</br>
-            Phone   : {phone}</br>
-        </p>""".format(name=vendor.name,add=vendor.address,email=vendor.email_address,phone=vendor.contact_number)
-    
-    html = html + """</div>
-    </div><!--End Invoice Mid-->
-    <div id="bot">
-    <div id="table">
-    <table>
-    <tr class="tabletitle">
-    <td class="item"><h2>Item</h2></td>
-    <td class="item"><h2>Description</h2></td>
-    <td class="Hours"><h2>Qty</h2></td>
-    <td class="Hours"><h2>Unit Price</h2></td>
-    <td class="Rate"><h2>Total</h2></td></tr>
-    """
+@bp_iwms.route('/client_create',methods=['POST'])
+@login_required
+def client_create():
+    f = ClientForm()
+    if request.method == "POST":
+        if f.validate_on_submit():
+            obj = Client()
+            obj.name = f.name.data
+            obj.code = f.code.data
+            obj.status = "ACTIVE"
+            obj.created_by = "{} {}".format(current_user.fname,current_user.lname)
+            db.session.add(obj)
+            db.session.commit()
+            flash("New Client added successfully!",'success')
+            return redirect(url_for('bp_iwms.clients'))
+        else:
+            for key, value in f.errors.items():
+                flash(str(key) + str(value), 'error')
+            return redirect(url_for('bp_iwms.clients'))
 
-    for line in line_items:
-        html = html + """
-            <tr class='service'><td class='tableitem'><p class='itemtext'>{no}</p></td>
-            <td class="tableitem"><p class="itemtext">{desc}</p></td>
-            <td class="tableitem"><p class="itemtext">{qty}</p></td>
-            <td class="tableitem"><p class="itemtext">{price}</p></td>
-            <td class="tableitem"><p class="itemtext">{amount}</p></td>
-            </tr>""".format(no=line.stock_item.number,desc=line.stock_item.description,\
-                qty=line.qty,price=line.unit_cost,amount=line.amount)
-        total = total + line.amount
-
-    html = html + """
-    <tr class="tabletitle">
-    <td></td><td></td><td></td>
-    <td class="Rate"><h2>Total</h2></td>
-    <td class="payment"><h2>{total}</h2></td>
-    </tr>
-    </table>
-    </div><!--End Table-->
-    <div id="legalcopy">
-    <p class="legal" style="text-align: center;">
-    If you have any question about this purchase order,please contact
-	</p>
-    </div>
-    </div><!--End InvoiceBot-->
-    </div><!--End Invoice-->
-    </body></html>
-    """.format(total=total)
-    return html
+@bp_iwms.route('/client_edit/<int:oid>',methods=['GET','POST'])
+@login_required
+def client_edit(oid):
+    obj = Client.query.get_or_404(oid)
+    f = ClientEditForm(obj=obj)
+    if request.method == "GET":
+        context['mm-active'] = 'client'
+        return admin_edit(f,'bp_iwms.client_edit',oid, \
+            model=ClientGroup,template='iwms/iwms_edit.html',kwargs={'active':'sales'})
+    elif request.method == "POST":
+        if f.validate_on_submit():
+            obj.name = f.name.data
+            obj.code = f.code.data
+            obj.updated_by = "{} {}".format(current_user.fname,current_user.lname)
+            obj.updated_at = datetime.now()
+            db.session.commit()
+            flash('Client update Successfully!','success')
+            return redirect(url_for('bp_iwms.clients'))
+        else:
+            for key, value in form.errors.items():
+                flash(str(key) + str(value), 'error')
+            return redirect(url_for('bp_iwms.clients'))

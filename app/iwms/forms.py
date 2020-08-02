@@ -423,6 +423,7 @@ class ClientGroupForm(AdminIndexForm):
     def create_fields(self):
         return [[self.name]]
 
+
 class ClienGroupEditForm(AdminEditForm):
     edit_title = 'edit client group'
     
@@ -430,6 +431,24 @@ class ClienGroupEditForm(AdminEditForm):
 
     def edit_fields(self):
         return [[self.name]]
+
+class ClientForm(AdminIndexForm):
+    index_headers = ['status','code','name','updated by','updated at']
+    index_title = 'Clients'
+    
+    name = AdminField(label='Name',required=False)
+    code = AdminField(label='Code',validators=[DataRequired()])
+    # status = AdminField(label='Status',required=False,input_type="checkbox")
+    def create_fields(self):
+        return [[self.code,self.name]]
+
+class ClientEditForm(AdminEditForm):
+    edit_title = 'Edit client'
+    name = AdminField(label='Name',required=False)
+    code = AdminField(label='Code',validators=[DataRequired()])
+    # status = AdminField(label='Status',required=False,input_type="checkbox")
+    def edit_fields(self):
+        return [[self.code,self.name]]
 
 class SalesViaEditForm(AdminEditForm):
     description = AdminField(label='Description',validators=[DataRequired()])

@@ -392,7 +392,7 @@
       <a href="{{ url_for('bp_iwms.client_groups') }}" class="{% if context['mm-active'] == 'client_group' %} mm-active {% endif %}"> <i class="metismenu-icon"> </i>Client Group</a>
     </li>
     <li>
-      <a href=""> <i class="metismenu-icon"> </i>Client</a>
+      <a href="{{ url_for('bp_iwms.clients') }}" class="{% if context['mm-active'] == 'client' %} mm-active {% endif %}"> <i class="metismenu-icon"> </i>Client</a>
     </li>
     <li>
       <a href=""> <i class="metismenu-icon"> </i>Sales Order</a>
