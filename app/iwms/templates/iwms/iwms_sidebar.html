@@ -386,10 +386,10 @@
   </a>
   <ul>
     <li>
-      <a href="{{ url_for('bp_iwms.sales_via') }}"> <i class="metismenu-icon"> </i>Sales Via</a>
+      <a href="{{ url_for('bp_iwms.sales_via') }}" class="{% if context['mm-active'] == 'sales_via' %} mm-active {% endif %}"><i class="metismenu-icon"> </i>Sales Via</a>
     </li>
     <li>
-      <a href=""> <i class="metismenu-icon"> </i>Client Group</a>
+      <a href="{{ url_for('bp_iwms.client_groups') }}" class="{% if context['mm-active'] == 'client_group' %} mm-active {% endif %}"> <i class="metismenu-icon"> </i>Client Group</a>
     </li>
     <li>
       <a href=""> <i class="metismenu-icon"> </i>Client</a>

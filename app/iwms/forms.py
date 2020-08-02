@@ -413,6 +413,23 @@ class SalesViaForm(AdminIndexForm):
 
     def create_fields(self):
         return [[self.description]]
+        
+class ClientGroupForm(AdminIndexForm):
+    index_headers = ['Name','updated by','update at']
+    index_title = 'Client Group'
+    
+    name = AdminField(label='Name',validators=[DataRequired()])
+
+    def create_fields(self):
+        return [[self.name]]
+
+class ClienGroupEditForm(AdminEditForm):
+    edit_title = 'edit client group'
+    
+    name = AdminField(label='Name',validators=[DataRequired()])
+
+    def edit_fields(self):
+        return [[self.name]]
 
 class SalesViaEditForm(AdminEditForm):
     description = AdminField(label='Description',validators=[DataRequired()])

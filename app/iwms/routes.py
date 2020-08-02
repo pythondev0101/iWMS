@@ -17,7 +17,7 @@ from app.admin.routes import admin_index, admin_edit
 from .models import Group,Department,TransactionType,Warehouse,Zone, \
     BinLocation,Category,StockItem,UnitOfMeasure,Reason,StockReceipt,Putaway, \
         Email as EAddress, PurchaseOrder, Supplier, Term,PurchaseOrderProductLine,StockItemType,TaxCode,\
-            StockItemUomLine,StockReceiptItemLine, PutawayItemLine,Source, SalesVia
+            StockItemUomLine,StockReceiptItemLine, PutawayItemLine,Source, SalesVia, ClientGroup
 
 from .forms import *
 from datetime import datetime
@@ -1506,7 +1506,7 @@ def sales_via():
     context['mm-active'] = 'sales_via'
     return admin_index(SalesVia,fields=fields,form=SalesViaForm(), \
         template='iwms/iwms_index.html', edit_url='bp_iwms.sales_via_edit',\
-            create_url="bp_iwms.sales_via_create",kwargs={'active':'inventory'})
+            create_url="bp_iwms.sales_via_create",kwargs={'active':'sales'})
 
 @bp_iwms.route('/sales_via_create',methods=['POST'])
 @login_required
@@ -1534,7 +1534,7 @@ def sales_via_edit(oid):
     if request.method == "GET":
         context['mm-active'] = 'sales_via'
         return admin_edit(f,'bp_iwms.sales_via_edit',oid, \
-            model=SalesVia,template='iwms/iwms_edit.html',kwargs={'active':'inventory'})
+            model=SalesVia,template='iwms/iwms_edit.html',kwargs={'active':'sales'})
     elif request.method == "POST":
         if f.validate_on_submit():
             obj.description = f.description.data
@@ -1547,6 +1547,56 @@ def sales_via_edit(oid):
             for key, value in form.errors.items():
                 flash(str(key) + str(value), 'error')
             return redirect(url_for('bp_iwms.sales_via'))
+
+
+@bp_iwms.route('/client_groups')
+@login_required
+def client_groups():
+    fields = [ClientGroup.id,ClientGroup.name,ClientGroup.updated_by,ClientGroup.updated_at]
+    context['mm-active'] = 'client_group'
+    return admin_index(ClientGroup,fields=fields,form=ClientGroupForm(), \
+        template='iwms/iwms_index.html', edit_url='bp_iwms.client_group_edit',\
+            create_url="bp_iwms.client_group_create",kwargs={'active':'sales'})
+
+@bp_iwms.route('/client_group_create',methods=['POST'])
+@login_required
+def client_group_create():
+    f = ClientGroupForm()
+    if request.method == "POST":
+        if f.validate_on_submit():
+            obj = ClientGroup()
+            obj.name = f.name.data
+            obj.created_by = "{} {}".format(current_user.fname,current_user.lname)
+            db.session.add(obj)
+            db.session.commit()
+            flash("New client group added successfully!",'success')
+            return redirect(url_for('bp_iwms.client_groups'))
+        else:
+            for key, value in f.errors.items():
+                flash(str(key) + str(value), 'error')
+            return redirect(url_for('bp_iwms.client_groups'))
+
+@bp_iwms.route('/client_group_edit/<int:oid>',methods=['GET','POST'])
+@login_required
+def client_group_edit(oid):
+    obj = ClientGroup.query.get_or_404(oid)
+    f = ClienGroupEditForm(obj=obj)
+    if request.method == "GET":
+        context['mm-active'] = 'client_group'
+        return admin_edit(f,'bp_iwms.client_group_edit',oid, \
+            model=ClientGroup,template='iwms/iwms_edit.html',kwargs={'active':'sales'})
+    elif request.method == "POST":
+        if f.validate_on_submit():
+            obj.name = f.name.data
+            obj.updated_by = "{} {}".format(current_user.fname,current_user.lname)
+            obj.updated_at = datetime.now()
+            db.session.commit()
+            flash('Client group update Successfully!','success')
+            return redirect(url_for('bp_iwms.client_groups'))
+        else:
+            for key, value in form.errors.items():
+                flash(str(key) + str(value), 'error')
+            return redirect(url_for('bp_iwms.client_groups'))
 
 
 def _makePOPDF(vendor,line_items):
