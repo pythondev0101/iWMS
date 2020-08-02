@@ -405,6 +405,22 @@ class TermForm(AdminIndexForm):
     def create_fields(self):
         return [[self.code,self.description],[self.days]]
 
+class SalesViaForm(AdminIndexForm):
+    index_headers = ['description']
+    index_title = 'Sales Via'
+    
+    description = AdminField(label='Description',validators=[DataRequired()])
+
+    def create_fields(self):
+        return [[self.description]]
+
+class SalesViaEditForm(AdminEditForm):
+    description = AdminField(label='Description',validators=[DataRequired()])
+    edit_title = 'Edit sales via'
+
+    def edit_fields(self):
+        return [[self.description]]
+
 class TypeEditForm(AdminEditForm):
     name = AdminField(label='Name',validators=[DataRequired()])
     def edit_fields(self):

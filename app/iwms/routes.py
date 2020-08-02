@@ -17,7 +17,7 @@ from app.admin.routes import admin_index, admin_edit
 from .models import Group,Department,TransactionType,Warehouse,Zone, \
     BinLocation,Category,StockItem,UnitOfMeasure,Reason,StockReceipt,Putaway, \
         Email as EAddress, PurchaseOrder, Supplier, Term,PurchaseOrderProductLine,StockItemType,TaxCode,\
-            StockItemUomLine,StockReceiptItemLine, PutawayItemLine,Source
+            StockItemUomLine,StockReceiptItemLine, PutawayItemLine,Source, SalesVia
 
 from .forms import *
 from datetime import datetime
@@ -1497,6 +1497,56 @@ def term_edit(oid):
             for key, value in form.errors.items():
                 flash(str(key) + str(value), 'error')
             return redirect(url_for('bp_iwms.terms'))
+
+
+@bp_iwms.route('/sales_via')
+@login_required
+def sales_via():
+    fields = [SalesVia.id,SalesVia.description]
+    context['mm-active'] = 'sales_via'
+    return admin_index(SalesVia,fields=fields,form=SalesViaForm(), \
+        template='iwms/iwms_index.html', edit_url='bp_iwms.sales_via_edit',\
+            create_url="bp_iwms.sales_via_create",kwargs={'active':'inventory'})
+
+@bp_iwms.route('/sales_via_create',methods=['POST'])
+@login_required
+def sales_via_create():
+    f = SalesViaForm()
+    if request.method == "POST":
+        if f.validate_on_submit():
+            obj = SalesVia()
+            obj.description = f.description.data
+            obj.created_by = "{} {}".format(current_user.fname,current_user.lname)
+            db.session.add(obj)
+            db.session.commit()
+            flash("New sales via added successfully!",'success')
+            return redirect(url_for('bp_iwms.sales_via'))
+        else:
+            for key, value in f.errors.items():
+                flash(str(key) + str(value), 'error')
+            return redirect(url_for('bp_iwms.sales_via'))
+
+@bp_iwms.route('/sales_via_edit/<int:oid>',methods=['GET','POST'])
+@login_required
+def sales_via_edit(oid):
+    obj = SalesVia.query.get_or_404(oid)
+    f = SalesViaEditForm(obj=obj)
+    if request.method == "GET":
+        context['mm-active'] = 'sales_via'
+        return admin_edit(f,'bp_iwms.sales_via_edit',oid, \
+            model=SalesVia,template='iwms/iwms_edit.html',kwargs={'active':'inventory'})
+    elif request.method == "POST":
+        if f.validate_on_submit():
+            obj.description = f.description.data
+            obj.updated_by = "{} {}".format(current_user.fname,current_user.lname)
+            obj.updated_at = datetime.now()
+            db.session.commit()
+            flash('Sales via update Successfully!','success')
+            return redirect(url_for('bp_iwms.sales_via'))
+        else:
+            for key, value in form.errors.items():
+                flash(str(key) + str(value), 'error')
+            return redirect(url_for('bp_iwms.sales_via'))
 
 
 def _makePOPDF(vendor,line_items):
