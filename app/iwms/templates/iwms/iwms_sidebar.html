@@ -416,7 +416,7 @@
       <a href="{{ url_for('bp_iwms.suppliers') }}" class="{% if context['mm-active'] == 'supplier' %} mm-active {% endif %}"> <i class="metismenu-icon"> </i>Supplier</a>
     </li>
     <li>
-      <a href="" class="{% if context['mm-active'] == 'term' %} mm-active {% endif %}"> <i class="metismenu-icon"> </i>Terms</a>
+      <a href="{{ url_for('bp_iwms.terms') }}" class="{% if context['mm-active'] == 'term' %} mm-active {% endif %}"> <i class="metismenu-icon"> </i>Terms</a>
     </li>
     <li>
       <a href="{{ url_for('bp_iwms.purchase_orders') }}" class="{% if context['mm-active'] == 'purchase_order' %} mm-active {% endif %}"> <i class="metismenu-icon"> </i>Purchase Order</a>

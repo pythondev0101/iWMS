@@ -394,9 +394,28 @@ class TypeForm(AdminIndexForm):
     def create_fields(self):
         return [[self.name]]
 
+class TermForm(AdminIndexForm):
+    index_headers = ['code','description','days']
+    index_title = 'Terms'
+    
+    code = AdminField(label='Code',validators=[DataRequired()])
+    description = AdminField(label='Description',required=False)
+    days = AdminField(label='Days',required=False,input_type="number")
+
+    def create_fields(self):
+        return [[self.code,self.description],[self.days]]
+
 class TypeEditForm(AdminEditForm):
     name = AdminField(label='Name',validators=[DataRequired()])
     def edit_fields(self):
         return [[self.name]]
    
     edit_title = 'Edit type'
+
+class TermEditForm(AdminEditForm):
+    code = AdminField(label='Code',validators=[DataRequired()])
+    description = AdminField(label='Description',required=False)
+    days = AdminField(label='Days',required=False,input_type="number")
+    edit_title = 'Edit term'
+    def edit_fields(self):
+        return [[self.code,self.description],[self.days]]

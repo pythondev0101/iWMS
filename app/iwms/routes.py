@@ -1445,6 +1445,60 @@ def type_edit(oid):
             return redirect(url_for('bp_iwms.stock_item_types'))
 
 
+@bp_iwms.route('/terms')
+@login_required
+def terms():
+    fields = [Term.id,Term.code,Term.description,Term.days]
+    context['mm-active'] = 'term'
+    return admin_index(Term,fields=fields,form=TermForm(), \
+        template='iwms/iwms_index.html', edit_url='bp_iwms.term_edit',\
+            create_url="bp_iwms.term_create",kwargs={'active':'inventory'})
+
+@bp_iwms.route('/term_create',methods=['POST'])
+@login_required
+def term_create():
+    f = TermForm()
+    if request.method == "POST":
+        if f.validate_on_submit():
+            obj = Term()
+            obj.code = f.code.data
+            obj.description = f.description.data
+            obj.days = f.days.data if not f.days.data == '' else None
+            obj.created_by = "{} {}".format(current_user.fname,current_user.lname)
+            db.session.add(obj)
+            db.session.commit()
+            flash("New term added successfully!",'success')
+            return redirect(url_for('bp_iwms.terms'))
+        else:
+            for key, value in f.errors.items():
+                flash(str(key) + str(value), 'error')
+            return redirect(url_for('bp_iwms.terms'))
+
+@bp_iwms.route('/term_edit/<int:oid>',methods=['GET','POST'])
+@login_required
+def term_edit(oid):
+    obj = Term.query.get_or_404(oid)
+    f = TermEditForm(obj=obj)
+    if request.method == "GET":
+        context['mm-active'] = 'term'
+        return admin_edit(f,'bp_iwms.term_edit',oid, \
+            model=Term,template='iwms/iwms_edit.html',kwargs={'active':'inventory'})
+    elif request.method == "POST":
+        if f.validate_on_submit():
+            obj.code = f.code.data
+            obj.description = f.description.data
+            obj.days = f.days.data if not f.days.data == '' else None
+            obj.updated_by = "{} {}".format(current_user.fname,current_user.lname)
+            obj.updated_at = datetime.now()
+            db.session.commit()
+            flash('Term update Successfully!','success')
+            return redirect(url_for('bp_iwms.terms'))
+        else:
+            for key, value in form.errors.items():
+                flash(str(key) + str(value), 'error')
+            return redirect(url_for('bp_iwms.terms'))
+
+
 def _makePOPDF(vendor,line_items):
     total = 0
     html = """<html><head><style>
