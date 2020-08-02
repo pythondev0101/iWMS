@@ -358,16 +358,23 @@
         });
 
         $("#btn_add_po_line").click(function(){
-            if (confirm("Confirm item?")){
-                var stock_id = $("#tbl_po_line_modal tr.selected td:first").html();
-                var item_no = $("#tbl_po_line_modal tr.selected td:nth-child(3)").html();
-                var item_name = $("#tbl_po_line_modal tr.selected td:nth-child(4)").html();
-                var base_uom = $("#tbl_po_line_modal tr.selected td:nth-child(5)").html();
-                var e_qty = $("#tbl_po_line_modal tr.selected td:nth-child(6)").html();
-                var lot_no = $("#lot_no").val();
-                var expiry_date = $("#expiry_date").val();
-                var net_weight = $("#net_weight").val();
-                var row = $("#tbl_po_line_modal tr.selected");
+            $("#p_item_name").html("<strong>ITEM NAME: </strong>" + $("#item_name").val());
+            $("#p_qty").html("<strong>RECEIVED QUANTITY: </strong>" + $("#quantity").val());
+            $("#p_lot_no").html("<strong>LOT NUMBER: </strong>" + $("#lot_no").val());
+            $("#p_expiry_date").html("<strong>EXPIRY DATE: </strong>" + $("#expiry_date").val());
+
+        });
+
+        $("#btn_confirm_po_line").click(function(){
+            var stock_id = $("#tbl_po_line_modal tr.selected td:first").html();
+            var item_no = $("#tbl_po_line_modal tr.selected td:nth-child(3)").html();
+            var item_name = $("#tbl_po_line_modal tr.selected td:nth-child(4)").html();
+            var base_uom = $("#tbl_po_line_modal tr.selected td:nth-child(5)").html();
+            var e_qty = $("#tbl_po_line_modal tr.selected td:nth-child(6)").html();
+            var lot_no = $("#lot_no").val();
+            var expiry_date = $("#expiry_date").val();
+            var net_weight = $("#net_weight").val();
+            var row = $("#tbl_po_line_modal tr.selected");
                 $('#tbl_sr_line tr:last').after(
                     `<tr>
                         <td style="display:none;"><input name="sr_items[]" type="hidden" value="${stock_id}"></input></td>
@@ -386,8 +393,10 @@
                     );
                 table_po_line.row(row).remove().draw();
                 $('#btn_add_po_line').prop('disabled', true);
-            }
-
+                $("#p_item_name").html("");
+                $("#p_qty").html("");
+                $("#p_lot_no").html("");
+                $("#p_expiry_date").html("");
         });
 
         $('#btn_select_po').click(function(){
@@ -484,16 +493,21 @@
         });
 
         $("#btn_add_sr_line").click(function(){
-            if (confirm("Confirm item?")){
-                var stock_id = $("#tbl_sr_line_modal tr.selected td:first").html();
-                var item_no = $("#tbl_sr_line_modal tr.selected td:nth-child(3)").html();
-                var item_name = $("#tbl_sr_line_modal tr.selected td:nth-child(4)").html();
-                var base_uom = $("#tbl_sr_line_modal tr.selected td:nth-child(7)").html();
-                var lot_no = $("#lot_no").val();
-                var expiry_date = $("#expiry").val();
-                var bin_location = $.trim(($("#bin_location option:selected").text()));
-                var quantity = $("#quantity").val();
+            $("#p_item_name").html("<strong>ITEM NAME: </strong>" + $("#item_name").val());
+            $("#p_qty").html("<strong>RECEIVED QUANTITY: </strong>" + $("#quantity").val());
+            $("#p_lot_no").html("<strong>LOT NUMBER: </strong>" + $("#lot_no").val());
+            $("#p_expiry_date").html("<strong>EXPIRY DATE: </strong>" + $("#expiry").val());
+        });
 
+        $("#btn_confirm_sr_line").click(function(){
+            var stock_id = $("#tbl_sr_line_modal tr.selected td:first").html();
+            var item_no = $("#tbl_sr_line_modal tr.selected td:nth-child(3)").html();
+            var item_name = $("#tbl_sr_line_modal tr.selected td:nth-child(4)").html();
+            var base_uom = $("#tbl_sr_line_modal tr.selected td:nth-child(7)").html();
+            var lot_no = $("#lot_no").val();
+            var expiry_date = $("#expiry").val();
+            var bin_location = $.trim(($("#bin_location option:selected").text()));
+            var quantity = $("#quantity").val();
                 var row = $("#tbl_sr_line_modal tr.selected");
                 $('#tbl_pwy_item_line tr:last').after(
                     `<tr>
@@ -514,8 +528,10 @@
                     );
                 table_sr_line.row(row).remove().draw();
                 $('#btn_add_sr_line').prop('disabled', true);
-            }
-
+                $("#p_item_name").html("");
+                $("#p_qty").html("");
+                $("#p_lot_no").html("");
+                $("#p_expiry_date").html("");
         });
 
         $('#btn_select_sr').click(function(){
@@ -582,14 +598,20 @@
 {% block modals %}
     {% if context['model'] == 'purchase_order' %}
         {% include "iwms/purchase_order/add_product_modal.html" %}
+
     {% elif context['model'] == 'stock_item' %}
         {% include "iwms/stock_item/add_uom_modal.html" %}
+
     {% elif context['model'] == 'stock_receipt' %}
         {% include "iwms/stock_receipt/search_po_modal.html" %}
         {% include "iwms/stock_receipt/po_line_modal.html" %}
+        {% include "iwms/stock_receipt/confirm_modal.html" %}
+
     {% elif context['model'] == 'putaway' %}
         {% include "iwms/putaway/search_sr_modal.html" %}
         {% include "iwms/putaway/sr_line_modal.html" %}
+        {% include "iwms/putaway/confirm_modal.html" %}
+
     {% endif %}
 {% endblock %}
 
