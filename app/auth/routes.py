@@ -298,9 +298,9 @@ def user_edit(oid,**kwargs):
     form = UserEditForm(obj=user)
     if request.method == "GET":
         user_permissions = UserPermission.query.filter_by(user_id=oid).all()
-        query1 = db.session.query(UserPermission.model_id).filter_by(user_id=oid)
-        models = db.session.query(HomeBestModel).filter(~HomeBestModel.id.in_(query1))
-        form.model_inline.models = models
+        # query1 = db.session.query(UserPermission.model_id).filter_by(user_id=oid)
+        # models = db.session.query(HomeBestModel).filter(~HomeBestModel.id.in_(query1))
+        # form.model_inline.models = models
         form.permission_inline.models = user_permissions
         return admin_edit(form=form, update_url=auth_urls['edit'], action="auth/user_edit_action.html", \
             oid=oid, modal_form=True,extra_modal='auth/user_change_password_modal.html',model=User,kwargs=kwargs)

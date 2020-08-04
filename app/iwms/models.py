@@ -12,48 +12,70 @@ from datetime import datetime
 
 class Group(Base,Admin):
     __tablename__ = 'iwms_group'
+    __amname__ = 'group'
+    __amicon__ = 'pe-7s-users'
+    __amdescription__ = "Groups"
+    
+    """ COLUMNS """
     name = db.Column(db.String(64),nullable=False)
-    model_name = 'Groups'
-    model_icon = 'pe-7s-users'
-    model_description = "Groups"
+
 
 class Department(Base,Admin):
     __tablename__ =  'iwms_department'
+    __amname__ = 'department'
+    __amicon__ = 'pe-7s-culture'
+    __amdescription__ = "Departments"
+
+    """ COLUMNS """
     name = db.Column(db.String(64),nullable=False)
-    model_name = 'department'
-    model_icon = 'pe-7s-culture'
-    model_description = "Departments"
+
 
 class TransactionType(Base,Admin):
     __tablename__ = 'iwms_transaction_type'
+    __amname__ = 'transaction_type'
+    __amdescription__ = "Transaction Types"
+    __amicon__ = 'pe-7s-network'
+
+    """ COLUMNS """
     code = db.Column(db.String(64),nullable=False)
     description = db.Column(db.String(255),nullable=True)
     prefix = db.Column(db.String(64),nullable=False)
     next_number_series = db.Column(db.Integer,nullable=True)
-    model_name = 'transaction_type'
-    model_icon = 'pe-7s-network'
+
 
 class Email(Base,Admin):
     __tablename__ = 'iwms_email'
+    __amname__ = 'email'
+    __amdescription__ = 'Email Address'
+    __amicon__ = 'pe-7s-mail'
+
+    """ COLUMNS """
     email = db.Column(db.String(64),nullable=False)
     module_code = db.Column(db.String(64),nullable=False)
     description = db.Column(db.String(255),nullable=True)
     type = db.Column(db.String(64),nullable=False)
-    model_name = 'email'
-    model_icon = 'pe-7s-mail'
+
 
 class Warehouse(Base,Admin):
     __tablename__ = 'iwms_warehouse'
+    __amname__ = 'warehouse'
+    __amdescription__ = 'Warehouse'
+    __amicon__ = 'pe-7s-map'
+
+    """ COLUMNS """
     code = db.Column(db.String(64),nullable=False)
     name = db.Column(db.String(64),nullable=False)
     main_warehouse = db.Column(db.Boolean, nullable=False, default="0")
     bins = db.relationship('BinLocation',backref='warehouse')
-    
-    model_name = 'warehouse'
-    model_icon = 'pe-7s-map'
+
 
 class Zone(Base,Admin):
     __tablename__ = 'iwms_zone'
+    __amname__ = 'zone'
+    __amdescription__ = 'Zone'
+    __amicon__ = 'pe-7s-map-2'
+
+    """ COLUMNS """
     code = db.Column(db.String(64),nullable=False)
     description = db.Column(db.String(255),nullable=True)
 
@@ -61,11 +83,14 @@ class Zone(Base,Admin):
     def name(self):
         return self.code
         
-    model_name = 'zone'
-    model_icon = 'pe-7s-map-2'
 
 class BinLocation(Base,Admin):
     __tablename__ = 'iwms_bin_location'
+    __amname__ = 'bin_location'
+    __amdescription__ = 'Bin Location'
+    __amicon__ = 'pe-7s-map-marker'
+
+    """ COLUMNS """
     code = db.Column(db.String(64),nullable=False)
     description = db.Column(db.String(255),nullable=True)
     index = db.Column(db.Integer,nullable=True)
@@ -78,16 +103,17 @@ class BinLocation(Base,Admin):
     weight_cap = db.Column(db.Integer,default=0)
     cbm_cap = db.Column(db.Integer,default=0)
 
-    model_name = 'bin_location'
-    model_icon = 'pe-7s-map-marker'
 
 class Category(Base,Admin):
     __tablename__ = 'iwms_category'
+    __amname__ = 'category'
+    __amdescription__ = 'Category'
+    __amicon__ = 'pe-7s-network'
+
+    """ COLUMNS """
     code = db.Column(db.String(64),nullable=False)
     description = db.Column(db.String(255),nullable=True)
 
-    model_name = 'category'
-    model_icon = 'pe-7s-network'
 
 class StockItemStatus(enum.Enum):
     active = "Active"
@@ -100,6 +126,11 @@ suppliers = db.Table('iwms_suppliers',
 
 class StockItem(Base,Admin):
     __tablename__ = 'iwms_stock_item'
+    __amname__ = 'stock_item'
+    __amdescription__ = 'Stock Item'
+    __amicon__ = 'pe-7s-download'
+
+    """ COLUMNS """
     number = db.Column(db.String(255),nullable=False)
     status = db.Column(db.Enum(StockItemStatus),default=StockItemStatus.active)
     stock_item_type_id = db.Column(db.Integer,db.ForeignKey('iwms_stock_item_type.id',ondelete="SET NULL"),nullable=True)
@@ -137,12 +168,11 @@ class StockItem(Base,Admin):
     qa_lead_time = db.Column(db.Integer,nullable=True,default=0)
     uom_line = db.relationship('StockItemUomLine', cascade='all,delete', backref="stock_item")
 
-    model_name = 'stock_item'
-    model_icon = 'pe-7s-download'
-
 
 class StockItemUomLine(db.Model):
     __tablename__ = 'iwms_stock_item_uom_line'
+
+    """ COLUMNS """
     id = db.Column(db.Integer, primary_key=True)
     stock_item_id = db.Column(db.Integer, db.ForeignKey('iwms_stock_item.id',ondelete='CASCADE'))
     uom_id = db.Column(db.Integer,db.ForeignKey('iwms_unit_of_measure.id',ondelete="SET NULL"),nullable=True)
@@ -158,30 +188,45 @@ class StockItemUomLine(db.Model):
 
 class UnitOfMeasure(Base,Admin):
     __tablename__ = 'iwms_unit_of_measure'
+    __amname__ = 'unit_of_measure'
+    __amdescription__ = 'Unit Of Measure'
+    __amicon__ = 'pe-7s-vector'
+
+    """ COLUMNS """
     code = db.Column(db.String(64),nullable=False)
     description = db.Column(db.String(255),nullable=True)
 
-    model_name = 'unit_of_measure'
-    model_icon = 'pe-7s-vector'
 
 class Reason(Base,Admin):
     __tablename__ = 'iwms_reason'
+    __amname__ = 'reason'
+    __amdescription__ = 'Reason'
+    __amicon__ = 'pe-7s-news-paper'
+
+    """ COLUMNS """
     code = db.Column(db.String(64),nullable=False)
     description = db.Column(db.String(255),nullable=True)
     type = db.Column(db.String(64),nullable=False)
 
-    model_name = 'reason'
-    model_icon = 'pe-7s-news-paper'
 
 class Source(Base,Admin):
     __tablename__ = 'iwms_source'
+    __amname__ = 'source'
+    __amdescription__ = 'Source'
+    __amicon__ = 'pe-7s-news-paper'
+
+    """ COLUMNS """
     name = db.Column(db.String(64),nullable=False)
     description = db.Column(db.String(255),nullable=True)
-    model_name = 'source'
-    model_icon = 'pe-7s-news-paper'
+
 
 class StockReceipt(Base,Admin):
     __tablename__ = 'iwms_stock_receipt'
+    __amname__ = 'stock_receipt'
+    __amdescription__ = 'Stock Receipt'
+    __amicon__ = 'pe-7s-news-paper'
+
+    """ COLUMNS """
     sr_number = db.Column(db.String(255),nullable=True,default="")
     status = db.Column(db.String(255),nullable=True,default="")
     purchase_order_id = db.Column(db.Integer,db.ForeignKey('iwms_purchase_order.id',ondelete="SET NULL"),nullable=True)
@@ -199,11 +244,11 @@ class StockReceipt(Base,Admin):
     putaway_txn = db.Column(db.String(255),nullable=True,default="")
     item_line = db.relationship('StockReceiptItemLine', cascade='all,delete', backref="stock_receipt")
 
-    model_name = 'stock_receipt'
-    model_icon = 'pe-7s-news-paper'
     
 class StockReceiptItemLine(db.Model):
     __tablename__ = 'iwms_stock_receipt_item_line'
+
+    """ COLUMNS """
     id = db.Column(db.Integer, primary_key=True)
     stock_receipt_id = db.Column(db.Integer, db.ForeignKey('iwms_stock_receipt.id',ondelete='CASCADE'))
     stock_item_id = db.Column(db.Integer,db.ForeignKey('iwms_stock_item.id',ondelete="SET NULL"),nullable=True)
@@ -218,6 +263,11 @@ class StockReceiptItemLine(db.Model):
 
 class Putaway(Base,Admin):
     __tablename__ = 'iwms_putaway'
+    __amname__ = 'putaway'
+    __amdescription__ = 'Putaway'
+    __amicon__ = 'pe-7s-junk'
+
+    """ COLUMNS """
     pwy_number = db.Column(db.String(255),nullable=False)
     stock_receipt_id = db.Column(db.Integer,db.ForeignKey('iwms_stock_receipt.id',ondelete="SET NULL"),nullable=True)
     stock_receipt = db.relationship('StockReceipt',backref="putaway")
@@ -227,12 +277,12 @@ class Putaway(Base,Admin):
     reference = db.Column(db.String(255),nullable=True)
     remarks = db.Column(db.String(255),nullable=True)
     item_line = db.relationship('PutawayItemLine', cascade='all,delete', backref="putaway")
-    model_name = 'putaway'
-    model_icon = 'pe-7s-junk'
 
 
 class PutawayItemLine(db.Model):
     __tablename__ = 'iwms_putaway_item_line'
+
+    """ COLUMNS """
     id = db.Column(db.Integer, primary_key=True)
     putaway_id = db.Column(db.Integer, db.ForeignKey('iwms_putaway.id',ondelete='CASCADE'))
     stock_item_id = db.Column(db.Integer,db.ForeignKey('iwms_stock_item.id',ondelete="SET NULL"),nullable=True)
@@ -247,6 +297,11 @@ class PutawayItemLine(db.Model):
 
 class Supplier(Base,Admin):
     __tablename__ = 'iwms_supplier'
+    __amname__ = 'supplier'
+    __amdescription__ = 'Supplier'
+    __amicon__ = ''
+
+    """ COLUMNS """
     code = db.Column(db.String(255),nullable=False)
     name = db.Column(db.String(255),nullable=False)
     status = db.Column(db.String(255),nullable=True)
@@ -255,17 +310,17 @@ class Supplier(Base,Admin):
     contact_number = db.Column(db.String(255),nullable=True)
     contact_person = db.Column(db.String(255),nullable=True)
 
-    model_name = 'supplier'
-    model_icon = ''
 
 class Term(Base,Admin):
     __tablename__  = 'iwms_term'
+    __amname__ = 'term'
+    __amdescription__ = 'Term'
+
+    """ COLUMNS """
     code = db.Column(db.String(255),nullable=False)
     description = db.Column(db.String(255),nullable=True)
     days = db.Column(db.Integer,nullable=True)
 
-    model_name = 'term'
-    model_icon = ''
 
 class ShipTo(enum.Enum):
     warehouse = "Warehouse"
@@ -278,6 +333,11 @@ class PurchaseOrderStatus(enum.Enum):
 
 class PurchaseOrder(Base,Admin):
     __tablename__ = 'iwms_purchase_order'
+    __amname__ = 'purchase_order'
+    __amdescription__ = 'Purchase Order'
+    __amicon__ = 'pe-7s-wallet'
+
+    """ COLUMNS """
     po_number = db.Column(db.String(255),nullable=False)
     status = db.Column(db.Enum(PurchaseOrderStatus),default=PurchaseOrderStatus.LOGGED)
     supplier_id = db.Column(db.Integer,db.ForeignKey('iwms_supplier.id',ondelete="SET NULL"),nullable=True)
@@ -292,11 +352,11 @@ class PurchaseOrder(Base,Admin):
     approved_by = db.Column(db.String(255),nullable=True)
     product_line = db.relationship('PurchaseOrderProductLine', cascade='all,delete', backref="po")
 
-    model_name = 'purchase_order'
-    model_icon = 'pe-7s-wallet'
 
 class PurchaseOrderProductLine(db.Model):
     __tablename__ = 'iwms_purchase_order_product_line'
+
+    """ COLUMNS """
     id = db.Column(db.Integer, primary_key=True)
     purchase_order_id = db.Column(db.Integer, db.ForeignKey('iwms_purchase_order.id',ondelete='CASCADE'))
     stock_item_id = db.Column(db.Integer,db.ForeignKey('iwms_stock_item.id',ondelete="SET NULL"),nullable=True)
@@ -307,34 +367,49 @@ class PurchaseOrderProductLine(db.Model):
     uom_id = db.Column(db.Integer,db.ForeignKey('iwms_unit_of_measure.id',ondelete="SET NULL"),nullable=True)
     uom = db.relationship("UnitOfMeasure",backref='po_line_uom')
 
+
 class StockItemType(Base,Admin):
     __tablename__ = 'iwms_stock_item_type'
+    __amname__ = 'stock_item_type'
+    __amdescription__ = 'Stock Item Type'
+
+    """ COLUMNS """
     name = db.Column(db.String(255),nullable=False)
-    model_name = 'stock_item_type'
-    model_icon = ''
+
 
 class TaxCode(Base,Admin):
     __tablename__ = 'iwms_tax_code'
+    __amname__ = 'tax_code'
+    __amdescription__ = 'Tax Code'
+
+    """ COLUMNS """
     name = db.Column(db.String(255),nullable=False)
 
 
 class SalesVia(Base,Admin):
     __tablename__ = 'iwms_sales_via'
+    __amname__ = 'sales_via'
+    __amdescription__ = 'Sales Via'
+
+    """ COLUMNS """
     description = db.Column(db.String(255),nullable=False)
-    model_name = 'sales_via'
-    model_icon = ''
+
 
 class ClientGroup(Base,Admin):
     __tablename__ = 'iwms_client_group'
+    __amname__ = 'client_group'
+    __amdescription__ = 'Client Group'
+
+    """ COLUMNS """
     name = db.Column(db.String(255),nullable=False)
-    model_name = 'client_group'
-    model_icon = ''
+
 
 class Client(Base,Admin):
     __tablename__ = 'iwms_client'
+    __amname__ = 'client'
+    __amdescription__ = 'Client'
+
+    """ COLUMNS """
     status = db.Column(db.String(255),nullable=True)
     code = db.Column(db.String(255),nullable=False)
     name = db.Column(db.String(255),nullable=True)
-    model_name = 'client'
-    model_icon = ''
-

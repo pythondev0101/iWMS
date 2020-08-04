@@ -11,7 +11,7 @@ from .models import Role
 from app.iwms.models import Warehouse,Department,Group
 
 class PermissionInlineForm(AdminInlineForm):
-    headers =['Model','Read','create','write','delete','Remove']
+    headers =['Model','Read','create','write','delete']
     title = "Edit Rights"
     html = 'auth/permission_inline.html'
 
@@ -42,9 +42,9 @@ class UserEditForm(AdminEditForm):
     edit_message = "message"
 
     permission_inline = PermissionInlineForm()
-    model_inline = ModelInlineForm()
-    inlines = [permission_inline,model_inline]
-
+    # model_inline = ModelInlineForm()
+    # inlines = [permission_inline,model_inline]
+    inlines = [permission_inline]
 
 class UserForm(AdminIndexForm):
     username = AdminField(label='Username', validators=[DataRequired()])

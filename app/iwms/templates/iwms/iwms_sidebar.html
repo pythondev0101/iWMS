@@ -30,8 +30,8 @@
     <li>
       <a href=""> <i class="metismenu-icon"> </i>Configuration </a>
     </li>
-    {% if 'Users' in session['permissions'] %}
-    {% if session['permissions']['Users']['read'] %}
+    {% if 'user' in session['permissions'] %}
+    {% if session['permissions']['user']['read'] %}
     <li>
       <a
         href="{{ url_for('bp_iwms.users') }}"
@@ -42,8 +42,8 @@
     </li>
     {% endif %}
     {% endif %}
-    {% if 'Groups' in session['permissions'] %}
-    {% if session['permissions']['Groups']['read']  %}      
+    {% if 'group' in session['permissions'] %}
+    {% if session['permissions']['group']['read']  %}      
     <li>
       <a
         href="{{ url_for('bp_iwms.groups') }}"
@@ -275,7 +275,7 @@
     <li>
       <a
         href="{{ url_for('bp_iwms.putaways') }}"
-        class="{% if context['mm-active'] == 'putaway' %} mm-active {% endif %}"
+        class="{% if context['mm-active'] == 'internal_transfer' %} mm-active {% endif %}"
       >
         <i class="metismenu-icon"> </i>Internal Transfer
       </a>
@@ -288,7 +288,7 @@
     <li>
       <a
         href="{{ url_for('bp_iwms.putaways') }}"
-        class="{% if context['mm-active'] == 'putaway' %} mm-active {% endif %}"
+        class="{% if context['mm-active'] == 'transfer_order' %} mm-active {% endif %}"
       >
         <i class="metismenu-icon"> </i>Transfer Order
       </a>
@@ -301,7 +301,7 @@
     <li>
       <a
         href="{{ url_for('bp_iwms.putaways') }}"
-        class="{% if context['mm-active'] == 'putaway' %} mm-active {% endif %}"
+        class="{% if context['mm-active'] == 'picklist_transaction' %} mm-active {% endif %}"
       >
         <i class="metismenu-icon"> </i>Picklist Transaction
       </a>
@@ -314,7 +314,7 @@
     <li>
       <a
         href="{{ url_for('bp_iwms.putaways') }}"
-        class="{% if context['mm-active'] == 'putaway' %} mm-active {% endif %}"
+        class="{% if context['mm-active'] == 'picking' %} mm-active {% endif %}"
       >
         <i class="metismenu-icon"> </i>Picking
       </a>
@@ -327,7 +327,7 @@
     <li>
       <a
         href="{{ url_for('bp_iwms.putaways') }}"
-        class="{% if context['mm-active'] == 'putaway' %} mm-active {% endif %}"
+        class="{% if context['mm-active'] == 'stock_issuance' %} mm-active {% endif %}"
       >
         <i class="metismenu-icon"> </i>Stock Issuance
       </a>
@@ -340,7 +340,7 @@
     <li>
       <a
         href="{{ url_for('bp_iwms.putaways') }}"
-        class="{% if context['mm-active'] == 'putaway' %} mm-active {% endif %}"
+        class="{% if context['mm-active'] == 'stock_adjustment' %} mm-active {% endif %}"
       >
         <i class="metismenu-icon"> </i>Stock Adjustment
       </a>
@@ -353,7 +353,7 @@
     <li>
       <a
         href="{{ url_for('bp_iwms.putaways') }}"
-        class="{% if context['mm-active'] == 'putaway' %} mm-active {% endif %}"
+        class="{% if context['mm-active'] == 'cycle_count' %} mm-active {% endif %}"
       >
         <i class="metismenu-icon"> </i>Cycle Count
       </a>
@@ -366,7 +366,7 @@
     <li>
       <a
         href="{{ url_for('bp_iwms.putaways') }}"
-        class="{% if context['mm-active'] == 'putaway' %} mm-active {% endif %}"
+        class="{% if context['mm-active'] == 'trucking' %} mm-active {% endif %}"
       >
         <i class="metismenu-icon"> </i>Trucking
       </a>

@@ -111,16 +111,16 @@ def _install_modules(modules):
         model_count = 0
 
         for model in module.models:
-            homebestmodel = HomeBestModel.query.filter_by(name=model.model_name).first()
+            homebestmodel = HomeBestModel.query.filter_by(name=model.__amname__).first()
             if not homebestmodel:
-                new_model = HomeBestModel(model.model_name, last_id, model.model_description)
+                new_model = HomeBestModel(model.__amname__, last_id, model.__amdescription__)
                 db.session.add(new_model)
                 db.session.commit()
                 print("MODEL - {}: SUCCESS".format(new_model.name))
-            system_modules[module_count]['models'].append({'name':model.model_name,'icon': model.model_icon,
+            system_modules[module_count]['models'].append({'name':model.__amname__,'icon': model.__amicon__,
             'functions': []})
             
-            for function in model.functions:
+            for function in model.__amfunctions__:
                 for function_name, function_link in function.items():
                     system_modules[module_count]['models'][model_count]['functions'].append({
                         function_name:function_link
@@ -131,9 +131,9 @@ def _install_modules(modules):
         if len(module.no_admin_models) > 0 :
 
             for xmodel in module.no_admin_models:
-                homebestmodel = HomeBestModel.query.filter_by(name=xmodel.model_name).first()
+                homebestmodel = HomeBestModel.query.filter_by(name=xmodel.__amname__).first()
                 if not homebestmodel:
-                    new_model = HomeBestModel(xmodel.model_name, last_id, xmodel.model_description,False)
+                    new_model = HomeBestModel(xmodel.__amname__, last_id, xmodel.__amdescription__,False)
                     db.session.add(new_model)
                     db.session.commit()
                     print("MODEL - {}: SUCCESS".format(new_model.name))

@@ -6,7 +6,7 @@ from app.core.core import CoreModule
 class AdminModule(CoreModule):
     module_name = 'admin'
     module_icon = 'fa-cogs'
-    module_link = 'bp_admin.dashboard'
+    module_link = 'bp_admin.apps'
     module_short_description = 'Application'
     module_long_description = "Administrator Dashboard and pages"
     models = []

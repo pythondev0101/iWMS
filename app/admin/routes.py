@@ -32,7 +32,7 @@ def dashboard():
 @bp_admin.route('/apps')
 def apps():
     context['active'] = 'apps'
-
+    context['module'] = 'admin'
     modules = HomeBestModule.query.all()
 
     return render_template('admin/admin_apps.html',context=context,title='Apps',modules=modules)
@@ -137,7 +137,7 @@ def admin_edit(form, update_url, oid,modal_form=False, action="admin/admin_edit_
     }
 
     if model:
-        model_name = model.model_name
+        model_name = model.__amname__
         context['create_modal']['title'] = model_name
         context['active'] = model_name
         delete_table = model.__tablename__
@@ -167,7 +167,7 @@ def admin_index(*model, fields, form=None, url='', action="admin/admin_actions.h
                 create_modal="admin/admin_create_modal.html", view_modal="admin/admin_view_modal.html",
                 create_url="", edit_url="", template="admin/admin_index.html",kwargs=None):
     
-    model_name = model[0].model_name
+    model_name = model[0].__amname__
     if _check_read(model_name):
             
         if len(model) == 1:
@@ -321,7 +321,7 @@ def admin_dashboard(box1=None,box2=None,box3=None,box4=None):
         box3 = DashboardBox("Users","Total users",User.query.count())
     
     context['active'] = 'main_dashboard'
-    context['module'] = 'admin'
+
     return render_template("admin/admin_dashboard.html", context=context,title='Admin Dashboard', \
         box1=box1,box2=box2,box3=box3)
 

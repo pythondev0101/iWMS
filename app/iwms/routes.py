@@ -235,7 +235,7 @@ def dashboard():
     context['module'] = 'iwms'
     context['active'] = 'main_dashboard'
     context['mm-active'] = ""
-    return render_template('iwms/iwms_dashboard.html',context=context,box1=None,box2=None,box3=None,box4=None,title="Dashboard")
+    return render_template('iwms/iwms_dashboard.html',context=context,title="Dashboard")
 
 @bp_iwms.route('/bin_location')
 @login_required

@@ -19,7 +19,12 @@ from app.core.models import Base
 # AUTH.MODEL.USER
 class User(UserMixin, Base, Admin):
     __tablename__ = 'auth_user'
+    __amname__ = 'user'
+    __amicon__ = 'pe-7s-users'
+    __amdescription__ = "Users"
+    __amfunctions__ = [{'View users': 'bp_auth.index'},{'View roles': 'bp_auth.roles'}]
 
+    """ COLUMNS """
     username = db.Column(db.String(64), nullable=False, index=True, unique=True)
     fname = db.Column(db.String(64), nullable=False, server_default="")
     lname = db.Column(db.String(64), nullable=False, server_default="")
@@ -53,11 +58,6 @@ class User(UserMixin, Base, Admin):
     def __repr__(self):
         return "<User {}>".format(self.username)
 
-    model_name = 'Users'
-    model_icon = 'pe-7s-users'
-    model_description = "USERS"
-    functions = [{'View users': 'bp_auth.index'},{'View roles': 'bp_auth.roles'}]
-
 
 class UserPermission(db.Model):
     __tablename__ = 'auth_user_permission'
@@ -71,13 +71,16 @@ class UserPermission(db.Model):
     delete = db.Column(db.Boolean, nullable=False, default="0")
 
 
-class Role(Base):
+class Role(Base,Admin):
     __tablename__ = 'auth_role'
+    __amname__ = 'role'
+    __amicon__ = 'pe-7s-users'
+    __amdescription__ = "Roles"
+
+    """ COLUMNS """
     name = db.Column(db.String(64), nullable=False)
     role_permissions = db.relationship('RolePermission', cascade='all,delete', backref="role")
-    model_name = 'Roles'
-    model_icon = 'pe-7s-users'
-    model_description = "Roles"
+
 
 class RolePermission(db.Model):
     __tablename__ = 'auth_role_permission'

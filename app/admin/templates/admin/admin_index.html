@@ -5,7 +5,7 @@
         <div class="page-title-wrapper">
             <div class="page-title-heading">
                 <div class="page-title-icon">
-                    <i class="{{ rendered_model.model_icon }} icon-gradient bg-happy-itmeo"></i>
+                    <i class="{{ rendered_model.__amicon__ }} icon-gradient bg-happy-itmeo"></i>
                 </div>
                 <div>
                     {{ index_title }}
@@ -149,6 +149,44 @@
                 if(document.body.contains(document.getElementById('view_edit_button'))){
                     var url = $(id).attr('value');
                     document.getElementById("view_edit_button").setAttribute("href", url);
+                    var fields = {% if context['create_modal']['js_fields'] %} {{ context['create_modal']['js_fields'] | tojson }} {% else %} '' {% endif %};
+                    var ctr;
+                    var field;
+                    var field_id = $(this).attr('id');
+                    var csrf_token = "{{ csrf_token() }}";
+                    var table = '{{ table }}';
+                    $.ajaxSetup({
+                        beforeSend: function(xhr, settings) {
+                            if (!/^(GET|HEAD|OPTIONS|TRACE)$/i.test(settings.type) && !this.crossDomain) {
+                                xhr.setRequestHeader("X-CSRFToken", csrf_token);
+                            }
+                        }
+                    });
+                    for (ctr=0; ctr < fields.length; ctr++){
+                        $.ajax({
+                            url: "/admin/_get_view_modal_data",
+                            type: "POST",
+                            dataType: "json",
+                            data: JSON.stringify({'table': table,'column': fields[ctr],'id':field_id}),
+                            contentType: "application/json; charset=utf-8",
+                            success: function(data) {
+                                if (data.result){
+                                    field = "#view_" + data.column;
+                                    var input_type = $(field).attr('type');
+                                    if (input_type == 'checkbox'){
+                                        if (data.result == '1'){
+                                            $(field).attr('checked',true);
+                                        }else{
+                                            $(field).attr('checked', false);
+                                        }
+                                    }else{
+                                        $(field).val(data.result);
+                                    }
+                                }
+                            }
+                        });
+                    }
+                }else{
                     var fields = {% if context['create_modal']['js_fields'] %} {{ context['create_modal']['js_fields'] | tojson }} {% else %} '' {% endif %};
                     var ctr;
                     var field;

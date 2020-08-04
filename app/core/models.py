@@ -94,15 +94,15 @@ class CoreProvince(Base):
 
 class CoreLog(db.Model):
     __tablename__ = 'core_log'
+    __amname__ = 'core_log'
+    __amdescription__ = 'System Log'
+    __amicon__ = ''
+    __amfunctions__ = [{}]
     
+    """ COLUMNS """
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer,db.ForeignKey('auth_user.id',ondelete="SET NULL"),nullable=True)
     user = db.relationship('User',backref='user_logs')
     date = db.Column(db.DateTime, default=datetime.utcnow)
     description = db.Column(db.String(500),nullable=True)
     data = db.Column(db.String(500),nullable=True)
-
-    model_name = 'core_log'
-    model_icon = ''
-    model_description = 'System Log'
-    functions = [{}]
