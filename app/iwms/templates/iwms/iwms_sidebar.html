@@ -270,8 +270,8 @@
     {% endif %}
     {% endif %}
 
-    {% if 'putaway' in session['permissions'] %}
-    {% if session['permissions']['putaway']['read'] %}
+    {% if 'internal_transfer' in session['permissions'] %}
+    {% if session['permissions']['internal_transfer']['read'] %}
     <li>
       <a
         href="{{ url_for('bp_iwms.putaways') }}"
@@ -283,8 +283,8 @@
     {% endif %}
     {% endif %}
     
-    {% if 'putaway' in session['permissions'] %}
-    {% if session['permissions']['putaway']['read'] %}
+    {% if 'transfer_order' in session['permissions'] %}
+    {% if session['permissions']['transfer_order']['read'] %}
     <li>
       <a
         href="{{ url_for('bp_iwms.putaways') }}"
@@ -296,8 +296,8 @@
     {% endif %}
     {% endif %}
 
-    {% if 'putaway' in session['permissions'] %}
-    {% if session['permissions']['putaway']['read'] %}
+    {% if 'picklist_transaction' in session['permissions'] %}
+    {% if session['permissions']['picklist_transaction']['read'] %}
     <li>
       <a
         href="{{ url_for('bp_iwms.putaways') }}"
@@ -309,8 +309,8 @@
     {% endif %}
     {% endif %}
 
-    {% if 'putaway' in session['permissions'] %}
-    {% if session['permissions']['putaway']['read'] %}
+    {% if 'picking' in session['permissions'] %}
+    {% if session['permissions']['picking']['read'] %}
     <li>
       <a
         href="{{ url_for('bp_iwms.putaways') }}"
@@ -322,8 +322,8 @@
     {% endif %}
     {% endif %}
 
-    {% if 'putaway' in session['permissions'] %}
-    {% if session['permissions']['putaway']['read'] %}
+    {% if 'stock_issuance' in session['permissions'] %}
+    {% if session['permissions']['stock_issuance']['read'] %}
     <li>
       <a
         href="{{ url_for('bp_iwms.putaways') }}"
@@ -335,8 +335,8 @@
     {% endif %}
     {% endif %}
 
-    {% if 'putaway' in session['permissions'] %}
-    {% if session['permissions']['putaway']['read'] %}
+    {% if 'stock_adjustment' in session['permissions'] %}
+    {% if session['permissions']['stock_adjustment']['read'] %}
     <li>
       <a
         href="{{ url_for('bp_iwms.putaways') }}"
@@ -348,8 +348,8 @@
     {% endif %}
     {% endif %}
 
-    {% if 'putaway' in session['permissions'] %}
-    {% if session['permissions']['putaway']['read'] %}
+    {% if 'cycle_count' in session['permissions'] %}
+    {% if session['permissions']['cycle_count']['read'] %}
     <li>
       <a
         href="{{ url_for('bp_iwms.putaways') }}"
@@ -361,8 +361,8 @@
     {% endif %}
     {% endif %}
 
-    {% if 'putaway' in session['permissions'] %}
-    {% if session['permissions']['putaway']['read'] %}
+    {% if 'trucking' in session['permissions'] %}
+    {% if session['permissions']['trucking']['read'] %}
     <li>
       <a
         href="{{ url_for('bp_iwms.putaways') }}"
