@@ -102,6 +102,8 @@ class BinLocation(Base,Admin):
     capacity = db.Column(db.Integer,default=0)
     weight_cap = db.Column(db.Integer,default=0)
     cbm_cap = db.Column(db.Integer,default=0)
+    x = db.Column(db.Integer,nullable=True,default=25)
+    y = db.Column(db.Integer,nullable=True,default=25)
 
 
 class Category(Base,Admin):

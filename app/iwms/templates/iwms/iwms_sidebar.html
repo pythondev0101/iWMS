@@ -270,6 +270,19 @@
     {% endif %}
     {% endif %}
 
+    {% if 'inventory_item' in session['permissions'] %}
+    {% if session['permissions']['inventory_item']['read'] %}
+    <li>
+      <a
+        href="{{ url_for('bp_iwms.putaways') }}"
+        class="{% if context['mm-active'] == 'putaway' %} mm-active {% endif %}"
+      >
+        <i class="metismenu-icon"> </i>Inventory Items
+      </a>
+    </li>
+    {% endif %}
+    {% endif %}
+
     {% if 'internal_transfer' in session['permissions'] %}
     {% if session['permissions']['internal_transfer']['read'] %}
     <li>
@@ -490,6 +503,9 @@
     <li>
       <a href="{{ url_for('bp_iwms.warehouse_bin_location') }}">
         <i class="metismenu-icon"> </i>Warehouse Floor Plan
+      </a>
+      <a href="#">
+        <i class="metismenu-icon"> </i>Create new bin
       </a>
     </li>
   </ul>

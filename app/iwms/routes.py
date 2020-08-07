@@ -158,6 +158,18 @@ def _makePOPDF(vendor,line_items):
 
 """----------------------APIs-------------------------"""
 
+@bp_iwms.route('/_update_bin_coord', methods=['POST'])
+def _update_bin_coord():
+    if request.method == 'POST':
+        _bin_code = request.json['bin_code']
+        _x,_y = request.json['x'], request.json['y']
+        print(_x,_y);
+        _bin = BinLocation.query.filter_by(code=_bin_code).first()
+        print(_bin)
+        _bin.x,_bin.y = _x, _y
+        db.session.commit()
+        return jsonify({'Result':True})
+
 @bp_iwms.route('/_get_po_line',methods=["POST"])
 def _get_po_line():
     if request.method == "POST":
@@ -244,7 +256,8 @@ def warehouse_bin_location():
     context['mm-active'] = 'warehouse_bin_location'
     context['module'] = 'iwms'
     context['model'] = 'warehouse_bin_location'
-    return render_template('iwms/iwms_warehouse_bin_location.html',context=context)
+    bins = BinLocation.query.all()
+    return render_template('iwms/iwms_warehouse_bin_location.html',context=context,bins=bins)
 
 @bp_iwms.route('/users')
 @login_required

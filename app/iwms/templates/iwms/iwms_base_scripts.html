@@ -14,15 +14,10 @@
 {% block inner_footer %}
 {% if context['model'] == 'purchase_order' %}
 <div class="app-footer-right">
-    {% if form.status.data.name == 'LOGGED' %}
     <button type="button" class="btn btn-secondary" onclick="history.back(-1)" 
     style="margin-right: 10px;">Cancel</button>
     <input form="edit_form" type="submit" style="margin-right: 10px;" name='btn_submit' class="btn btn-primary" value="Save and Print">
     <input form="edit_form" type="submit" class="btn btn-primary" name='btn_submit' value="Save">
-    {% else %}
-    <button type="button" class="btn btn-secondary" onclick="history.back(-1)" 
-    style="margin-right: 10px;">Cancel</button>
-    {% endif %}
 </div>
 {% else %}
 <div class="app-footer-right">
