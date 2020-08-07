@@ -37,21 +37,8 @@
                         <div class="form-row">
                             <div class="col-md-4">
                                 <div class="position-relative form-group">
-                                    <label for="warehouse_id" class="">Warehouse</label>
-                                    <select name="warehouse_id" id="warehouse_id" class="form-control">
-                                        <option value="">Choose...</option>
-                                        {% for warehouse in warehouses %}
-                                        <option value="{{ warehouse.id }}">
-                                            {{ warehouse.name }}
-                                        </option>
-                                        {% endfor %}
-                                    </select>
-                                    <div class="valid-feedback">
-                                        Looks good!
-                                    </div>
-                                    <div class="invalid-feedback">
-                                        Please provide a valid
-                                    </div>
+                                    <label for="warehouse" class="">Warehouse</label>
+                                    <input name="warehouse" id="warehouse" type="text" class="form-control" readonly>
                                 </div>
                             </div>
                             <div class="col-md-3">

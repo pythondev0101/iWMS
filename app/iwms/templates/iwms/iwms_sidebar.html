@@ -385,18 +385,37 @@
     <i class="metismenu-state-icon pe-7s-angle-down caret-left"></i>
   </a>
   <ul>
+    {% if 'sales_via' in session['permissions'] %}
+    {% if session['permissions']['sales_via']['read'] %}
     <li>
       <a href="{{ url_for('bp_iwms.sales_via') }}" class="{% if context['mm-active'] == 'sales_via' %} mm-active {% endif %}"><i class="metismenu-icon"> </i>Sales Via</a>
     </li>
+    {% endif %}
+    {% endif %}
+
+    {% if 'client_groups' in session['permissions'] %}
+    {% if session['permissions']['client_groups']['read'] %}
     <li>
       <a href="{{ url_for('bp_iwms.client_groups') }}" class="{% if context['mm-active'] == 'client_group' %} mm-active {% endif %}"> <i class="metismenu-icon"> </i>Client Group</a>
     </li>
+    {% endif %}
+    {% endif %}
+
+    {% if 'clients' in session['permissions'] %}
+    {% if session['permissions']['clients']['read'] %}
     <li>
       <a href="{{ url_for('bp_iwms.clients') }}" class="{% if context['mm-active'] == 'client' %} mm-active {% endif %}"> <i class="metismenu-icon"> </i>Client</a>
     </li>
+    {% endif %}
+    {% endif %}
+
+    {% if 'sales_order' in session['permissions'] %}
+    {% if session['permissions']['sales_order']['read'] %}
     <li>
       <a href=""> <i class="metismenu-icon"> </i>Sales Order</a>
     </li>
+    {% endif %}
+    {% endif %}
   </ul>
 </li>
 <li>
@@ -412,15 +431,29 @@
     <i class="metismenu-state-icon pe-7s-angle-down caret-left"></i>
   </a>
   <ul>
+    {% if 'supplier' in session['permissions'] %}
+    {% if session['permissions']['supplier']['read'] %}
     <li>
       <a href="{{ url_for('bp_iwms.suppliers') }}" class="{% if context['mm-active'] == 'supplier' %} mm-active {% endif %}"> <i class="metismenu-icon"> </i>Supplier</a>
     </li>
+    {% endif %}
+    {% endif %}
+
+    {% if 'term' in session['permissions'] %}
+    {% if session['permissions']['term']['read'] %}
     <li>
       <a href="{{ url_for('bp_iwms.terms') }}" class="{% if context['mm-active'] == 'term' %} mm-active {% endif %}"> <i class="metismenu-icon"> </i>Terms</a>
     </li>
+    {% endif %}
+    {% endif %}
+
+    {% if 'purchase_order' in session['permissions'] %}
+    {% if session['permissions']['purchase_order']['read'] %}
     <li>
       <a href="{{ url_for('bp_iwms.purchase_orders') }}" class="{% if context['mm-active'] == 'purchase_order' %} mm-active {% endif %}"> <i class="metismenu-icon"> </i>Purchase Order</a>
     </li>
+    {% endif %}
+    {% endif %}
   </ul>
 </li>
 <li>

@@ -324,6 +324,24 @@ class PurchaseOrderViewForm(AdminIndexForm):
     def create_fields(self):
         return [[self.po_number,self.status]]
 
+class StockReceiptViewForm(AdminIndexForm):
+    index_headers = ['SR no.','date created','created by','status']
+    index_title = 'Stock Receipts'
+    sr_number = AdminField(label='SR No.')
+    status = AdminField(label="Status")
+
+    def create_fields(self):
+        return [[self.sr_number,self.status]]
+
+class PutawayViewForm(AdminIndexForm):
+    index_headers = ['PWY no.','date created','created by','status']
+    index_title = 'Putaways'
+    pwy_number = AdminField(label='PWY No.')
+    status = AdminField(label="Status")
+
+    def create_fields(self):
+        return [[self.pwy_number,self.status]]
+
 class StockReceiptCreateForm(FlaskForm):
     status = StringField('Status')
     warehouse_id = AdminField(label='warehouse',required=False)
@@ -339,6 +357,7 @@ class StockReceiptCreateForm(FlaskForm):
 
 class PutawayCreateForm(FlaskForm):
     pwy_number = StringField()
+    sr_number = StringField()
     status = StringField()
     receipt_no = StringField()
     reference = StringField()
@@ -356,6 +375,8 @@ class PurchaseOrderCreateForm(FlaskForm):
     delivery_date = StringField()
     approved_by = StringField()
     remarks = StringField()
+
+
 
 class SupplierForm(AdminIndexForm):
     index_headers = ['code','name','status']

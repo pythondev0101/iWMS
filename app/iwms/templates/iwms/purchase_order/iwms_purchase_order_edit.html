@@ -14,9 +14,11 @@
                 <div>{{ form.po_number.data }}
                     <div class="page-title-subheading">
                         {% if form.status.data.name == 'LOGGED' %}
-                        <div class="mb-2 mr-2 badge badge-pill badge-success">LOGGED</div>
-                        {% else %}
-
+                        <div class="mb-2 mr-2 badge badge-pill badge-primary">LOGGED</div>
+                        {% elif form.status.data.name == 'COMPLETED' %}
+                        <div class="mb-2 mr-2 badge badge-pill badge-success">COMPLETED</div>
+                        {% elif form.status.data.name == 'RELEASED' %}
+                        <div class="mb-2 mr-2 badge badge-pill badge-warning">RELEASED</div>
                         {% endif %}
                     </div>
                 </div>

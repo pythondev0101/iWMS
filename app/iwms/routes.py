@@ -1041,7 +1041,7 @@ def stock_item_edit(oid):
 
         query1 = db.session.query(StockItemUomLine.uom_id).filter_by(stock_item_id=oid)
         uoms = db.session.query(UnitOfMeasure).filter(~UnitOfMeasure.id.in_(query1))
-        return render_template('iwms/iwms_stock_item_edit.html',context=context,form=f,types=types, uom_lines=obj.uom_line,\
+        return render_template('iwms/stock_item/iwms_stock_item_edit.html',context=context,form=f,types=types, uom_lines=obj.uom_line,\
             categories=categories,selected_suppliers=selected_suppliers,suppliers=suppliers,uoms=uoms,units=units,title="Edit stock item",\
                 oid=oid)
     elif request.method == "POST":
@@ -1110,13 +1110,10 @@ def stock_item_edit(oid):
 @bp_iwms.route('/stock_receipts')
 @login_required
 def stock_receipts():
-    fields = [StockReceipt.id,StockReceipt.sr_number,StockReceipt.status]
+    fields = [StockReceipt.id,StockReceipt.sr_number,StockReceipt.created_at,StockReceipt.created_by,StockReceipt.status]
     context['mm-active'] = 'stock_receipt'
     context['create_modal']['create_url'] = False
-    return admin_index(StockReceipt,fields=fields,create_modal=True,template="iwms/iwms_index.html",kwargs={
-        'index_title':'Stock receipts','index_headers':['SR No.','Status'],'index_message':'List of items',
-        'active':'inventory'
-        })
+    return admin_index(StockReceipt,fields=fields,form=StockReceiptViewForm(),create_modal=True,template="iwms/iwms_index.html",kwargs={'active':'inventory'})
 
 @bp_iwms.route('/stock_receipt_create',methods=['GET','POST'])
 @login_required
@@ -1134,7 +1131,7 @@ def stock_receipt_create():
     if request.method == "GET":
         # Hardcoded html ang irerender natin hindi yung builtin ng admin
         warehouses = Warehouse.query.all()
-        po_list = PurchaseOrder.query.all()
+        po_list = PurchaseOrder.query.filter_by(status="LOGGED")
         sources = Source.query.all()
         context['active'] = 'inventory'
         context['mm-active'] = 'stock_receipt'
@@ -1148,9 +1145,10 @@ def stock_receipt_create():
             obj.sr_number = sr_generated_number
             # No field yet so hardcoded muna
             po = PurchaseOrder.query.filter_by(po_number=f.po_number.data).first()
+            po.status = "COMPLETED"
             obj.purchase_order = po
             obj.status = "LOGGED"
-            obj.warehouse_id = f.warehouse_id.data if not f.warehouse_id.data == '' else None
+            obj.warehouse_id = po.warehouse_id
             obj.source_id = f.source.data if not f.source.data == '' else None
             obj.po_number = f.po_number.data
             obj.supplier = f.supplier.data
@@ -1188,13 +1186,10 @@ def stock_receipt_create():
 @bp_iwms.route('/putaways')
 @login_required
 def putaways():
-    fields = [Putaway.id,Putaway.pwy_number,Putaway.status]
+    fields = [Putaway.id,Putaway.pwy_number,Putaway.created_at,Putaway.created_by,Putaway.status]
     context['mm-active'] = 'putaway' 
     context['create_modal']['create_url'] = False
-    return admin_index(Putaway,fields=fields,view_modal=False,create_modal=True,template="iwms/iwms_index.html",kwargs={
-        'index_title':'Putaway','index_headers':['PWY No.','Status'],'index_message':'List of items',
-        'active':'inventory'
-        })
+    return admin_index(Putaway,fields=fields,form=PutawayViewForm(),create_modal=True,template="iwms/iwms_index.html",kwargs={'active':'inventory'})
 
 @bp_iwms.route('/putaway_create',methods=['GET','POST'])
 @login_required
@@ -1223,8 +1218,12 @@ def putaway_create():
     elif request.method == "POST":
         if f.validate_on_submit():
             obj = Putaway()
+            sr = StockReceipt.query.filter_by(sr_number=f.sr_number.data).first()
+            obj.stock_receipt = sr
             obj.pwy_number = pwy_generated_number
-            obj.status = "LOGGED"
+            obj.status = "RELEASED"
+            sr.status = "RELEASED"
+            sr.purchase_order.status = "RELEASED"
             # obj.warehouse_id = 
             obj.reference = f.reference.data
             obj.remarks = f.remarks.data
@@ -1329,7 +1328,7 @@ def purchase_order_create():
                 pdfkit.from_string(_makePOPDF(po.supplier,po.product_line),file_path)
 
                 # SEND EMAIL
-                msg = Message('Purchase Order', sender = 'rmontemayor0101@gmail.com', recipients = ['thynejoyavila@gmail.com'])
+                msg = Message('Purchase Order', sender = 'rmontemayor0101@gmail.com', recipients = [po.supplier.email_address])
                 msg.body = "Here attached purchase order quotation"
 
                 with open(file_path,'rb') as pdf_file:
@@ -1363,7 +1362,7 @@ def purchase_order_edit(oid):
         # query1 = db.session.query(StockItemUomLine.uom_id).filter_by(stock_item_id=oid)
         # stock_items = db.session.query(UnitOfMeasure).filter(~UnitOfMeasure.id.in_(query1))
 
-        return render_template('iwms/iwms_purchase_order_edit.html', oid=oid,stock_items='',line_items=po.product_line, \
+        return render_template('iwms/purchase_order/iwms_purchase_order_edit.html', oid=oid,stock_items='',line_items=po.product_line, \
             context=context,form=f,title="Edit purchase order",warehouses=warehouses,suppliers=suppliers)
     elif request.method == "POST":
         if f.validate_on_submit():

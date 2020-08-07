@@ -4,26 +4,26 @@
     <!-- If stock item is the active page this will change the create button to redirect to stock_item_create url -->
     <!-- instead of create modal -->
     <!-- inedit ko na dito rekta para hindi na ako gagawa ng bagong html na file para lang kay stock item -->
-    {% if rendered_model.model_name == 'stock_item' %} 
+    {% if rendered_model.__amname__ == 'stock_item' %} 
     <a href="{{ url_for('bp_iwms.stock_item_create') }}" type="button" class="btn-shadow mr-3 btn btn-primary">
         <i class="fa fa-plus"></i>
     </a>
-    {% elif rendered_model.model_name == 'stock_receipt' %}
+    {% elif rendered_model.__amname__ == 'stock_receipt' %}
     <a href="{{ url_for('bp_iwms.stock_receipt_create') }}" type="button" class="btn-shadow mr-3 btn btn-primary">
         <i class="fa fa-plus"></i>
     </a>
-    {% elif rendered_model.model_name == 'putaway' %}
+    {% elif rendered_model.__amname__ == 'putaway' %}
     <a href="{{ url_for('bp_iwms.putaway_create') }}" type="button" class="btn-shadow mr-3 btn btn-primary">
         <i class="fa fa-plus"></i>
     </a>
-    {% elif rendered_model.model_name == 'purchase_order' %}
+    {% elif rendered_model.__amname__ == 'purchase_order' %}
     <a href="{{ url_for('bp_iwms.purchase_order_create') }}" type="button" class="btn-shadow mr-3 btn btn-primary">
         <i class="fa fa-plus"></i>
     </a>
     {% else %}
     <button type="button" data-toggle="modal" data-target="#create_modal" title="Create new" data-placement="bottom"
             class="btn-shadow mr-3 btn btn-primary">
-        {% if rendered_model.model_name == 'user' %}
+        {% if rendered_model.__amname__ == 'user' %}
         <i class="fa fa-user-plus"></i>
         {% else %}
         <i class="fa fa-plus"></i>
