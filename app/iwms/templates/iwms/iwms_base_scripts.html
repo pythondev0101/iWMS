@@ -383,7 +383,7 @@
                         <td class='text-center'>${item_no}</td>
                         <td class='text-center'>${item_name}</td>
                         <td class='text-center'><input name="lot_no_${stock_id}" type="text" value="${lot_no}" readonly></td>
-                        <td class='text-center'>${expiry_date}</td>
+                        <td class='text-center'><input name="expiry_date_${stock_id}" type="text" value="${expiry_date}" readonly></td>
                         <td class='text-center'><input name="uom_${stock_id}" type="text" value="${base_uom}" style="width:50px" readonly></td>
                         <td class='text-center'><input name="received_qty_${stock_id}" type="number" value="${e_qty}" style="width:50px" readonly></td>
                         <td class='text-center'><input name="net_weight_${stock_id}" type="text" value="${net_weight}" style="width:50px" readonly></td>
@@ -392,11 +392,18 @@
                     `
                     );
                 table_po_line.row(row).remove().draw();
+                // CLEARING FIELDS
                 $('#btn_add_po_line').prop('disabled', true);
                 $("#p_item_name").html("");
                 $("#p_qty").html("");
                 $("#p_lot_no").html("");
                 $("#p_expiry_date").html("");
+                $("#item_name").val("");
+                $("#quantity").val("");
+                $("#unit").val("");
+                $("#lot_no").val("");
+                $("#net_weight").val("");
+                $("#expiry_date").val("");
         });
 
         $('#btn_select_po').click(function(){
@@ -519,9 +526,9 @@
                         <td class='text-center'>${item_no}</td>
                         <td class='text-center'>${item_name}</td>
                         <td class='text-center'><input name="uom_${stock_id}" type="text" value="${base_uom}" style="width:50px" readonly></td>
-                        <td class='text-center'><input name="bin_location_${stock_id}" type="text" value="${bin_location}" readonly></td>
+                        <td class='text-center'><input name="bin_location_${stock_id}" type="text" value="${bin_location}" style="width:50px" readonly></td>
                         <td class='text-center'><input name="lot_no_${stock_id}" type="text" value="${lot_no}" style="width:50px" readonly></td>
-                        <td class='text-center'><input name="expiry_${stock_id}" type="text" value="${expiry_date}" style="width:50px" readonly></td>
+                        <td class='text-center'><input name="expiry_${stock_id}" type="text" value="${expiry_date}" style="width:80px" readonly></td>
                         <td class='text-center'></td>
                         <td class='text-center'><input name="qty_${stock_id}" type="text" value="${quantity}" style="width:50px" readonly></td>
                         <td class='text-center'></td>
@@ -529,11 +536,17 @@
                     `
                     );
                 table_sr_line.row(row).remove().draw();
+                // CLEANING INPUTS
                 $('#btn_add_sr_line').prop('disabled', true);
                 $("#p_item_name").html("");
                 $("#p_qty").html("");
                 $("#p_lot_no").html("");
                 $("#p_expiry_date").html("");
+                $("#item_name").val("");
+                $("#bin_location").val("");
+                $("#unit").val("");
+                $("#quantity").val("");
+                $("#expiry").val("");
         });
 
         $('#btn_select_sr').click(function(){
@@ -547,7 +560,11 @@
 
             var number = $("#tbl_sr_modal tr.selected td:nth-child(2)").html();
             var sr_id = $("#tbl_sr_modal tr.selected td:first").html();
+            var reference = $("#tbl_sr_modal tr.selected td:nth-child(4)").html();
+            var warehouse = $("#tbl_sr_modal tr.selected td:nth-child(5)").html();
             $("#sr_number").val(number);
+            $("#reference").val(reference);
+            $("#warehouse").val(warehouse);
             
             var csrf_token = "{{ csrf_token() }}";
             $.ajaxSetup({

@@ -179,7 +179,8 @@ def _get_po_line():
         for line in po.product_line:
             po_line.append({
                 'id':line.stock_item.id,'name':line.stock_item.name,
-                'uom':line.uom.code,'number':line.stock_item.number,
+                'uom':line.uom.code if line.uom is not None else '',
+                'number':line.stock_item.number,
                 'qty':line.qty
                 })
         print("test",po_line)
@@ -1124,9 +1125,12 @@ def stock_item_edit(oid):
 @login_required
 def stock_receipts():
     fields = [StockReceipt.id,StockReceipt.sr_number,StockReceipt.created_at,StockReceipt.created_by,StockReceipt.status]
+    # Custom models pass to admin_index
+    models = StockReceipt.query.with_entities(*fields).filter_by(status="LOGGED").all()
     context['mm-active'] = 'stock_receipt'
     context['create_modal']['create_url'] = False
-    return admin_index(StockReceipt,fields=fields,form=StockReceiptViewForm(),create_modal=True,template="iwms/iwms_index.html",kwargs={'active':'inventory'})
+    return admin_index(StockReceipt,fields=fields,form=StockReceiptViewForm(),create_modal=True,template="iwms/iwms_index.html",\
+        kwargs={'active':'inventory','models': models})
 
 @bp_iwms.route('/stock_receipt_create',methods=['GET','POST'])
 @login_required
@@ -1158,7 +1162,7 @@ def stock_receipt_create():
             obj.sr_number = sr_generated_number
             # No field yet so hardcoded muna
             po = PurchaseOrder.query.filter_by(po_number=f.po_number.data).first()
-            po.status = "COMPLETED"
+            po.status = "RELEASED"
             obj.purchase_order = po
             obj.status = "LOGGED"
             obj.warehouse_id = po.warehouse_id
@@ -1220,7 +1224,7 @@ def putaway_create():
     if request.method == "GET":
         # Hardcoded html ang irerender natin hindi yung builtin ng admin
         warehouses = Warehouse.query.all()
-        sr_list = StockReceipt.query.all()
+        sr_list = StockReceipt.query.filter_by(status="LOGGED")
         bin_locations = BinLocation.query.all()
         context['active'] = 'inventory'
         context['mm-active'] = 'putaway'
@@ -1234,9 +1238,9 @@ def putaway_create():
             sr = StockReceipt.query.filter_by(sr_number=f.sr_number.data).first()
             obj.stock_receipt = sr
             obj.pwy_number = pwy_generated_number
-            obj.status = "RELEASED"
-            sr.status = "RELEASED"
-            sr.purchase_order.status = "RELEASED"
+            obj.status = "LOGGED"
+            sr.status = "COMPLETED"
+            sr.purchase_order.status = "COMPLETED"
             # obj.warehouse_id = 
             obj.reference = f.reference.data
             obj.remarks = f.remarks.data

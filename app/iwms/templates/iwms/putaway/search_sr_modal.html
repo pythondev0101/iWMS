@@ -19,6 +19,7 @@
                                             <th>RECEIPT NUMBER</th>
                                             <th>SOURCE</th>
                                             <th>REFERENCE</th>
+                                            <th>WAREHOUSE</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -28,6 +29,7 @@
                                             <td>{{sr.sr_number}}</td>
                                             <td>{{sr.source.name}}</td>
                                             <td>{{sr.reference}}</td>
+                                            <td>{{sr.purchase_order.warehouse.name}}</td>
                                         </tr>
                                         {% endfor %}
                                     </tbody>

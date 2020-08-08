@@ -169,14 +169,16 @@ def admin_index(*model, fields, form=None, url='', action="admin/admin_actions.h
     
     model_name = model[0].__amname__
     if _check_read(model_name):
-            
-        if len(model) == 1:
-            models = model[0].query.with_entities(*fields).all()
-        elif len(model) == 2:
-            models = model[0].query.outerjoin(model[1]).with_entities(*fields).all()
-        elif len(model) == 3:
-            query1 = db.session.query(model[0],model[1],model[2])
-            models = query1.outerjoin(model[1]).outerjoin(model[2]).with_entities(*fields).all()
+        if kwargs is not None and 'models' in kwargs:
+            models = kwargs.get('models')
+        else:
+            if len(model) == 1:
+                models = model[0].query.with_entities(*fields).all()
+            elif len(model) == 2:
+                models = model[0].query.outerjoin(model[1]).with_entities(*fields).all()
+            elif len(model) == 3:
+                query1 = db.session.query(model[0],model[1],model[2])
+                models = query1.outerjoin(model[1]).outerjoin(model[2]).with_entities(*fields).all()
 
         # TODO: check if Admin.model_name is implemented in the model
         # Raise error if not
