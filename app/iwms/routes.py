@@ -1290,6 +1290,8 @@ def purchase_orders():
 @bp_iwms.route('/purchase_order_create',methods=['GET','POST'])
 @login_required
 def purchase_order_create():
+    import platform
+
     po_generated_number = ""
     po = db.session.query(PurchaseOrder).order_by(PurchaseOrder.id.desc()).first()
     if po:
@@ -1342,9 +1344,19 @@ def purchase_order_create():
             if request.form['btn_submit'] == 'Save and Print':
                 file_name = po_generated_number + '.pdf'
                 file_path = current_app.config['PDF_FOLDER'] + po_generated_number + '.pdf'
-                pdfkit.from_string(_makePOPDF(po.supplier,po.product_line),file_path)
+                
+                """ CONVERT HTML STRING TO PDF THEN RETURN PDF TO BROWSER TO PRINT
+                """
+                if platform.system() == "Windows":
+                    path_wkhtmltopdf = r'C:\Program Files\wkhtmltopdf\bin\wkhtmltopdf.exe' # CHANGE THIS to the location of wkhtmltopdf
+                    config = pdfkit.configuration(wkhtmltopdf=path_wkhtmltopdf)
+                    pdfkit.from_string(_makePOPDF(po.supplier,po.product_line),file_path,configuration=config)
+                else:
+                    pdfkit.from_string(_makePOPDF(po.supplier,po.product_line),file_path)
 
-                # SEND EMAIL
+                """ SEND EMAIL TO SUPPLIER'S EMAIL ADDRESS AND ATTACHED THE SAVED PDF IN /STATIC/PDFS FOLDER
+                """
+                
                 msg = Message('Purchase Order', sender = 'rmontemayor0101@gmail.com', recipients = [po.supplier.email_address])
                 msg.body = "Here attached purchase order quotation"
 
@@ -1410,7 +1422,15 @@ def purchase_order_edit(oid):
             if request.form['btn_submit'] == 'Save and Print':
                 file_name = po.po_number + '.pdf'
                 file_path = current_app.config['PDF_FOLDER'] + po.po_number + '.pdf'
-                pdfkit.from_string(_makePOPDF(po.supplier,po.product_line),file_path)
+                """ CONVERT HTML STRING TO PDF THEN RETURN PDF TO BROWSER TO PRINT
+                """
+                if platform.system() == "Windows":
+                    path_wkhtmltopdf = r'C:\Program Files\wkhtmltopdf\bin\wkhtmltopdf.exe' # CHANGE THIS to the location of wkhtmltopdf
+                    config = pdfkit.configuration(wkhtmltopdf=path_wkhtmltopdf)
+                    pdfkit.from_string(_makePOPDF(po.supplier,po.product_line),file_path,configuration=config)
+                else:
+                    pdfkit.from_string(_makePOPDF(po.supplier,po.product_line),file_path)
+                    
                 flash('Purchase Order updated Successfully!','success')
                 return send_from_directory(directory=current_app.config['PDF_FOLDER'],filename=file_name,as_attachment=True)
 
