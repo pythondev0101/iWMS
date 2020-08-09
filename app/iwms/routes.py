@@ -17,7 +17,8 @@ from app.admin.routes import admin_index, admin_edit
 from .models import Group,Department,TransactionType,Warehouse,Zone, \
     BinLocation,Category,StockItem,UnitOfMeasure,Reason,StockReceipt,Putaway, \
         Email as EAddress, PurchaseOrder, Supplier, Term,PurchaseOrderProductLine,StockItemType,TaxCode,\
-            StockItemUomLine,StockReceiptItemLine, PutawayItemLine,Source, SalesVia, ClientGroup, Client
+            StockItemUomLine,StockReceiptItemLine, PutawayItemLine,Source, SalesVia, ClientGroup, Client,\
+                InventoryItem, Configuration
 
 from .forms import *
 from datetime import datetime
@@ -1253,8 +1254,24 @@ def putaway_create():
                     expiry_date = request.form.get('expiry_{}'.format(item_id)) if not request.form.get('expiry_{}'.format(item_id)) == '' else None
                     uom = request.form.get('uom_{}'.format(item_id))
                     qty = request.form.get('qty_{}'.format(item_id)) if not request.form.get('qty_{}'.format(item_id)) == '' else None
+                    _bin_location_code = request.form.get("bin_location_{}".format(item_id)) if not request.form.get("bin_location_{}".format(item_id)) == '' else None
                     line = PutawayItemLine(stock_item=item,lot_no=lot_no,expiry_date=expiry_date,uom=uom,qty=qty)
                     obj.item_line.append(line)
+
+                    # SENDING ITEMS TO INVENTORY ITEM
+
+                    _check_for_item = InventoryItem.query.filter_by(stock_item_id=item_id).first()
+                    print(_check_for_item)
+                    if _check_for_item is None:
+                        inventory_item = InventoryItem() 
+                        inventory_item.stock_item = item
+                        bin_location = BinLocation.query.filter_by(code=_bin_location_code).first()
+                        inventory_item.bin_location = bin_location
+                        inventory_item.qty_on_hand = qty
+                        db.session.add(inventory_item)
+                    else:
+                        _check_for_item.qty_on_hand = _check_for_item.qty_on_hand + int(qty)
+                        db.session.commit()
 
             db.session.add(obj)
             db.session.commit()
@@ -1291,7 +1308,6 @@ def purchase_orders():
 @login_required
 def purchase_order_create():
     import platform
-
     po_generated_number = ""
     po = db.session.query(PurchaseOrder).order_by(PurchaseOrder.id.desc()).first()
     if po:
@@ -1315,58 +1331,66 @@ def purchase_order_create():
             context=context,form=f,title="Create purchase order",warehouses=warehouses,suppliers=suppliers)
     elif request.method == "POST":
         if f.validate_on_submit():
-            r = request.form
-            po = PurchaseOrder()
-            po.po_number = po_generated_number
-            po.supplier_id = f.supplier_id.data if not f.supplier_id.data == '' else None
-            po.warehouse_id = f.warehouse_id.data if not f.warehouse_id.data == '' else None
-            po.ship_to = f.ship_to.data
-            po.address = f.address.data
-            po.remarks = f.remarks.data
-            po.ordered_date = f.ordered_date.data if not f.ordered_date.data == '' else None
-            po.delivery_date = f.delivery_date.data if not f.delivery_date.data == '' else None
-            po.approved_by = f.approved_by.data
-            po.created_by = "{} {}".format(current_user.fname,current_user.lname)
+            try:
+                r = request.form
+                po = PurchaseOrder()
+                po.po_number = po_generated_number
+                po.supplier_id = f.supplier_id.data if not f.supplier_id.data == '' else None
+                po.warehouse_id = f.warehouse_id.data if not f.warehouse_id.data == '' else None
+                po.ship_to = f.ship_to.data
+                po.address = f.address.data
+                po.remarks = f.remarks.data
+                po.ordered_date = f.ordered_date.data if not f.ordered_date.data == '' else None
+                po.delivery_date = f.delivery_date.data if not f.delivery_date.data == '' else None
+                po.approved_by = f.approved_by.data
+                po.created_by = "{} {}".format(current_user.fname,current_user.lname)
 
-            product_list = r.getlist('products[]')
-            if product_list:
-                for product_id in r.getlist('products[]'):
-                    product = StockItem.query.get(product_id)
-                    qty = r.get("qty_{}".format(product_id))
-                    cost = r.get("cost_{}".format(product_id))
-                    amount = r.get("amount_{}".format(product_id))
-                    uom = UnitOfMeasure.query.get(r.get("uom_{}".format(product_id)))
-                    line = PurchaseOrderProductLine(stock_item=product,qty=qty,unit_cost=cost,amount=amount,uom=uom)
-                    po.product_line.append(line)
-            db.session.add(po)
-            db.session.commit()
+                product_list = r.getlist('products[]')
+                if product_list:
+                    for product_id in r.getlist('products[]'):
+                        product = StockItem.query.get(product_id)
+                        qty = r.get("qty_{}".format(product_id))
+                        cost = r.get("cost_{}".format(product_id))
+                        amount = r.get("amount_{}".format(product_id))
+                        uom = UnitOfMeasure.query.get(r.get("uom_{}".format(product_id)))
+                        line = PurchaseOrderProductLine(stock_item=product,qty=qty,unit_cost=cost,amount=amount,uom=uom)
+                        po.product_line.append(line)
+                db.session.add(po)
+                db.session.commit()
 
-            if request.form['btn_submit'] == 'Save and Print':
-                file_name = po_generated_number + '.pdf'
-                file_path = current_app.config['PDF_FOLDER'] + po_generated_number + '.pdf'
-                
-                """ CONVERT HTML STRING TO PDF THEN RETURN PDF TO BROWSER TO PRINT
-                """
-                if platform.system() == "Windows":
-                    path_wkhtmltopdf = r'C:\Program Files\wkhtmltopdf\bin\wkhtmltopdf.exe' # CHANGE THIS to the location of wkhtmltopdf
-                    config = pdfkit.configuration(wkhtmltopdf=path_wkhtmltopdf)
-                    pdfkit.from_string(_makePOPDF(po.supplier,po.product_line),file_path,configuration=config)
+                if request.form['btn_submit'] == 'Save and Print':
+                    file_name = po_generated_number + '.pdf'
+                    file_path = current_app.config['PDF_FOLDER'] + po_generated_number + '.pdf'
+                    
+                    """ CONVERT HTML STRING TO PDF THEN RETURN PDF TO BROWSER TO PRINT
+                    """
+                    if platform.system() == "Windows":
+                        path_wkhtmltopdf = r'C:\Program Files\wkhtmltopdf\bin\wkhtmltopdf.exe' # CHANGE THIS to the location of wkhtmltopdf
+                        config = pdfkit.configuration(wkhtmltopdf=path_wkhtmltopdf)
+                        pdfkit.from_string(_makePOPDF(po.supplier,po.product_line),file_path,configuration=config)
+                    else:
+                        pdfkit.from_string(_makePOPDF(po.supplier,po.product_line),file_path)
+
+                    """ SEND EMAIL TO SUPPLIER'S EMAIL ADDRESS AND ATTACHED THE SAVED PDF IN /STATIC/PDFS FOLDER
+                    """
+                    _sender_address = Configuration.query.with_entities(Configuration.email).first()
+
+                    if _sender_address is None:
+                        raise Exception
+
+                    msg = Message('Purchase Order', sender = _sender_address[0], recipients = [po.supplier.email_address])
+                    msg.body = "Here attached purchase order quotation"
+
+                    with open(file_path,'rb') as pdf_file:
+                        msg.attach(filename=file_path,disposition="attachment",content_type="application/pdf",data=pdf_file.read())
+                    mail.send(msg)
+                    flash('New Purchase Order added Successfully!','success')
+                    return send_from_directory(directory=current_app.config['PDF_FOLDER'],filename=file_name,as_attachment=True)
                 else:
-                    pdfkit.from_string(_makePOPDF(po.supplier,po.product_line),file_path)
-
-                """ SEND EMAIL TO SUPPLIER'S EMAIL ADDRESS AND ATTACHED THE SAVED PDF IN /STATIC/PDFS FOLDER
-                """
-                
-                msg = Message('Purchase Order', sender = 'rmontemayor0101@gmail.com', recipients = [po.supplier.email_address])
-                msg.body = "Here attached purchase order quotation"
-
-                with open(file_path,'rb') as pdf_file:
-                    msg.attach(filename=file_path,disposition="attachment",content_type="application/pdf",data=pdf_file.read())
-                mail.send(msg)
-                flash('New Purchase Order added Successfully!','success')
-                return send_from_directory(directory=current_app.config['PDF_FOLDER'],filename=file_name,as_attachment=True)
-            else:
-                flash('New Purchase Order added Successfully!','success')
+                    flash('New Purchase Order added Successfully!','success')
+                    return redirect(url_for('bp_iwms.purchase_orders'))
+            except Exception as e:
+                flash(str(e),'error')
                 return redirect(url_for('bp_iwms.purchase_orders'))
         else:
             for key, value in f.errors.items():
@@ -1769,3 +1793,34 @@ def client_edit(oid):
             for key, value in form.errors.items():
                 flash(str(key) + str(value), 'error')
             return redirect(url_for('bp_iwms.clients'))
+
+
+@bp_iwms.route('/inventory_items')
+@login_required
+def inventory_items():
+    fields = [InventoryItem.id,StockItem.name,InventoryItem.qty_on_hand,BinLocation.code]
+    context['mm-active'] = 'inventory_item'
+    models = [InventoryItem,StockItem,BinLocation]
+    return admin_index(*models,fields=fields,form=InventoryItemForm(), \
+        template='iwms/iwms_index.html', view_modal=False,\
+            create_modal=False,kwargs={'active':'inventory'})
+
+@bp_iwms.route('/configuration')
+@login_required
+def configuration():
+    email = Configuration.query.with_entities(Configuration.email).first()
+    return render_template("iwms/configuration/iwms_configuration.html",context=context,email=email)
+
+@bp_iwms.route('/_edit_configuration_email',methods=['POST'])
+def _edit_configuration_email():
+    if Configuration.query.count() <= 0:
+        config = Configuration()
+        config.email = request.json['email']
+        db.session.add(config)
+        db.session.commit()
+        return jsonify({'result':True})
+    else:
+        config = Configuration.query.first()
+        config.email = request.json['email']
+        db.session.commit()
+        return jsonify({'result':True})

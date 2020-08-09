@@ -370,7 +370,7 @@
             var item_no = $("#tbl_po_line_modal tr.selected td:nth-child(3)").html();
             var item_name = $("#tbl_po_line_modal tr.selected td:nth-child(4)").html();
             var base_uom = $("#tbl_po_line_modal tr.selected td:nth-child(5)").html();
-            var e_qty = $("#tbl_po_line_modal tr.selected td:nth-child(6)").html();
+            var e_qty = $("#quantity").val();
             var lot_no = $("#lot_no").val();
             var expiry_date = $("#expiry_date").val();
             var net_weight = $("#net_weight").val();
@@ -419,9 +419,11 @@
             var supplier = $("#tbl_po_modal tr.selected td:nth-child(3)").html();
             var warehouse = $("#tbl_po_modal tr.selected td:nth-child(4)").html();
             var po_id = $("#tbl_po_modal tr.selected td:first").html();
+            var remarks = $("#tbl_po_modal tr.selected td:nth-child(5)").html();
             $("#po_number").val(number);
             $("#supplier").val(supplier);
             $("#warehouse").val(warehouse);
+            $("#remarks").val(remarks);
             
             var csrf_token = "{{ csrf_token() }}";
             $.ajaxSetup({
@@ -562,9 +564,12 @@
             var sr_id = $("#tbl_sr_modal tr.selected td:first").html();
             var reference = $("#tbl_sr_modal tr.selected td:nth-child(4)").html();
             var warehouse = $("#tbl_sr_modal tr.selected td:nth-child(5)").html();
+            var remarks = $("#tbl_sr_modal tr.selected td:nth-child(6)").html();
+
             $("#sr_number").val(number);
             $("#reference").val(reference);
             $("#warehouse").val(warehouse);
+            $("#remarks").val(remarks);
             
             var csrf_token = "{{ csrf_token() }}";
             $.ajaxSetup({

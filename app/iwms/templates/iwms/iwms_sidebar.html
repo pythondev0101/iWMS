@@ -28,8 +28,9 @@
   </a>
   <ul>
     <li>
-      <a href=""> <i class="metismenu-icon"> </i>Configuration </a>
+      <a href="{{url_for('bp_iwms.configuration')}}"> <i class="metismenu-icon"> </i>Configuration </a>
     </li>
+    
     {% if 'user' in session['permissions'] %}
     {% if session['permissions']['user']['read'] %}
     <li>
@@ -274,10 +275,10 @@
     {% if session['permissions']['inventory_item']['read'] %}
     <li>
       <a
-        href="{{ url_for('bp_iwms.putaways') }}"
-        class="{% if context['mm-active'] == 'putaway' %} mm-active {% endif %}"
+        href="{{ url_for('bp_iwms.inventory_items') }}"
+        class="{% if context['mm-active'] == 'inventory_item' %} mm-active {% endif %}"
       >
-        <i class="metismenu-icon"> </i>Inventory Items
+        <i class="metismenu-icon"> </i>Inventory Item
       </a>
     </li>
     {% endif %}
@@ -406,16 +407,16 @@
     {% endif %}
     {% endif %}
 
-    {% if 'client_groups' in session['permissions'] %}
-    {% if session['permissions']['client_groups']['read'] %}
+    {% if 'client_group' in session['permissions'] %}
+    {% if session['permissions']['client_group']['read'] %}
     <li>
       <a href="{{ url_for('bp_iwms.client_groups') }}" class="{% if context['mm-active'] == 'client_group' %} mm-active {% endif %}"> <i class="metismenu-icon"> </i>Client Group</a>
     </li>
     {% endif %}
     {% endif %}
 
-    {% if 'clients' in session['permissions'] %}
-    {% if session['permissions']['clients']['read'] %}
+    {% if 'client' in session['permissions'] %}
+    {% if session['permissions']['client']['read'] %}
     <li>
       <a href="{{ url_for('bp_iwms.clients') }}" class="{% if context['mm-active'] == 'client' %} mm-active {% endif %}"> <i class="metismenu-icon"> </i>Client</a>
     </li>

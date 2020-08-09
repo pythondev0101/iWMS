@@ -45,7 +45,22 @@
                             {% for values in model %}
                             {% if loop.index > 1 %}
                             <!-- TEMPORARY conversion ng boolean word 'true' to 'YES' and 'false' to 'NO' -->
-                            <td style="font-weight: bold; text-align:center">{% if values == True %} YES {% elif values == False %} NO {% elif values == None %}  {% else %} {{ values }} {% endif %}</td>
+                            <td style="font-weight: bold; text-align:center">
+                                {% if values == True %}
+                                YES
+                                {% elif values == False %}
+                                NO
+                                {% elif values == None %}
+                                
+                                {% elif values == 'LOGGED' %}
+                                <div class="mb-2 mr-2 badge badge-primary">LOGGED</div>
+                                {% elif values == 'RELEASED' %}
+                                <div class="mb-2 mr-2 badge badge-warning">RELEASED</div>
+                                {% elif values == 'COMPLETED' %}
+                                <div class="mb-2 mr-2 badge badge-success">COMPLETED</div>
+                                {% else %} {{ values }} 
+
+                                {% endif %}</td>
                             {% endif %}
                             {% endfor %}
                         </tr>

@@ -97,11 +97,11 @@ class BinLocation(Base,Admin):
     warehouse_id = db.Column(db.Integer, db.ForeignKey('iwms_warehouse.id',ondelete="SET NULL"),nullable=True)
     zone_id = db.Column(db.Integer, db.ForeignKey('iwms_zone.id',ondelete="SET NULL"),nullable=True)
     zone = db.relationship('Zone',backref='binlocationzone')
-    pallet_slot = db.Column(db.Integer,default=0)
-    pallet_cs = db.Column(db.Integer,default=0)
-    capacity = db.Column(db.Integer,default=0)
-    weight_cap = db.Column(db.Integer,default=0)
-    cbm_cap = db.Column(db.Integer,default=0)
+    pallet_slot = db.Column(db.Integer,default=None)
+    pallet_cs = db.Column(db.Integer,default=None)
+    capacity = db.Column(db.Integer,default=None)
+    weight_cap = db.Column(db.Integer,default=None)
+    cbm_cap = db.Column(db.Integer,default=None)
     x = db.Column(db.Integer,nullable=True,default=25)
     y = db.Column(db.Integer,nullable=True,default=25)
 
@@ -415,3 +415,25 @@ class Client(Base,Admin):
     status = db.Column(db.String(255),nullable=True)
     code = db.Column(db.String(255),nullable=False)
     name = db.Column(db.String(255),nullable=True)
+
+class InventoryItem(Base,Admin):
+    __tablename__ = 'iwms_inventory_item'
+    __amname__ = 'inventory_item'
+    __amdescription__ = 'Inventory Item'
+    __amicon__ = 'pe-7s-download'
+    
+    """ COLUMNS """
+    stock_item_id = db.Column(db.Integer,db.ForeignKey('iwms_stock_item.id',ondelete="SET NULL"),nullable=True)
+    stock_item = db.relationship('StockItem',backref="inventory_stock_item")
+    bin_location_id = db.Column(db.Integer,db.ForeignKey('iwms_bin_location.id',ondelete="SET NULL"),nullable=True)
+    bin_location = db.relationship('BinLocation',backref="item_bin_location")    
+    qty_on_hand = db.Column(db.Integer,nullable=True,default=None)
+
+
+class Configuration(Base,Admin):
+    __tablename__ = 'iwms_configuration'
+    __amname__ = 'configuration'
+    __amdescription__ = 'Configuration'
+
+    """ COLUMNS """
+    email = db.Column(db.String(255),nullable=True)

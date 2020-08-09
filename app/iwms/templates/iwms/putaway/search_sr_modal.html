@@ -20,6 +20,7 @@
                                             <th>SOURCE</th>
                                             <th>REFERENCE</th>
                                             <th>WAREHOUSE</th>
+                                            <th style="display:none;">REMARKS</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -30,6 +31,7 @@
                                             <td>{{sr.source.name}}</td>
                                             <td>{{sr.reference}}</td>
                                             <td>{{sr.purchase_order.warehouse.name}}</td>
+                                            <td style="display:none;">{{sr.remarks}}</td>
                                         </tr>
                                         {% endfor %}
                                     </tbody>

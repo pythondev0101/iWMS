@@ -83,12 +83,12 @@ class ZoneEditForm(AdminEditForm):
     edit_title = 'Edit zone'
 
 class BinLocationEditForm(AdminEditForm):
-    from .models import BinLocation,Zone
+    from .models import Warehouse,Zone
 
     code = AdminField(label='Code',validators=[DataRequired()])
     description = AdminField(label='Description',validators=[DataRequired()])
     index = AdminField(label='Index',required=False)
-    warehouse_id = AdminField(label='Warehouse',required=False,model=BinLocation)
+    warehouse_id = AdminField(label='Warehouse',required=False,model=Warehouse)
     zone_id = AdminField(label='Zone',required=False,model=Zone)
     pallet_slot = AdminField(label='Pallet Slot',required=False)
     pallet_cs = AdminField(label='Pallet CS',required=False)
@@ -207,7 +207,7 @@ class ZoneForm(AdminIndexForm):
         return [[self.code,self.description]]
     
 class BinLocationForm(AdminIndexForm):
-    from .models import BinLocation,Zone
+    from .models import Warehouse,Zone
 
     index_headers = [
         'Index','Code','Description','Warehouse',
@@ -219,7 +219,7 @@ class BinLocationForm(AdminIndexForm):
     code = AdminField(label='Code',validators=[DataRequired()])
     description = AdminField(label='Description',validators=[DataRequired()])
     index = AdminField(label='Index',required=False)
-    warehouse_id = AdminField(label='Warehouse',required=False,model=BinLocation)
+    warehouse_id = AdminField(label='Warehouse',required=False,model=Warehouse)
     zone_id = AdminField(label='Zone',required=False,model=Zone)
     pallet_slot = AdminField(label='Pallet Slot',required=False)
     pallet_cs = AdminField(label='Pallet CS',required=False)
@@ -469,6 +469,15 @@ class ClientEditForm(AdminEditForm):
     code = AdminField(label='Code',validators=[DataRequired()])
     # status = AdminField(label='Status',required=False,input_type="checkbox")
     def edit_fields(self):
+        return [[self.code,self.name]]
+
+class InventoryItemForm(AdminIndexForm):
+    index_headers = ['name','Qty on hand','Bin location']
+    index_title = 'Inventory Items'
+    
+    name = AdminField(label='Name',required=False)
+    code = AdminField(label='Code',validators=[DataRequired()])
+    def create_fields(self):
         return [[self.code,self.name]]
 
 class SalesViaEditForm(AdminEditForm):

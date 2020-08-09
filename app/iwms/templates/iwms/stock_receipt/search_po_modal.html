@@ -19,6 +19,7 @@
                                             <th>NUMBER</th>
                                             <th>SUPPLIER</th>
                                             <th>WAREHOUSE</th>
+                                            <th style="display:none;">REMARKS</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -28,6 +29,7 @@
                                             <td>{{po.po_number}}</td>
                                             <td>{{po.supplier.name}}</td>
                                             <td>{{po.warehouse.name}}</td>
+                                            <td style="display:none;">{{po.remarks}}</td>
                                         </tr>
                                         {% endfor %}
                                     </tbody>
