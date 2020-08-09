@@ -14,13 +14,21 @@ def _get_database():
 
 class Config(object):
     SECRET_KEY = os.environ.get('SECRET_KEY')
+
+    """ FLASK-CORS """
     CORS_HEADERS = 'Content-Type'
+
+    """ PAGINATION """
     DATA_PER_PAGE = 7
+
+    """ PDFKIT """
     PDF_FOLDER = basedir + '/app/static/pdfs/'
+
+    """ FLASK-MAIL """
     MAIL_SERVER = "smtp.gmail.com"
     MAIL_PORT = 465
-    MAIL_USERNAME = "rmontemayor0101@gmail.com"
-    MAIL_PASSWORD = "xusxeecqychjduvv"
+    MAIL_USERNAME = os.environ.get('MAIL_USERNAME')
+    MAIL_PASSWORD = os.environ.get('MAIL_PASSWORD')
     MAIL_USE_TLS = False
     MAIL_USE_SSL = True
 

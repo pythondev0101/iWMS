@@ -128,7 +128,7 @@
                             <div class="col-md-4">
                                 <div class="position-relative form-group">
                                     <label for="tax_code" class="">Tax Code</label>
-                                    <select name="tax_code_id" id="tax_code_id" class="form-control">
+                                    <select name="tax_code_id" id="tax_code_id" class="form-control" disabled>
                                         <option value="">Choose...</option>
                                         {% for tax_code in tax_codes %}
                                         <option value="{{ tax_code.id }}">
@@ -147,7 +147,7 @@
                             <div class="col-md-4">
                                 <div class="position-relative form-group">
                                     <label for="reorder_qty" class="">Reorder Qty</label>
-                                    <input name="reorder_qty" id="reorder_qty" type="text" class="form-control">
+                                    <input name="reorder_qty" id="reorder_qty" type="text" class="form-control" readonly>
                                 </div>
                             </div>
                         </div>

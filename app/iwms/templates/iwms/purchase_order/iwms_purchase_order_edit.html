@@ -158,9 +158,10 @@
                     <table id="tbl_line_items" class="align-middle mb-0 table table-bordered table-hover">
                         <thead>
                         <tr>
-                            <th style="display:none;"></th>
+                            <th style="display:none;">ID</th>
+                            <th style="display:none;">DESCRIPTION</th>
+                            <th style="display:none;">BARCODE</th>
                             <th></th>
-                            <th class="text-center">LINE</th>
                             <th class="text-center">ITEM NO.</th>
                             <th class="text-center">NAME</th>
                             <th class="text-center">UOM</th>
@@ -173,8 +174,10 @@
                             {% for line in line_items %}
                             <tr>
                                 <td style="display:none;"><input name="products[]" type="hidden" value="{{line.stock_item_id}}"></td>
+                                <td style="display:none;">{{line.stock_item.description}}</td>
+                                <td style="display:none;">{% if not line.stock_item.barcode == None %}{{line.stock_item.barcode}}{% endif %}</td>
                                 <td><input class="chkbox" type="checkbox"></td>
-                                <td class='text-center'>{{loop.index}}</td><td class='text-center'>{{line.stock_item.number}}</td>
+                                <td class='text-center'>{{line.stock_item.number}}</td>
                                 <td class='text-center'>{{line.stock_item.name}}</td>
                                 <td class='text-center'>
                                     <select name="uom_{{line.stock_item_id}}" style='width: 100%;'>
@@ -184,8 +187,8 @@
                                     </select>
                                 </td>
                                 <td class='text-center'><input class="input_qty" name="qty_{{line.stock_item_id}}" type="number" style="width:50px" value="{{line.qty}}"></td>
-                                <td class='text-center'><input class="input_cost" name="cost_{{line.stock_item_id}}" type="number" value="{{line.unit_cost}}" readonly></td>
-                                <td class='text-center'><input class="amount" name="amount_{{line.stock_item_id}}" type="number" value="{{line.amount}}" readonly></td>
+                                <td class='text-center'><input class="input_cost" name="cost_{{line.stock_item_id}}" type="number" value="{{line.unit_cost}}" style="width:100px" readonly></td>
+                                <td class='text-center'><input class="amount" name="amount_{{line.stock_item_id}}" type="number" value="{{line.amount}}" style="width:100px" readonly></td>
                             </tr>
                             {% endfor %}
                         </tbody>

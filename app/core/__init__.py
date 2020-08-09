@@ -134,10 +134,10 @@ def install():
     if not UnitOfMeasure.query.count() > 0:
         print("Inserting unit of measures...")
         pc = UnitOfMeasure()
-        pc.code,pc.description = "PC", "PCs"
+        pc.code,pc.description = "pc", "pcs"
         db.session.add(pc)
         db.session.commit()
-        print("PC unit of measure inserted!")
+        print("pc unit of measure inserted!")
 
     if not Source.query.count() > 0:
         print("Inserting sources...")

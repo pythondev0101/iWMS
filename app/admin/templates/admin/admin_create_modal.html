@@ -43,7 +43,7 @@
                                     <label for="{{ field.name }}">{{ field.label.upper() }}</label>
                                     <input type="number" class="form-control {% if field.required %}input_required{% endif %}" 
                                            id="{{ field.name }}"
-                                           name="{{ field.name }}" placeholder="{{ field.placeholder }}" step="0.01" min="0"
+                                           name="{{ field.name }}" step="0.01" min="0"
                                            {% if field.required %}required{% endif %}>
                                     <div id="{{ field.name }}-valid-feedback" class="valid-feedback">
                                         Looks good!
@@ -67,7 +67,6 @@
                                     <input type="{{ field.type }}" class="form-control {% if field.required %}input_required{% endif %}" 
                                            id="{{ field.name }}"
                                            name="{{ field.name }}"
-                                           placeholder="{{ field.placeholder }}"
                                            {% if field.required %}required{% endif %} 
                                            {% if field.readonly %}readonly{% endif %}
                                            value="{{field.auto_generated}}"

@@ -163,7 +163,7 @@ class EmailForm(AdminIndexForm):
         return [[self.email,self.module_code],[self.description,self.type]]
 
 class DepartmentForm(AdminIndexForm):
-    index_headers = ['Name']
+    index_headers = ['Name','Created by','created at']
     index_title = 'Departments'
     
     name = AdminField(label="Name",validators=[DataRequired()])

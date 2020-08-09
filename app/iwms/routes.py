@@ -159,6 +159,27 @@ def _makePOPDF(vendor,line_items):
 
 """----------------------APIs-------------------------"""
 
+@bp_iwms.route("/_get_suppliers",methods=['POST'])
+def _get_suppliers():
+    if request.method == 'POST':
+        sup_id = request.json['sup_id']
+        po_number = request.json.get('po_number','None')
+        db_items = StockItem.query.filter(StockItem.suppliers.any(id=sup_id)).all()
+        po_line = []
+        if not po_number == 'None':
+            po = PurchaseOrder.query.filter_by(po_number=po_number).first()
+            po_line = [x.stock_item.id for x in po.product_line]
+            
+        list_items = []
+        for item in db_items:
+            if item.id not in po_line:
+                list_items.append({'id':item.id,'number':item.number,'name':item.name,'description':item.description,'barcode':item.barcode,'default_cost':str(item.default_cost)})
+        res = jsonify(items=list_items)
+        print(list_items)
+        res.status_code = 200
+        return res
+
+
 @bp_iwms.route('/_update_bin_coord', methods=['POST'])
 def _update_bin_coord():
     if request.method == 'POST':
@@ -400,7 +421,7 @@ def email_edit(oid):
 @bp_iwms.route('/departments')
 @login_required
 def departments():
-    fields = [Department.id,Department.name]
+    fields = [Department.id,Department.name,Department.created_by,Department.created_at]
     context['mm-active'] = 'department'
     return admin_index(Department,fields=fields,url='',form=DepartmentForm(), \
         template="iwms/iwms_index.html",kwargs={'active':'system'}, \
@@ -418,7 +439,7 @@ def department_create():
                 dept.created_by = "{} {}".format(current_user.fname,current_user.lname)
                 db.session.add(dept)
                 db.session.commit()
-                flash('New department added successfully!','error')
+                flash('New department added successfully!','success')
                 _log_create('New department added','DepartmentID={}'.format(dept.id))
                 return redirect(url_for('bp_iwms.departments'))
             else:
@@ -971,63 +992,68 @@ def stock_item_create():
                 uoms=uoms)
     elif request.method == "POST":
         if f.validate_on_submit():
-            obj = StockItem()
-            obj.number = si_generated_number
-            obj.status = "active"
-            obj.stock_item_type_id = f.stock_item_type_id.data if not f.stock_item_type_id.data == '' else None 
-            obj.category_id = f.category_id.data if not f.category_id.data == '' else None
-            obj.has_serial = 1 if f.has_serial.data == 'on' else 0
-            obj.monitor_expiration = 1 if f.monitor_expiration.data == 'on' else 0
-            obj.brand = f.brand.data
-            obj.name = f.name.data
-            obj.description = f.description.data
-            obj.cap_size,obj.cap_profile,obj.compound,obj.clients = None, None, None, None
-            obj.packaging = f.packaging.data
-            obj.tax_code_id = f.tax_code_id.data if not f.tax_code_id.data == '' else None
-            obj.reorder_qty = f.reorder_qty.data if not f.reorder_qty.data == '' else None
-            obj.description_plu = f.description_plu.data
-            obj.barcode = f.barcode.data if not f.barcode.data == '' else None
-            obj.qty_plu = f.qty_plu.data if not f.qty_plu.data == '' else None
-            obj.length = f.length.data
-            obj.width = f.width.data
-            obj.height = f.height.data
-            obj.unit_id = f.unit_id.data if not f.unit_id.data == '' else None
-            obj.default_cost = f.default_cost.data if not f.default_cost.data == '' else None
-            obj.default_price = f.default_price.data if not f.default_price.data == '' else None
-            obj.weight = f.weight.data
-            obj.cbm = f.cbm.data
-            obj.qty_per_pallet = f.qty_per_pallet.data if not f.qty_per_pallet.data == '' else None
-            obj.shelf_life = f.shelf_life.data if not f.shelf_life.data == '' else None
-            obj.qa_lead_time = f.qa_lead_time.data if not f.qa_lead_time.data == '' else None
-            obj.created_by = "{} {}".format(current_user.fname,current_user.lname)
+            try:
+                obj = StockItem()
+                obj.number = si_generated_number
+                obj.status = "active"
+                obj.stock_item_type_id = f.stock_item_type_id.data if not f.stock_item_type_id.data == '' else None 
+                obj.category_id = f.category_id.data if not f.category_id.data == '' else None
+                obj.has_serial = 1 if f.has_serial.data == 'on' else 0
+                obj.monitor_expiration = 1 if f.monitor_expiration.data == 'on' else 0
+                obj.brand = f.brand.data
+                obj.name = f.name.data
+                obj.description = f.description.data
+                obj.cap_size,obj.cap_profile,obj.compound,obj.clients = None, None, None, None
+                obj.packaging = f.packaging.data
+                obj.tax_code_id = f.tax_code_id.data if not f.tax_code_id.data == '' else None
+                obj.reorder_qty = f.reorder_qty.data if not f.reorder_qty.data == '' else None
+                obj.description_plu = f.description_plu.data
+                obj.barcode = f.barcode.data if not f.barcode.data == '' else None
+                obj.qty_plu = f.qty_plu.data if not f.qty_plu.data == '' else None
+                obj.length = f.length.data
+                obj.width = f.width.data
+                obj.height = f.height.data
+                obj.unit_id = f.unit_id.data if not f.unit_id.data == '' else None
+                obj.default_cost = f.default_cost.data if not f.default_cost.data == '' else None
+                obj.default_price = f.default_price.data if not f.default_price.data == '' else None
+                obj.weight = f.weight.data
+                obj.cbm = f.cbm.data
+                obj.qty_per_pallet = f.qty_per_pallet.data if not f.qty_per_pallet.data == '' else None
+                obj.shelf_life = f.shelf_life.data if not f.shelf_life.data == '' else None
+                obj.qa_lead_time = f.qa_lead_time.data if not f.qa_lead_time.data == '' else None
+                obj.created_by = "{} {}".format(current_user.fname,current_user.lname)
 
-            supplier_ids = request.form.getlist('suppliers')
-            if supplier_ids:
-                for s_id in supplier_ids:
-                    supplier = Supplier.query.get_or_404(int(s_id))
-                    obj.suppliers.append(supplier)
+                supplier_ids = request.form.getlist('suppliers')
+                if supplier_ids:
+                    for s_id in supplier_ids:
+                        supplier = Supplier.query.get_or_404(int(s_id))
+                        obj.suppliers.append(supplier)
 
-            uom_ids = request.form.getlist('uoms[]')
-            if uom_ids:
-                for u_id in uom_ids:
-                    uom = UnitOfMeasure.query.get(u_id)
-                    qty = request.form.get("qty_{}".format(u_id))
-                    barcode = request.form.get("barcode_{}".format(u_id))
-                    _cost = request.form.get("default_cost_{}".format(u_id))
-                    _price = request.form.get("default_price_{}".format(u_id))
-                    default_cost = _cost if not _cost == '' else None
-                    default_price = _price if not _price == '' else None
-                    length = request.form.get("length_{}".format(u_id))
-                    width = request.form.get("width_{}".format(u_id))
-                    height = request.form.get("height_{}".format(u_id))
-                    line = StockItemUomLine(uom=uom,qty=qty,barcode=barcode,default_cost=default_cost,default_price=default_price,\
-                        length=length,width=width,height=height)
-                    obj.uom_line.append(line)
+                uom_ids = request.form.getlist('uoms[]')
+                if uom_ids:
+                    for u_id in uom_ids:
+                        uom = UnitOfMeasure.query.get(u_id)
+                        qty = request.form.get("qty_{}".format(u_id))
+                        barcode = request.form.get("barcode_{}".format(u_id))
+                        _cost = request.form.get("default_cost_{}".format(u_id))
+                        _price = request.form.get("default_price_{}".format(u_id))
+                        default_cost = _cost if not _cost == '' else None
+                        default_price = _price if not _price == '' else None
+                        length = request.form.get("length_{}".format(u_id))
+                        width = request.form.get("width_{}".format(u_id))
+                        height = request.form.get("height_{}".format(u_id))
+                        line = StockItemUomLine(uom=uom,qty=qty,barcode=barcode,default_cost=default_cost,default_price=default_price,\
+                            length=length,width=width,height=height)
+                        obj.uom_line.append(line)
 
-            db.session.add(obj)
-            db.session.commit()
-            flash('New Stock Item added Successfully!','success')
-            return redirect(url_for('bp_iwms.stock_items'))
+                db.session.add(obj)
+                db.session.commit()
+                flash('New Stock Item added Successfully!','success')
+                return redirect(url_for('bp_iwms.stock_items'))
+            except Exception as e:
+                flash(str(e),'error')
+                return redirect(url_for('bp_iwms.stock_items'))
+
         else:
             for key, value in f.errors.items():
                 flash(str(key) + str(value), 'error')
@@ -1061,61 +1087,65 @@ def stock_item_edit(oid):
                 oid=oid)
     elif request.method == "POST":
         if f.validate_on_submit():
-            obj.status = "active"
-            obj.stock_item_type_id = f.stock_item_type_id.data if not f.stock_item_type_id.data == '' else None 
-            obj.category_id = f.category_id.data if not f.category_id.data == '' else None
-            obj.has_serial = 1 if f.has_serial.data == 'on' else 0
-            obj.monitor_expiration = 1 if f.monitor_expiration.data == 'on' else 0
-            obj.brand = f.brand.data
-            obj.name = f.name.data
-            obj.description = f.description.data
-            obj.cap_size,obj.cap_profile,obj.compound,obj.clients = None, None, None, None
-            obj.packaging = f.packaging.data
-            obj.tax_code_id = f.tax_code_id.data if not f.tax_code_id.data == '' else None
-            obj.reorder_qty = f.reorder_qty.data if not f.reorder_qty.data == '' else None
-            obj.description_plu = f.description_plu.data
-            obj.barcode = f.barcode.data if not f.barcode.data == '' else None
-            obj.qty_plu = f.qty_plu.data if not f.qty_plu.data == '' else None
-            obj.length = f.length.data
-            obj.width = f.width.data
-            obj.height = f.height.data
-            obj.unit_id = f.unit_id.data if not f.unit_id.data == '' else None
-            obj.default_cost = f.default_cost.data if not f.default_cost.data == '' else None
-            obj.default_price = f.default_price.data if not f.default_price.data == '' else None
-            obj.weight = f.weight.data
-            obj.cbm = f.cbm.data
-            obj.qty_per_pallet = f.qty_per_pallet.data if not f.qty_per_pallet.data == '' else None
-            obj.shelf_life = f.shelf_life.data if not f.shelf_life.data == '' else None
-            obj.qa_lead_time = f.qa_lead_time.data if not f.qa_lead_time.data == '' else None
-            obj.updated_by = "{} {}".format(current_user.fname,current_user.lname)
-            obj.updated_at = datetime.now()
+            try:
+                obj.status = "active"
+                obj.stock_item_type_id = f.stock_item_type_id.data if not f.stock_item_type_id.data == '' else None 
+                obj.category_id = f.category_id.data if not f.category_id.data == '' else None
+                obj.has_serial = 1 if f.has_serial.data == 'on' else 0
+                obj.monitor_expiration = 1 if f.monitor_expiration.data == 'on' else 0
+                obj.brand = f.brand.data
+                obj.name = f.name.data
+                obj.description = f.description.data
+                obj.cap_size,obj.cap_profile,obj.compound,obj.clients = None, None, None, None
+                obj.packaging = f.packaging.data
+                obj.tax_code_id = f.tax_code_id.data if not f.tax_code_id.data == '' else None
+                obj.reorder_qty = f.reorder_qty.data if not f.reorder_qty.data == '' else None
+                obj.description_plu = f.description_plu.data
+                obj.barcode = f.barcode.data if not f.barcode.data == '' else None
+                obj.qty_plu = f.qty_plu.data if not f.qty_plu.data == '' else None
+                obj.length = f.length.data
+                obj.width = f.width.data
+                obj.height = f.height.data
+                obj.unit_id = f.unit_id.data if not f.unit_id.data == '' else None
+                obj.default_cost = f.default_cost.data if not f.default_cost.data == '' else None
+                obj.default_price = f.default_price.data if not f.default_price.data == '' else None
+                obj.weight = f.weight.data
+                obj.cbm = f.cbm.data
+                obj.qty_per_pallet = f.qty_per_pallet.data if not f.qty_per_pallet.data == '' else None
+                obj.shelf_life = f.shelf_life.data if not f.shelf_life.data == '' else None
+                obj.qa_lead_time = f.qa_lead_time.data if not f.qa_lead_time.data == '' else None
+                obj.updated_by = "{} {}".format(current_user.fname,current_user.lname)
+                obj.updated_at = datetime.now()
 
-            supplier_ids = request.form.getlist('suppliers')
-            if supplier_ids:
-                obj.suppliers = []
-                for new_sup in supplier_ids:
-                    supp = Supplier.query.get_or_404(new_sup)
-                    obj.suppliers.append(supp)
+                supplier_ids = request.form.getlist('suppliers')
+                if supplier_ids:
+                    obj.suppliers = []
+                    for new_sup in supplier_ids:
+                        supp = Supplier.query.get_or_404(new_sup)
+                        obj.suppliers.append(supp)
 
-            uom_ids = request.form.getlist('uoms[]')
-            if uom_ids:
-                obj.uom_line = []
-                for u_id in uom_ids:
-                    uom = UnitOfMeasure.query.get(u_id)
-                    qty = request.form.get("qty_{}".format(u_id))
-                    barcode = request.form.get("barcode_{}".format(u_id))
-                    default_cost = request.form.get("default_cost_{}".format(u_id))
-                    default_price = request.form.get("default_price_{}".format(u_id))
-                    length = request.form.get("length_{}".format(u_id))
-                    width = request.form.get("width_{}".format(u_id))
-                    height = request.form.get("height_{}".format(u_id))
-                    line = StockItemUomLine(uom=uom,qty=qty,barcode=barcode,default_cost=default_cost,default_price=default_price,\
-                        length=length,width=width,height=height)
-                    obj.uom_line.append(line)
-                    
-            db.session.commit()
-            flash('Stock Item updated Successfully!','success')
-            return redirect(url_for('bp_iwms.stock_items'))
+                uom_ids = request.form.getlist('uoms[]')
+                if uom_ids:
+                    obj.uom_line = []
+                    for u_id in uom_ids:
+                        uom = UnitOfMeasure.query.get(u_id)
+                        qty = request.form.get("qty_{}".format(u_id))
+                        barcode = request.form.get("barcode_{}".format(u_id))
+                        default_cost = request.form.get("default_cost_{}".format(u_id))
+                        default_price = request.form.get("default_price_{}".format(u_id))
+                        length = request.form.get("length_{}".format(u_id))
+                        width = request.form.get("width_{}".format(u_id))
+                        height = request.form.get("height_{}".format(u_id))
+                        line = StockItemUomLine(uom=uom,qty=qty,barcode=barcode,default_cost=default_cost,default_price=default_price,\
+                            length=length,width=width,height=height)
+                        obj.uom_line.append(line)
+                        
+                db.session.commit()
+                flash('Stock Item updated Successfully!','success')
+                return redirect(url_for('bp_iwms.stock_items'))
+            except Exception as e:
+                flash(str(e),'error')
+                return redirect(url_for('bp_iwms.stock_items'))
         else:
             for key, value in f.errors.items():
                 flash(str(key) + str(value), 'error')
@@ -1282,17 +1312,6 @@ def putaway_create():
                 flash(str(key) + str(value), 'error')
             return redirect(url_for('bp_iwms.putaways'))
 
-@bp_iwms.route("/_get_suppliers",methods=['POST'])
-def _get_suppliers():
-    if request.method == 'POST':
-        sup_id = request.json['sup_id']
-        db_items = StockItem.query.filter(StockItem.suppliers.any(id=sup_id)).all()
-        list_items = []
-        for item in db_items:
-            list_items.append({'id':item.id,'number':item.number,'name':item.name,'description':item.description,'barcode':item.barcode,'default_cost':str(item.default_cost)})
-        res = jsonify(items=list_items)
-        res.status_code = 200
-        return res
 
 @bp_iwms.route('/purchase_orders')
 @login_required
@@ -1373,12 +1392,8 @@ def purchase_order_create():
 
                     """ SEND EMAIL TO SUPPLIER'S EMAIL ADDRESS AND ATTACHED THE SAVED PDF IN /STATIC/PDFS FOLDER
                     """
-                    _sender_address = Configuration.query.with_entities(Configuration.email).first()
 
-                    if _sender_address is None:
-                        raise Exception
-
-                    msg = Message('Purchase Order', sender = _sender_address[0], recipients = [po.supplier.email_address])
+                    msg = Message('Purchase Order', sender = current_app.config['MAIL_USERNAME'], recipients = [po.supplier.email_address])
                     msg.body = "Here attached purchase order quotation"
 
                     with open(file_path,'rb') as pdf_file:
@@ -1804,23 +1819,3 @@ def inventory_items():
     return admin_index(*models,fields=fields,form=InventoryItemForm(), \
         template='iwms/iwms_index.html', view_modal=False,\
             create_modal=False,kwargs={'active':'inventory'})
-
-@bp_iwms.route('/configuration')
-@login_required
-def configuration():
-    email = Configuration.query.with_entities(Configuration.email).first()
-    return render_template("iwms/configuration/iwms_configuration.html",context=context,email=email)
-
-@bp_iwms.route('/_edit_configuration_email',methods=['POST'])
-def _edit_configuration_email():
-    if Configuration.query.count() <= 0:
-        config = Configuration()
-        config.email = request.json['email']
-        db.session.add(config)
-        db.session.commit()
-        return jsonify({'result':True})
-    else:
-        config = Configuration.query.first()
-        config.email = request.json['email']
-        db.session.commit()
-        return jsonify({'result':True})

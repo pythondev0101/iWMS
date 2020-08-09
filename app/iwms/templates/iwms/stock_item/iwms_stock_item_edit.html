@@ -129,7 +129,7 @@
                             <div class="col-md-4">
                                 <div class="position-relative form-group">
                                     <label for="tax_code" class="">Tax Code</label>
-                                    <select name="tax_code_id" id="tax_code_id" class="form-control">
+                                    <select name="tax_code_id" id="tax_code_id" class="form-control" disabled>
                                         <option value="">Choose...</option>
                                         {% for tax_code in tax_codes %}
                                         <option value="{{ tax_code.id }}" {% if form.tax_code_id.data == tax_code.id %}selected{% endif %}>
@@ -148,7 +148,7 @@
                             <div class="col-md-4">
                                 <div class="position-relative form-group">
                                     <label for="reorder_qty" class="">Reorder Qty</label>
-                                    <input name="reorder_qty" id="reorder_qty" type="text" class="form-control" value="{{form.reorder_qty.data}}">
+                                    <input name="reorder_qty" id="reorder_qty" type="text" class="form-control" value="{% if not form.reorder_qty.data == None %}{{form.reorder_qty.data}}{% endif %}" readonly>
                                 </div>
                             </div>
                         </div>
@@ -211,7 +211,7 @@
                         <div class="col-md-4">
                             <div class="position-relative form-group">
                                 <label for="barcode" class="">Barcode</label>
-                                <input name="barcode" id="barcode" type="text" class="form-control" value="{{form.barcode.data}}">
+                                <input name="barcode" id="barcode" type="text" class="form-control" value="{% if not form.barcode.data == None %}{{form.barcode.data}}{% endif %}">
                                 <div id="barcode-valid-feedback" class="valid-feedback">
                                     Looks good!
                                 </div>
@@ -223,7 +223,7 @@
                         <div class="col-md-4">
                             <div class="position-relative form-group">
                                 <label for="qty_plu" class="">Qty</label>
-                                <input name="qty_plu" id="qty_plu" type="text" class="form-control" value="{{form.qty_plu.data}}">
+                                <input name="qty_plu" id="qty_plu" type="text" class="form-control" value="{% if not form.qty_plu.data == None %}{{form.qty_plu.data}}{% endif %}">
                             </div>
                         </div>
                         <div class="col-md-4">

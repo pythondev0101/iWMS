@@ -26,11 +26,7 @@
     System
     <i class="metismenu-state-icon pe-7s-angle-down caret-left"></i>
   </a>
-  <ul>
-    <li>
-      <a href="{{url_for('bp_iwms.configuration')}}"> <i class="metismenu-icon"> </i>Configuration </a>
-    </li>
-    
+  <ul>  
     {% if 'user' in session['permissions'] %}
     {% if session['permissions']['user']['read'] %}
     <li>

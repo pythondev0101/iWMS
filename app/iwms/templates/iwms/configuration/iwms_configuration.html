@@ -21,59 +21,5 @@
             </div>
         </div>
     </div>
-    <div class="row">
-        <div class="col-lg-12">
-            <div class="main-card mb-3 card">
-                <div class="card-body"><h5 class="card-title">Email</h5>
-                    <ul class="list-group">
-                        <li class="list-group-item">
-                            <div class="input-group">
-                                <div class="input-group-prepend"><span class="input-group-text">@</span></div>
-                                <input id="email" name="email" placeholder="email" type="email" class="form-control" value="{{email[0]}}" disabled>
-                                <div class="input-group-append">
-                                    <button id="btn_edit_email" class="btn btn-secondary">Edit</button>
-                                </div>
-                            </div>
-                        </li>
-                    </ul>
-                </div>
-            </div>
-        </div>
-    </div>
 </div>
-{% endblock %}
-
-{% block scripts %}
-<script>
-    $("#btn_edit_email").click(function(){
-        if ($(this).text() == 'Save'){
-            var csrf_token = "{{ csrf_token() }}";
-            $.ajaxSetup({
-                beforeSend: function(xhr, settings) {
-                    if (!/^(GET|HEAD|OPTIONS|TRACE)$/i.test(settings.type) && !this.crossDomain) {
-                        xhr.setRequestHeader("X-CSRFToken", csrf_token);
-                    }
-                }
-            });
-            var email = $("#email").val();
-            $.ajax({
-                url: '/iwms/_edit_configuration_email',
-                type: 'POST',
-                dataType: 'json',
-                data: JSON.stringify({'email':email}),
-                contentType: "application/json; charset=utf-8",
-                success: function(data){
-                    if (data.result){
-                        alert("SAVED!");
-                    }
-                }
-            });
-            $('#email').prop('disabled', true);
-            $(this).text("Edit");
-        }else{
-            $('#email').prop('disabled', false);
-            $(this).text("Save");
-        }
-    }); 
-</script>
 {% endblock %}

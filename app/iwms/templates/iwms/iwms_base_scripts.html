@@ -55,9 +55,44 @@
                 row.find('.amount').val(amount.toFixed(2));
             });
             
+            var csrf_token = "{{ csrf_token() }}";
+            var pe_supplier_id = $("#supplier_id").val();
+            var pe_po_number = "{{ form.po_number.data }}";
+            $.ajaxSetup({
+                beforeSend: function(xhr, settings) {
+                    if (!/^(GET|HEAD|OPTIONS|TRACE)$/i.test(settings.type) && !this.crossDomain) {
+                        xhr.setRequestHeader("X-CSRFToken", csrf_token);
+                    }
+                }
+            });
+            $.ajax({
+                url: "/iwms/_get_suppliers",
+                type: "POST",
+                dataType: "json",
+                data: JSON.stringify({'sup_id': pe_supplier_id,'po_number':pe_po_number}),
+                contentType: "application/json; charset=utf-8",
+                success: function(data) {
+                    for(i=0;i < data.items.length; ++i){
+                        var row = table_product.row.add([
+                        data.items[i].id,
+                        data.items[i].default_cost,
+                        "<input class='chkbox' type='checkbox'>",
+                        data.items[i].number,
+                        data.items[i].name,
+                        data.items[i].description,
+                        data.items[i].barcode
+                        ]);
+                        table_product.row(row).column(0).nodes().to$().addClass('myHiddenColumn');
+                        table_product.row(row).column(1).nodes().to$().addClass('myHiddenColumn');
+                        table_product.row(row).draw();
+                    }
+                }
+            });
+
             $("#supplier_id").change(function(){
                 var csrf_token = "{{ csrf_token() }}";
                 var supplier_id = $(this).val();
+                var po_number = "{{ form.po_number.data }}";
                 $.ajaxSetup({
                     beforeSend: function(xhr, settings) {
                         if (!/^(GET|HEAD|OPTIONS|TRACE)$/i.test(settings.type) && !this.crossDomain) {
@@ -107,13 +142,14 @@
                         }
                     }
                 });
-                var counter = 1;
                 $("tr").each(function() {
                     var check = $(this).find("input.chkbox").is(':checked');
                     if(check){
                         var item_no = $(this).find("td").eq(3).html();
                         var item_name = $(this).find("td").eq(4).html();
+                        var item_description = $(this).find("td").eq(5).html();
                         var item_id = $(this).find("td").eq(0).html();
+                        var item_barcode = $(this).find("td").eq(6).html();
                         var item_default_cost = $(this).find("td").eq(1).html();
                         var item_uom = `<select name="uom_${item_id}" style='width':100%;'>`;
                         $.ajax({
@@ -137,25 +173,25 @@
                         $('#tbl_line_items tr:last').after(
                             `<tr>
                                 <td style="display:none;"><input name="products[]" type="hidden" value="${item_id}"></td>
+                                <td style="display:none;">${item_description}</td>
+                                <td style="display:none;">${item_barcode}</td>
                                 <td><input class="chkbox" type="checkbox"></td>
-                                <td class='text-center'>${counter}</td><td class='text-center'>${item_no}</td>
+                                <td class='text-center'>${item_no}</td>
                                 <td class='text-center'>${item_name}</td>
                                 <td class='text-center'>
                                     ${item_uom}
                                     </select>
                                 </td>
-                                <td class='text-center'><input class="input_qty" name="qty_${item_id}" type="number" style="width:50px" value="0"></td>
-                                <td class='text-center'><input class="input_cost" name="cost_${item_id}" type="number" value="${item_default_cost}" readonly></td>
-                                <td class='text-center'><input class="amount" name="amount_${item_id}" type="number" value="0.00" readonly></td>
+                                <td class='text-center'><input class="input_qty" name="qty_${item_id}" type="number" style="width:100px" value="0"></td>
+                                <td class='text-center'><input class="input_cost" name="cost_${item_id}" type="number" value="${item_default_cost}" style="width:100px" readonly></td>
+                                <td class='text-center'><input class="amount" name="amount_${item_id}" type="number" value="0.00" style="width:100px" readonly></td>
                             </tr>
                             `
                             );
-                        counter = counter + 1;
                         table_product.row($(this)).remove().draw();
                     }
                 });
             });
-
 
             $("#btn_delete_line").click(function(){
                 $("#tbl_line_items tr").each(function() {
@@ -165,9 +201,10 @@
                             $(this).find("input").eq(0).val(),
                             $(this).find("input").eq(3).val(),
                             "<input class='chkbox' type='checkbox'>",
-                            $(this).find("td").eq(3).html(),
                             $(this).find("td").eq(4).html(),
-                            "",""
+                            $(this).find("td").eq(5).html(),
+                            $(this).find("td").eq(1).html(),
+                            $(this).find("td").eq(2).html()
                         ]);
                         table_product.row(row).column(0).nodes().to$().addClass('myHiddenColumn');
                         table_product.row(row).column(1).nodes().to$().addClass('myHiddenColumn');
@@ -485,12 +522,10 @@
             "bSort": false
         });
 
-        $("#tbl_sr_modal tr").click(function(){
+        $("#tbl_sr_modal").on('click','tr',function(){
             $(this).addClass('selected').siblings().removeClass('selected');    
          });
 
-
-         
         $("#tbl_sr_line_modal").on('click','tr',function(){
             $(this).addClass('selected').siblings().removeClass('selected');
             $("#item_name").val($("#tbl_sr_line_modal tr.selected td:nth-child(4)").html());
