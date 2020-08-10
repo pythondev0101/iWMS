@@ -17,8 +17,7 @@ from app.admin.routes import admin_index, admin_edit
 from .models import Group,Department,TransactionType,Warehouse,Zone, \
     BinLocation,Category,StockItem,UnitOfMeasure,Reason,StockReceipt,Putaway, \
         Email as EAddress, PurchaseOrder, Supplier, Term,PurchaseOrderProductLine,StockItemType,TaxCode,\
-            StockItemUomLine,StockReceiptItemLine, PutawayItemLine,Source, SalesVia, ClientGroup, Client,\
-                InventoryItem, Configuration
+            StockItemUomLine,StockReceiptItemLine, PutawayItemLine,Source, SalesVia, ClientGroup, Client
 
 from .forms import *
 from datetime import datetime
@@ -680,22 +679,26 @@ def bin_location_create():
         f = BinLocationForm()
         if request.method == "POST":
             if f.validate_on_submit():
-                obj = BinLocation()
-                obj.code = f.code.data
-                obj.description = f.description.data
-                obj.index = f.index.data if not f.index.data == '' else 0
-                obj.warehouse_id = f.warehouse_id.data if not f.warehouse_id.data == '' else None
-                obj.zone_id = f.zone_id.data if not f.zone_id.data == '' else None
-                obj.pallet_slot = f.pallet_slot.data if not f.pallet_slot.data == '' else 0
-                obj.pallet_cs = f.pallet_cs.data if not f.pallet_cs.data == '' else 0
-                obj.capacity = f.capacity.data if not f.capacity.data == '' else 0
-                obj.weight_cap = f.weight_cap.data if not f.weight_cap.data == '' else 0
-                obj.cbm_cap = f.cbm_cap.data if not f.cbm_cap.data == '' else 0
-                obj.created_by = "{} {}".format(current_user.fname,current_user.lname)
-                db.session.add(obj)
-                db.session.commit()
-                flash("New Bin Location added successfully!",'success')
-                return redirect(url_for('bp_iwms.bin_locations'))
+                try:
+                    obj = BinLocation()
+                    obj.code = f.code.data
+                    obj.description = f.description.data
+                    obj.index = f.index.data if not f.index.data == '' else None
+                    obj.warehouse_id = f.warehouse_id.data if not f.warehouse_id.data == '' else None
+                    obj.zone_id = f.zone_id.data if not f.zone_id.data == '' else None
+                    obj.pallet_slot = f.pallet_slot.data if not f.pallet_slot.data == '' else None
+                    obj.pallet_cs = f.pallet_cs.data if not f.pallet_cs.data == '' else None
+                    obj.capacity = f.capacity.data if not f.capacity.data == '' else None
+                    obj.weight_cap = f.weight_cap.data if not f.weight_cap.data == '' else None
+                    obj.cbm_cap = f.cbm_cap.data if not f.cbm_cap.data == '' else None
+                    obj.created_by = "{} {}".format(current_user.fname,current_user.lname)
+                    db.session.add(obj)
+                    db.session.commit()
+                    flash("New Bin Location added successfully!",'success')
+                    return redirect(url_for('bp_iwms.bin_locations'))
+                except Exception as e:
+                    flash(str(e),'error')
+                    return redirect(url_for('bp_iwms.bin_locations'))
             else:
                 for key, value in f.errors.items():
                     flash(str(key) + str(value), 'error')
@@ -717,14 +720,14 @@ def bin_location_edit(oid):
         if f.validate_on_submit():
             obj.code = f.code.data
             obj.description = f.description.data
-            obj.index = f.index.data if not f.index.data == '' else 0
+            obj.index = f.index.data if not f.index.data == '' else None
             obj.warehouse_id = f.warehouse_id.data if not f.warehouse_id.data == '' else None
             obj.zone_id = f.zone_id.data if not f.zone_id.data == '' else None
-            obj.pallet_slot = f.pallet_slot.data if not f.pallet_slot.data == '' else 0
-            obj.pallet_cs = f.pallet_cs.data if not f.pallet_cs.data == '' else 0
-            obj.capacity = f.capacity.data if not f.capacity.data == '' else 0
-            obj.weight_cap = f.weight_cap.data if not f.weight_cap.data == '' else 0
-            obj.cbm_cap = f.cbm_cap.data if not f.cbm_cap.data == '' else 0
+            obj.pallet_slot = f.pallet_slot.data if not f.pallet_slot.data == '' else None
+            obj.pallet_cs = f.pallet_cs.data if not f.pallet_cs.data == '' else None
+            obj.capacity = f.capacity.data if not f.capacity.data == '' else None
+            obj.weight_cap = f.weight_cap.data if not f.weight_cap.data == '' else None
+            obj.cbm_cap = f.cbm_cap.data if not f.cbm_cap.data == '' else None
             obj.updated_by = "{} {}".format(current_user.fname,current_user.lname)
             obj.updated_at = datetime.now()
             db.session.commit()

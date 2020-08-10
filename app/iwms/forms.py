@@ -218,14 +218,14 @@ class BinLocationForm(AdminIndexForm):
 
     code = AdminField(label='Code',validators=[DataRequired()])
     description = AdminField(label='Description',validators=[DataRequired()])
-    index = AdminField(label='Index',required=False)
+    index = AdminField(label='Index',required=False,input_type='number')
     warehouse_id = AdminField(label='Warehouse',required=False,model=Warehouse)
     zone_id = AdminField(label='Zone',required=False,model=Zone)
-    pallet_slot = AdminField(label='Pallet Slot',required=False)
-    pallet_cs = AdminField(label='Pallet CS',required=False)
-    capacity = AdminField(label='Capacity',required=False)
-    weight_cap = AdminField(label='Weight Cap',required=False)
-    cbm_cap = AdminField(label='CBM Cap',required=False)
+    pallet_slot = AdminField(label='Pallet Slot',required=False,input_type='number')
+    pallet_cs = AdminField(label='Pallet CS',required=False,input_type='number')
+    capacity = AdminField(label='Capacity',required=False,input_type='number')
+    weight_cap = AdminField(label='Weight Cap',required=False,input_type='number')
+    cbm_cap = AdminField(label='CBM Cap',required=False,input_type='number')
 
     def create_fields(self):
         return [

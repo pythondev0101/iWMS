@@ -90,7 +90,7 @@ def get_view_modal_data():
         query = "select {} from {} where id = {} limit 1".format(column,table,id)
         sql = text(query)
         row = db.engine.execute(sql)
-        res = [x[0] for x in row]
+        res = [x[0] if x[0] is not None else '' for x in row]
         resp = jsonify(result=str(res[0]),column=column)
         resp.headers.add('Access-Control-Allow-Origin', '*')
         resp.status_code = 200
