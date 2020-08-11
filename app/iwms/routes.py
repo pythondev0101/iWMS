@@ -185,11 +185,45 @@ def _update_bin_coord():
         _bin_code = request.json['bin_code']
         _x,_y = request.json['x'], request.json['y']
         print(_x,_y);
-        _bin = BinLocation.query.filter_by(code=_bin_code).first()
-        print(_bin)
-        _bin.x,_bin.y = _x, _y
+        bin = BinLocation.query.filter_by(code=_bin_code).first()
+        bin.x = _x / 2
+        bin.y = _y / 2
+        # if _x == 0:
+        #     bin.x = bin.x + (_x / 2)
+        # else:
+        #     if bin.x == 0:
+        #         bin.x = bin.x + (_x / 2)
+        #     else:
+        #         dx = ((_x - (bin.x * 2)) + _x) / 2
+        #         bin.x = dx
+
+        # if _y == 0:
+        #     bin.y = bin.y + (_y / 2)
+        # else:
+        #     if bin.y == 0:
+        #         bin.y = bin.y + (_y / 2)
+        #     else:
+        #         if bin.y > _y:
+        #             dy = ((_y - (bin.y * 2)) + _y) / 2
+        #         else:
+        #             dy = (((bin.y * 2) - _y) + _y) / 2
+
+        #         bin.y = dy
+
         db.session.commit()
         return jsonify({'Result':True})
+
+@bp_iwms.route('/_create_bin',methods=['POST'])
+def _create_bin():
+    _bin_code = request.json['bin_code']
+    bin = BinLocation()
+    bin.code = _bin_code
+    bin.x = 0
+    bin.y = 0
+    db.session.add(bin)
+    db.session.commit()
+    return jsonify({"Result":True})
+
 
 @bp_iwms.route('/_get_po_line',methods=["POST"])
 def _get_po_line():
@@ -202,9 +236,9 @@ def _get_po_line():
                 'id':line.stock_item.id,'name':line.stock_item.name,
                 'uom':line.uom.code if line.uom is not None else '',
                 'number':line.stock_item.number,
-                'qty':line.qty
+                'qty':line.qty,
+                'remaining_qty':line.remaining_qty
                 })
-        print("test",po_line)
         res = jsonify(items=po_line)
         res.status_code = 200
         return res
@@ -1220,7 +1254,7 @@ def stock_receipt_create():
                     uom = request.form.get("uom_{}".format(item_id))
                     received_qty = request.form.get("received_qty_{}".format(item_id)) if not request.form.get("received_qty_{}".format(item_id)) == '' else None
                     net_weight = request.form.get("net_weight_{}".format(item_id)) if not request.form.get("net_weight_{}".format(item_id)) == '' else None
-                    # timestamp = r.get("timestamp_{}".format(item_id))
+                    timestamp = r.get("timestamp_{}".format(item_id))
                     line = StockReceiptItemLine(stock_item=item,lot_no=lot_no,expiry_date=expiry_date,\
                         uom=uom,received_qty=received_qty,net_weight=net_weight)
                     obj.item_line.append(line)
@@ -1375,7 +1409,8 @@ def purchase_order_create():
                         cost = r.get("cost_{}".format(product_id))
                         amount = r.get("amount_{}".format(product_id))
                         uom = UnitOfMeasure.query.get(r.get("uom_{}".format(product_id)))
-                        line = PurchaseOrderProductLine(stock_item=product,qty=qty,unit_cost=cost,amount=amount,uom=uom)
+                        line = PurchaseOrderProductLine(stock_item=product,qty=qty,unit_cost=cost,\
+                            amount=amount,uom=uom,remaining_qty=qty)
                         po.product_line.append(line)
                 db.session.add(po)
                 db.session.commit()

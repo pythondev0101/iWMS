@@ -22,11 +22,11 @@
                 <span>General Information</span>
             </a>
         </li>
-        <li class="nav-item">
+        <!-- <li class="nav-item">
             <a role="tab" class="nav-link show" id="tab-1" data-toggle="tab" href="#tab-content-1" aria-selected="false">
                 <span>Other Information</span>
             </a>
-        </li>
+        </li> -->
     </ul>
     <form action="{{ url_for('bp_iwms.stock_receipt_create') }}" id="edit_form" class="needs-validation" method="POST" novalidate>
     {{ form.csrf_token }}
@@ -131,7 +131,6 @@
                         <tr>
                             <th style="display:none;">ID</th>
                             <th></th>
-                            <th class="text-center">LINE</th>
                             <th class="text-center">ITEM NO.</th>
                             <th class="text-center">NAME</th>
                             <th class="text-center">LOT NO.</th>

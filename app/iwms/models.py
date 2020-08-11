@@ -102,8 +102,8 @@ class BinLocation(Base,Admin):
     capacity = db.Column(db.Integer,default=None)
     weight_cap = db.Column(db.Integer,default=None)
     cbm_cap = db.Column(db.Integer,default=None)
-    x = db.Column(db.Integer,nullable=True,default=25)
-    y = db.Column(db.Integer,nullable=True,default=25)
+    x = db.Column(db.Integer,nullable=True,default=0)
+    y = db.Column(db.Integer,nullable=True,default=0)
 
 
 class Category(Base,Admin):
@@ -267,7 +267,7 @@ class StockReceiptItemLine(db.Model):
     uom = db.Column(db.String(255),nullable=True, default="")
     received_qty = db.Column(db.Integer,nullable=True,default=None)
     net_weight = db.Column(db.Integer,nullable=True,default=None)
-    timestamp = db.Column(db.DateTime,nullable=True)
+    timestamp = db.Column(db.String(255),nullable=True)
 
 
 class Putaway(Base,Admin):
@@ -301,7 +301,7 @@ class PutawayItemLine(db.Model):
     uom = db.Column(db.String(255),nullable=True, default="")
     qty = db.Column(db.Integer,nullable=True,default=None)
     serials = db.Column(db.Integer,nullable=True,default=None)
-    timestamp = db.Column(db.DateTime,nullable=True)
+    timestamp = db.Column(db.String(255),nullable=True)
 
 
 class Supplier(Base,Admin):
@@ -375,7 +375,8 @@ class PurchaseOrderProductLine(db.Model):
     amount = db.Column(db.Numeric(10,2),nullable=True)
     uom_id = db.Column(db.Integer,db.ForeignKey('iwms_unit_of_measure.id',ondelete="SET NULL"),nullable=True)
     uom = db.relationship("UnitOfMeasure",backref='po_line_uom')
-
+    received_qty = db.Column(db.Integer,nullable=True)
+    remaining_qty = db.Column(db.Integer,nullable=True)
 
 class StockItemType(Base,Admin):
     __tablename__ = 'iwms_stock_item_type'

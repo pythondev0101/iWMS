@@ -16,7 +16,6 @@
                                     <thead>
                                         <tr>
                                             <th style="display:none;">ID</th>
-                                            <th>LINE</th>
                                             <th>ITEM NO.</th>
                                             <th>ITEM NAME</th>
                                             <th>BASE UOM</th>
@@ -44,7 +43,7 @@
                                 <div class="col-md-6">
                                     <div class="position-relative form-group" style="margin-bottom: 0px;">
                                         <label for="quantity" class="">Quantity</label>
-                                        <input name="quantity" id="quantity" type="number" class="form-control" style="height: 20%;">
+                                        <input name="quantity" id="quantity" type="number" class="form-control" style="height: 20%;" value="0">
                                     </div>
                                 </div>
                             </div>
@@ -72,7 +71,7 @@
                                 <div class="col-md-6">
                                     <div class="position-relative form-group" style="margin-bottom: 0px;">
                                         <label for="expiry_date" class="">Expiry</label>
-                                        <input name="expiry_date" id="expiry_date" type="date" class="form-control" style="height: 20%;">
+                                        <input name="expiry_date" id="expiry_date" type="date" class="form-control" style="height: 20%;" value="{{form.date_received.data.strftime('%Y-%m-%d')}}">
                                     </div>
                                 </div>
                             </div>

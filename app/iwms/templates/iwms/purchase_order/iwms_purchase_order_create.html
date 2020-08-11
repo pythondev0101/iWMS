@@ -43,7 +43,7 @@
                             <div class="col-md-4">
                                 <div class="position-relative form-group">
                                     <label for="warehouse_id" class="">Warehouse</label>
-                                    <select name="warehouse_id" id="warehouse_id" class="form-control">
+                                    <select name="warehouse_id" id="warehouse_id" class="form-control" required>
                                         <option value="">Choose...</option>
                                         {% for warehouse in warehouses %}
                                         <option value="{{ warehouse.id }}">

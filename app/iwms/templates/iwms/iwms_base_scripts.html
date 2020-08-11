@@ -387,8 +387,8 @@
          
         $("#tbl_po_line_modal").on('click','tr',function(){
             $(this).addClass('selected').siblings().removeClass('selected');
-            $("#item_name").val($("#tbl_po_line_modal tr.selected td:nth-child(4)").html());
-            $("#unit").val($("#tbl_po_line_modal tr.selected td:nth-child(5)").html());
+            $("#item_name").val($("#tbl_po_line_modal tr.selected td:nth-child(3)").html());
+            $("#unit").val($("#tbl_po_line_modal tr.selected td:nth-child(4)").html());
             if (!($("#item_name").val() == '')){
                 $('#btn_add_po_line').prop('disabled', false);
             }
@@ -404,31 +404,41 @@
 
         $("#btn_confirm_po_line").click(function(){
             var stock_id = $("#tbl_po_line_modal tr.selected td:first").html();
-            var item_no = $("#tbl_po_line_modal tr.selected td:nth-child(3)").html();
-            var item_name = $("#tbl_po_line_modal tr.selected td:nth-child(4)").html();
-            var base_uom = $("#tbl_po_line_modal tr.selected td:nth-child(5)").html();
+            var item_no = $("#tbl_po_line_modal tr.selected td:nth-child(2)").html();
+            var item_name = $("#tbl_po_line_modal tr.selected td:nth-child(3)").html();
+            var base_uom = $("#tbl_po_line_modal tr.selected td:nth-child(4)").html();
             var e_qty = $("#quantity").val();
             var lot_no = $("#lot_no").val();
             var expiry_date = $("#expiry_date").val();
             var net_weight = $("#net_weight").val();
             var row = $("#tbl_po_line_modal tr.selected");
+            var timestamp = + new Date();
                 $('#tbl_sr_line tr:last').after(
                     `<tr>
                         <td style="display:none;"><input name="sr_items[]" type="hidden" value="${stock_id}"></input></td>
                         <td><input class="chkbox" type="checkbox"></td>
-                        <td class='text-center'>1</td>
                         <td class='text-center'>${item_no}</td>
                         <td class='text-center'>${item_name}</td>
                         <td class='text-center'><input name="lot_no_${stock_id}" type="text" value="${lot_no}" readonly></td>
-                        <td class='text-center'><input name="expiry_date_${stock_id}" type="text" value="${expiry_date}" readonly></td>
+                        <td class='text-center'><input name="expiry_date_${stock_id}" type="text" value="${expiry_date}" style="width:80px" readonly></td>
                         <td class='text-center'><input name="uom_${stock_id}" type="text" value="${base_uom}" style="width:50px" readonly></td>
                         <td class='text-center'><input name="received_qty_${stock_id}" type="number" value="${e_qty}" style="width:50px" readonly></td>
                         <td class='text-center'><input name="net_weight_${stock_id}" type="text" value="${net_weight}" style="width:50px" readonly></td>
-                        <td class='text-center'></td>
+                        <td class='text-center'><input name="timestamp_${stock_id}" type="text" value="${timestamp}" style="width:110px" readonly></td>
                     </tr>
                     `
                     );
-                table_po_line.row(row).remove().draw();
+                // UPDATING RECEIVED QTY, REMAINING QTY = EXCEPTED - RECEIVED QTY
+                var received_qty = $("#tbl_po_line_modal tr.selected td:nth-child(6)");
+                received_qty.html(e_qty);
+                var expected_qty = $("#tbl_po_line_modal tr.selected td:nth-child(5)");
+                var remaining_qty = parseInt(expected_qty.html()) - parseInt(e_qty);
+                $("#tbl_po_line_modal tr.selected td:nth-child(7)").html(remaining_qty);
+                
+                // MAKING ROW COLOR GREEN, MEANS IT IS ADDED
+                row.removeClass('list-group-item-danger')
+                row.addClass('list-group-item-success');
+
                 // CLEARING FIELDS
                 $('#btn_add_po_line').prop('disabled', true);
                 $("#p_item_name").html("");
@@ -436,11 +446,11 @@
                 $("#p_lot_no").html("");
                 $("#p_expiry_date").html("");
                 $("#item_name").val("");
-                $("#quantity").val("");
+                $("#quantity").val("0");
                 $("#unit").val("");
                 $("#lot_no").val("");
                 $("#net_weight").val("");
-                $("#expiry_date").val("");
+                $("#expiry_date").val("{{form.date_received.data.strftime('%Y-%m-%d')}}");
         });
 
         $('#btn_select_po').click(function(){
@@ -481,13 +491,13 @@
                     for (i=0; i < data.items.length;  ++i){
                         var row = table_po_line.row.add([
                         data.items[i].id,
-                        i+1,
                         data.items[i].number,
                         data.items[i].name,
                         data.items[i].uom,
-                        data.items[i].qty,'','',''
+                        data.items[i].qty,'',data.items[i].remaining_qty,''
                         ]);
                         table_po_line.row(row).column(0).nodes().to$().addClass('myHiddenColumn');
+                        table_po_line.row(row).nodes().to$().addClass('list-group-item-danger');
                         table_po_line.row(row).draw();
                     }
                 }
