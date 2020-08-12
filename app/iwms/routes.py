@@ -1516,7 +1516,7 @@ def purchase_order_edit(oid):
                     cost = request.form.get("cost_{}".format(product_id))
                     amount = request.form.get("amount_{}".format(product_id))
                     uom = UnitOfMeasure.query.get(request.form.get("uom_{}".format(product_id)))
-                    line = PurchaseOrderProductLine(stock_item=product,qty=qty,unit_cost=cost,amount=amount,uom=uom)
+                    line = PurchaseOrderProductLine(stock_item=product,qty=qty,unit_cost=cost,amount=amount,uom=uom,remaining_qty=qty)
                     po.product_line.append(line)
 
             db.session.commit()
