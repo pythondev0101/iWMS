@@ -58,6 +58,8 @@
                                 <div class="mb-2 mr-2 badge badge-warning">RELEASED</div>
                                 {% elif values == 'COMPLETED' %}
                                 <div class="mb-2 mr-2 badge badge-success">COMPLETED</div>
+                                {% elif values == 'PENDING' %}
+                                <div class="mb-2 mr-2 badge badge-danger">PENDING</div>
                                 {% else %} {{ values }} 
 
                                 {% endif %}</td>
@@ -173,6 +175,14 @@
                                             $(field).attr('checked', false);
                                         }
                                     }else{
+                                        // IF STATUS IS NOT LOGGED OF PO the edit button will rename to 'view' only
+                                        if (!(data.result == 'LOGGED') && (table=='iwms_purchase_order')){
+                                            $("#view_edit_button").text("View");
+                                            $("#view_edit_button").attr('href', url.replace('edit','view'));
+                                        }else{
+                                            $("#view_edit_button").text("Edit");
+                                            $("#view_edit_button").attr('href', url.replace('view','edit'));
+                                        }
                                         $(field).val(data.result);
                                     }
                                 }

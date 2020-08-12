@@ -1,5 +1,12 @@
 {% extends "iwms/iwms_base_scripts.html" %}
 
+{% block inner_footer %}
+<div class="app-footer-right">
+    <button type="button" class="btn btn-secondary" onclick="history.back(-1)" 
+    style="margin-right: 10px;">Back</button>
+</div>
+{% endblock %}
+
 {% block content %}
 <div class="app-main__inner">
     <form action="{{ url_for('bp_iwms.purchase_order_edit',oid=oid) }}" id="edit_form" class="needs-validation" method="POST" novalidate>
@@ -19,7 +26,7 @@
                         <div class="mb-2 mr-2 badge badge-pill badge-success">COMPLETED</div>
                         {% elif form.status.data == 'RELEASED' %}
                         <div class="mb-2 mr-2 badge badge-pill badge-warning">RELEASED</div>
-                        {% elif form.status.data== 'PENDING' %}
+                        {% elif form.status.data == 'PENDING' %}
                         <div class="mb-2 mr-2 badge badge-pill badge-danger">PENDING</div>
                         {% endif %}
                     </div>
@@ -33,7 +40,7 @@
                             <div class="col-md-4">
                                 <div class="position-relative form-group">
                                     <label for="supplier_id" class="">Supplier</label>
-                                    <select name="supplier_id" id="supplier_id" class="form-control" required>
+                                    <select name="supplier_id" id="supplier_id" class="form-control" disabled>
                                         <option value="">Choose...</option>
                                         {% for supplier in suppliers %}
                                         <option value="{{ supplier.id }}" {% if supplier.id == form.supplier_id.data %}selected{% endif %}>
@@ -52,7 +59,7 @@
                             <div class="col-md-4">
                                 <div class="position-relative form-group">
                                     <label for="warehouse_id" class="">Warehouse</label>
-                                    <select name="warehouse_id" id="warehouse_id" class="form-control">
+                                    <select name="warehouse_id" id="warehouse_id" class="form-control" disabled>
                                         <option value="">Choose...</option>
                                         {% for warehouse in warehouses %}
                                         <option value="{{ warehouse.id }}" {% if warehouse.id == form.warehouse_id.data %}selected{% endif %}>
@@ -71,7 +78,7 @@
                             <div class="col-md-4">
                                 <div class="position-relative form-group">
                                     <label for="ship_to" class="">Ship To</label>
-                                    <select name="ship_to" id="ship_to" class="form-control">
+                                    <select name="ship_to" id="ship_to" class="form-control" disabled>
                                         {% for key,value,checked in form.ship_to.iter_choices() %}
                                         <option value="{{ key }}" {% if key == form.ship_to.data %}selected{% endif %}>
                                             {{ value }}
@@ -91,7 +98,7 @@
                             <div class="col-md-6">
                                 <div class="position-relative form-group">
                                     <label for="address">Address</label>
-                                    <input name="address" id="address" type="text" class="form-control" value="{{form.address.data}}">
+                                    <input name="address" id="address" type="text" class="form-control" value="{{form.address.data}}" disabled>
                                     <div class="valid-feedback">
                                         Looks good!
                                     </div>
@@ -103,7 +110,7 @@
                             <div class="col-md-6">
                                 <div class="position-relative form-group">
                                     <label for="remarks" class="">Remarks</label>
-                                    <input name="remarks" id="remarks" type="text" class="form-control" value="{{form.remarks.data}}">
+                                    <input name="remarks" id="remarks" type="text" class="form-control" value="{{form.remarks.data}}" disabled>
                                     <div class="valid-feedback">
                                         Looks good!
                                     </div>
@@ -117,7 +124,7 @@
                             <div class="col-md-4">
                                 <div class="position-relative form-group">
                                     <label for="ordered_date" class="">Ordered</label>
-                                    <input name="ordered_date" id="ordered_date" type="date" class="form-control" value="{{form.ordered_date.data.strftime('%Y-%m-%d')}}">
+                                    <input name="ordered_date" id="ordered_date" type="date" class="form-control" value="{{form.ordered_date.data.strftime('%Y-%m-%d')}}" disabled>
                                     <div class="valid-feedback">
                                         Looks good!
                                     </div>
@@ -129,7 +136,7 @@
                             <div class="col-md-4">
                                 <div class="position-relative form-group">
                                     <label for="delivery_date" class="">Delivery</label>
-                                    <input name="delivery_date" id="delivery_date" type="date" class="form-control" value="{{form.delivery_date.data.strftime('%Y-%m-%d')}}">
+                                    <input name="delivery_date" id="delivery_date" type="date" class="form-control" value="{{form.delivery_date.data.strftime('%Y-%m-%d')}}" disabled>
                                     <div class="valid-feedback">
                                         Looks good!
                                     </div>
@@ -141,7 +148,7 @@
                             <div class="col-md-4">
                                 <div class="position-relative form-group">
                                     <label for="approved_by" class="">Approved by</label>
-                                    <input name="approved_by" id="approved_by" type="text" class="form-control" value="{{form.approved_by.data}}">
+                                    <input name="approved_by" id="approved_by" type="text" class="form-control" value="{{form.approved_by.data}}" disabled>
                                     <div class="valid-feedback">
                                         Looks good!
                                     </div>
@@ -182,23 +189,19 @@
                                 <td class='text-center'>{{line.stock_item.number}}</td>
                                 <td class='text-center'>{{line.stock_item.name}}</td>
                                 <td class='text-center'>
-                                    <select name="uom_{{line.stock_item_id}}" style='width: 100%;'>
+                                    <select name="uom_{{line.stock_item_id}}" style='width: 100%;' disabled>
                                         {% for uom in line.stock_item.uom_line %}
                                         <option value="{{uom.uom_id}}" {% if uom.uom_id == line.uom_id %}selected{% endif %}>{{uom.uom.code}}</option>
                                         {% endfor %}
                                     </select>
                                 </td>
-                                <td class='text-center'><input class="input_qty" name="qty_{{line.stock_item_id}}" type="number" style="width:50px" value="{{line.qty}}"></td>
+                                <td class='text-center'><input class="input_qty" name="qty_{{line.stock_item_id}}" type="number" style="width:50px" value="{{line.qty}}" disabled></td>
                                 <td class='text-center'><input class="input_cost" name="cost_{{line.stock_item_id}}" type="number" value="{{line.unit_cost}}" style="width:100px" readonly></td>
                                 <td class='text-center'><input class="amount" name="amount_{{line.stock_item_id}}" type="number" value="{{line.amount}}" style="width:100px" readonly></td>
                             </tr>
                             {% endfor %}
                         </tbody>
                     </table>
-                </div>
-                <div class="d-block text-center card-footer">
-                    <button id="btn_delete_line" type="button" class="mr-2 btn-icon btn-icon-only btn btn-outline-danger"><i class="pe-7s-trash btn-icon-wrapper"> </i></button>
-                    <button type="button" class="btn-wide btn btn-success" data-toggle="modal" data-target="#add_product_modal" title="Add product line" data-placement="bottom">Add</button>
                 </div>
             </div>
         <script>

@@ -91,7 +91,14 @@ def get_view_modal_data():
         sql = text(query)
         row = db.engine.execute(sql)
         res = [x[0] if x[0] is not None else '' for x in row]
-        resp = jsonify(result=str(res[0]),column=column)
+        
+        print(res)
+        """ For PO if editable """
+
+        if table == 'purchase_order':
+            resp = jsonify(result=str(res[0]),column=column,editable=False)
+        else:
+            resp = jsonify(result=str(res[0]),column=column)
         resp.headers.add('Access-Control-Allow-Origin', '*')
         resp.status_code = 200
         return resp

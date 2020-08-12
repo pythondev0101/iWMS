@@ -1281,6 +1281,8 @@ def stock_receipt_create():
 
             if _remaining == 0:
                 po.status = "RELEASED"
+            else:
+                po.status = "PENDING"
 
             db.session.add(obj)
             db.session.commit()
@@ -1540,6 +1542,25 @@ def purchase_order_edit(oid):
             for key, value in f.errors.items():
                 flash(str(key) + str(value), 'error')
             return redirect(url_for('bp_iwms.purchase_orders'))
+
+@bp_iwms.route('/purchase_order_view/<int:oid>')
+@login_required
+def purchase_order_view(oid):
+    """ First view function for viewing only and not editable html """
+    po = PurchaseOrder.query.get_or_404(oid)
+    f = PurchaseOrderCreateForm(obj=po)
+    if request.method == "GET":
+        warehouses = Warehouse.query.all()
+        suppliers = Supplier.query.all()
+        # stock_items = StockItem.query.all()
+        # Hardcoded html ang irerender natin hindi yung builtin ng admin
+        context['active'] = 'purchases'
+        context['mm-active'] = 'purchase_order'
+        context['module'] = 'iwms'
+        context['model'] = 'purchase_order'
+
+        return render_template('iwms/purchase_order/iwms_purchase_order_view.html', oid=oid,stock_items='',line_items=po.product_line, \
+            context=context,form=f,title="Edit purchase order",warehouses=warehouses,suppliers=suppliers)
 
 
 @bp_iwms.route('/suppliers')

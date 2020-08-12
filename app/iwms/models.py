@@ -335,11 +335,6 @@ class ShipTo(enum.Enum):
     warehouse = "Warehouse"
 
 
-class PurchaseOrderStatus(enum.Enum):
-    LOGGED = "LOGGED"
-    RELEASED = "RELEASED"
-    COMPLETED = "COMPLETED"
-
 class PurchaseOrder(Base,Admin):
     __tablename__ = 'iwms_purchase_order'
     __amname__ = 'purchase_order'
@@ -348,7 +343,7 @@ class PurchaseOrder(Base,Admin):
 
     """ COLUMNS """
     po_number = db.Column(db.String(255),nullable=False)
-    status = db.Column(db.Enum(PurchaseOrderStatus),default=PurchaseOrderStatus.LOGGED)
+    status = db.Column(db.String(255),default="LOGGED")
     supplier_id = db.Column(db.Integer,db.ForeignKey('iwms_supplier.id',ondelete="SET NULL"),nullable=True)
     supplier = db.relationship('Supplier',backref="purchase_orders")
     ship_to = db.Column(db.Enum(ShipTo),default=ShipTo.warehouse)
