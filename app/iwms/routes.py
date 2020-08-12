@@ -237,7 +237,8 @@ def _get_po_line():
                 'uom':line.uom.code if line.uom is not None else '',
                 'number':line.stock_item.number,
                 'qty':line.qty,
-                'remaining_qty':line.remaining_qty
+                'remaining_qty':line.remaining_qty,
+                'received_qty':line.received_qty
                 })
         res = jsonify(items=po_line)
         res.status_code = 200
@@ -1230,7 +1231,6 @@ def stock_receipt_create():
             obj.sr_number = sr_generated_number
             # No field yet so hardcoded muna
             po = PurchaseOrder.query.filter_by(po_number=f.po_number.data).first()
-            po.status = "RELEASED"
             obj.purchase_order = po
             obj.status = "LOGGED"
             obj.warehouse_id = po.warehouse_id
@@ -1245,19 +1245,42 @@ def stock_receipt_create():
             obj.putaway_txn = f.putaway_txn.data
             obj.created_by = "{} {}".format(current_user.fname,current_user.lname)
 
+            """ po.status = RELEASED if no remaining qty in the PO items """
+            _remaining = 0
+            
             item_list = request.form.getlist('sr_items[]')
             if item_list:
                 for item_id in item_list:
+
+                    """ Add SR confirm PO items """
+
                     item = StockItem.query.get(item_id)
                     lot_no = request.form.get("lot_no_{}".format(item_id))
                     expiry_date = request.form.get("expiry_date_{}".format(item_id)) if not request.form.get("expiry_date_{}".format(item_id)) == '' else None
                     uom = request.form.get("uom_{}".format(item_id))
                     received_qty = request.form.get("received_qty_{}".format(item_id)) if not request.form.get("received_qty_{}".format(item_id)) == '' else None
                     net_weight = request.form.get("net_weight_{}".format(item_id)) if not request.form.get("net_weight_{}".format(item_id)) == '' else None
-                    timestamp = r.get("timestamp_{}".format(item_id))
+                    timestamp = request.form.get("timestamp_{}".format(item_id))
                     line = StockReceiptItemLine(stock_item=item,lot_no=lot_no,expiry_date=expiry_date,\
                         uom=uom,received_qty=received_qty,net_weight=net_weight)
                     obj.item_line.append(line)
+
+                    """ Updates PO remaining qty and received qty product line """
+
+                    for ip in po.product_line:
+                        if int(item_id) == ip.stock_item_id:
+                            if not ip.received_qty is None:
+                                ip.received_qty = ip.received_qty + int(received_qty)
+                            else:
+                                ip.received_qty = int(received_qty)
+                            ip.remaining_qty = ip.remaining_qty - int(received_qty)
+
+                            _remaining = _remaining + ip.remaining_qty
+                        else:
+                            _remaining = _remaining + ip.remaining_qty
+
+            if _remaining == 0:
+                po.status = "RELEASED"
 
             db.session.add(obj)
             db.session.commit()

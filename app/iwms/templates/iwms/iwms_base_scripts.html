@@ -430,10 +430,13 @@
                     );
                 // UPDATING RECEIVED QTY, REMAINING QTY = EXCEPTED - RECEIVED QTY
                 var received_qty = $("#tbl_po_line_modal tr.selected td:nth-child(6)");
-                received_qty.html(e_qty);
-                var expected_qty = $("#tbl_po_line_modal tr.selected td:nth-child(5)");
-                var remaining_qty = parseInt(expected_qty.html()) - parseInt(e_qty);
-                $("#tbl_po_line_modal tr.selected td:nth-child(7)").html(remaining_qty);
+                if (received_qty.html() == ''){
+                    received_qty.html(e_qty);
+                }else{
+                    received_qty.html(parseInt(received_qty.html()) + parseInt(e_qty));
+                }
+                var remaining_qty = $("#tbl_po_line_modal tr.selected td:nth-child(7)");
+                remaining_qty.html(parseInt(remaining_qty.html()) - parseInt(e_qty));
                 
                 // MAKING ROW COLOR GREEN, MEANS IT IS ADDED
                 row.removeClass('list-group-item-danger')
@@ -494,7 +497,9 @@
                         data.items[i].number,
                         data.items[i].name,
                         data.items[i].uom,
-                        data.items[i].qty,'',data.items[i].remaining_qty,''
+                        data.items[i].qty,
+                        data.items[i].received_qty,
+                        data.items[i].remaining_qty,''
                         ]);
                         table_po_line.row(row).column(0).nodes().to$().addClass('myHiddenColumn');
                         table_po_line.row(row).nodes().to$().addClass('list-group-item-danger');
