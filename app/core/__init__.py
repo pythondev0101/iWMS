@@ -1,6 +1,5 @@
 from . import models
 from app.auth import auth_urls
-from app.admin import admin_urls
 from flask import Blueprint, request, redirect, url_for, render_template
 from flask_login import current_user
 import click
@@ -17,7 +16,7 @@ bp_core = Blueprint('core', __name__)
 def index():
     if request.method == "GET":
         if current_user.is_authenticated:
-            return redirect(url_for(admin_urls['admin']))
+            return redirect(url_for('bp_iwms.dashboard'))
         else:
             return redirect(url_for(auth_urls['login']))
 

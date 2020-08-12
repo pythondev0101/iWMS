@@ -438,9 +438,18 @@
                 var remaining_qty = $("#tbl_po_line_modal tr.selected td:nth-child(7)");
                 remaining_qty.html(parseInt(remaining_qty.html()) - parseInt(e_qty));
                 
-                // MAKING ROW COLOR GREEN, MEANS IT IS ADDED
-                row.removeClass('list-group-item-danger')
-                row.addClass('list-group-item-success');
+                // ADDING ROW COLOR,GREEN MEANS NO REMAINING QTY
+                // RED MEANS NOT ADDED
+                // YELLOW MEANS HAS REMAINING QTY
+
+                if (parseInt(remaining_qty.html()) == 0){
+                    row.removeClass('list-group-item-danger')
+                    row.removeClass('list-group-item-warning')
+                    row.addClass('list-group-item-success');
+                }else{
+                    row.removeClass('list-group-item-danger')
+                    row.addClass('list-group-item-warning');
+                }
 
                 // CLEARING FIELDS
                 $('#btn_add_po_line').prop('disabled', true);
@@ -502,7 +511,13 @@
                         data.items[i].remaining_qty,''
                         ]);
                         table_po_line.row(row).column(0).nodes().to$().addClass('myHiddenColumn');
-                        table_po_line.row(row).nodes().to$().addClass('list-group-item-danger');
+                        if (data.items[i].remaining_qty == 0){
+                            table_po_line.row(row).nodes().to$().addClass('list-group-item-success');
+                        }else if(data.items[i].qty == data.items[i].remaining_qty){
+                            table_po_line.row(row).nodes().to$().addClass('list-group-item-danger');
+                        }else{
+                            table_po_line.row(row).nodes().to$().addClass('list-group-item-warning');
+                        }
                         table_po_line.row(row).draw();
                     }
                 }

@@ -17,7 +17,8 @@ from app.admin.routes import admin_index, admin_edit
 from .models import Group,Department,TransactionType,Warehouse,Zone, \
     BinLocation,Category,StockItem,UnitOfMeasure,Reason,StockReceipt,Putaway, \
         Email as EAddress, PurchaseOrder, Supplier, Term,PurchaseOrderProductLine,StockItemType,TaxCode,\
-            StockItemUomLine,StockReceiptItemLine, PutawayItemLine,Source, SalesVia, ClientGroup, Client
+            StockItemUomLine,StockReceiptItemLine, PutawayItemLine,Source, SalesVia, ClientGroup, Client, InventoryItem,\
+                ItemBinLocations
 
 from .forms import *
 from datetime import datetime
@@ -1217,7 +1218,7 @@ def stock_receipt_create():
     if request.method == "GET":
         # Hardcoded html ang irerender natin hindi yung builtin ng admin
         warehouses = Warehouse.query.all()
-        po_list = PurchaseOrder.query.filter_by(status="LOGGED")
+        po_list = PurchaseOrder.query.filter(PurchaseOrder.status.in_(['LOGGED','PENDING']))
         sources = Source.query.all()
         context['active'] = 'inventory'
         context['mm-active'] = 'stock_receipt'
@@ -1227,67 +1228,68 @@ def stock_receipt_create():
             form=f,title="Create stock receipt",warehouses=warehouses,sr_generated_number=sr_generated_number)
     elif request.method == "POST":
         if f.validate_on_submit():
-            obj = StockReceipt()
-            obj.sr_number = sr_generated_number
-            # No field yet so hardcoded muna
-            po = PurchaseOrder.query.filter_by(po_number=f.po_number.data).first()
-            obj.purchase_order = po
-            obj.status = "LOGGED"
-            obj.warehouse_id = po.warehouse_id
-            obj.source_id = f.source.data if not f.source.data == '' else None
-            obj.po_number = f.po_number.data
-            obj.supplier = f.supplier.data
-            obj.reference = f.reference.data
-            obj.si_number = f.si_number.data
-            obj.bol = f.bol.data
-            obj.remarks = f.remarks.data
-            obj.date_received = f.date_received.data
-            obj.putaway_txn = f.putaway_txn.data
-            obj.created_by = "{} {}".format(current_user.fname,current_user.lname)
+            try:
+                obj = StockReceipt()
+                obj.sr_number = sr_generated_number
+                po = PurchaseOrder.query.filter_by(po_number=f.po_number.data).first()
+                obj.purchase_order = po
+                obj.status = "LOGGED"
+                obj.warehouse_id = po.warehouse_id
+                obj.source_id = f.source.data if not f.source.data == '' else None
+                obj.po_number = f.po_number.data
+                obj.supplier = f.supplier.data
+                obj.reference = f.reference.data
+                obj.si_number = f.si_number.data
+                obj.bol = f.bol.data
+                obj.remarks = f.remarks.data
+                obj.date_received = f.date_received.data
+                obj.putaway_txn = f.putaway_txn.data
+                obj.created_by = "{} {}".format(current_user.fname,current_user.lname)
 
-            """ po.status = RELEASED if no remaining qty in the PO items """
-            _remaining = 0
-            
-            item_list = request.form.getlist('sr_items[]')
-            if item_list:
-                for item_id in item_list:
+                """ po.status = RELEASED if no remaining qty in the PO items """
+                _remaining = 0
+                
+                item_list = request.form.getlist('sr_items[]')
+                if item_list:
+                    for item_id in item_list:
 
-                    """ Add SR confirm PO items """
+                        """ Add SR confirm PO items """
 
-                    item = StockItem.query.get(item_id)
-                    lot_no = request.form.get("lot_no_{}".format(item_id))
-                    expiry_date = request.form.get("expiry_date_{}".format(item_id)) if not request.form.get("expiry_date_{}".format(item_id)) == '' else None
-                    uom = request.form.get("uom_{}".format(item_id))
-                    received_qty = request.form.get("received_qty_{}".format(item_id)) if not request.form.get("received_qty_{}".format(item_id)) == '' else None
-                    net_weight = request.form.get("net_weight_{}".format(item_id)) if not request.form.get("net_weight_{}".format(item_id)) == '' else None
-                    timestamp = request.form.get("timestamp_{}".format(item_id))
-                    line = StockReceiptItemLine(stock_item=item,lot_no=lot_no,expiry_date=expiry_date,\
-                        uom=uom,received_qty=received_qty,net_weight=net_weight)
-                    obj.item_line.append(line)
+                        item = StockItem.query.get(item_id)
+                        lot_no = request.form.get("lot_no_{}".format(item_id))
+                        expiry_date = request.form.get("expiry_date_{}".format(item_id)) if not request.form.get("expiry_date_{}".format(item_id)) == '' else None
+                        uom = request.form.get("uom_{}".format(item_id))
+                        received_qty = request.form.get("received_qty_{}".format(item_id)) if not request.form.get("received_qty_{}".format(item_id)) == '' else None
+                        net_weight = request.form.get("net_weight_{}".format(item_id)) if not request.form.get("net_weight_{}".format(item_id)) == '' else None
+                        timestamp = request.form.get("timestamp_{}".format(item_id))
+                        line = StockReceiptItemLine(stock_item=item,lot_no=lot_no,expiry_date=expiry_date,\
+                            uom=uom,received_qty=received_qty,net_weight=net_weight)
+                        obj.item_line.append(line)
 
-                    """ Updates PO remaining qty and received qty product line """
+                        """ Updates PO remaining qty and received qty product line """
 
-                    for ip in po.product_line:
-                        if int(item_id) == ip.stock_item_id:
-                            if not ip.received_qty is None:
-                                ip.received_qty = ip.received_qty + int(received_qty)
-                            else:
-                                ip.received_qty = int(received_qty)
-                            ip.remaining_qty = ip.remaining_qty - int(received_qty)
+                        for ip in po.product_line:
+                            if int(item_id) == ip.stock_item_id:
+                                if not ip.received_qty is None:
+                                    ip.received_qty = ip.received_qty + int(received_qty)
+                                else:
+                                    ip.received_qty = int(received_qty)
+                                ip.remaining_qty = ip.remaining_qty - int(received_qty)
+                                _remaining = _remaining + ip.remaining_qty
 
-                            _remaining = _remaining + ip.remaining_qty
-                        else:
-                            _remaining = _remaining + ip.remaining_qty
+                print(_remaining)
+                if _remaining == 0:
+                    po.status = "RELEASED"
+                else:
+                    po.status = "PENDING"
 
-            if _remaining == 0:
-                po.status = "RELEASED"
-            else:
-                po.status = "PENDING"
-
-            db.session.add(obj)
-            db.session.commit()
-            flash('New Stock Receipt added Successfully!','success')
-            return redirect(url_for('bp_iwms.stock_receipts'))
+                db.session.add(obj)
+                db.session.commit()
+                flash('New Stock Receipt added Successfully!','success')
+                return redirect(url_for('bp_iwms.stock_receipts'))
+            except Exception as e:
+                flash(str(e),'error')
+                return redirect(url_for('bp_iwms.stock_receipts'))
         else:
             for key, value in f.errors.items():
                 flash(str(key) + str(value), 'error')
@@ -1350,16 +1352,16 @@ def putaway_create():
                     line = PutawayItemLine(stock_item=item,lot_no=lot_no,expiry_date=expiry_date,uom=uom,qty=qty)
                     obj.item_line.append(line)
 
-                    # SENDING ITEMS TO INVENTORY ITEM
+                    """ SENDING CONFIRM ITEMS TO INVENTORY ITEM """
 
                     _check_for_item = InventoryItem.query.filter_by(stock_item_id=item_id).first()
                     print(_check_for_item)
                     if _check_for_item is None:
-                        inventory_item = InventoryItem() 
+                        inventory_item = InventoryItem()
                         inventory_item.stock_item = item
                         bin_location = BinLocation.query.filter_by(code=_bin_location_code).first()
-                        inventory_item.bin_location = bin_location
-                        inventory_item.qty_on_hand = qty
+                        item_location = ItemBinLocations(inventory_item=inventory_item,bin_location=bin_location,\
+                            qty_on_hand=qty)
                         db.session.add(inventory_item)
                     else:
                         _check_for_item.qty_on_hand = _check_for_item.qty_on_hand + int(qty)
@@ -1895,9 +1897,9 @@ def client_edit(oid):
 @bp_iwms.route('/inventory_items')
 @login_required
 def inventory_items():
-    fields = [InventoryItem.id,StockItem.name,InventoryItem.qty_on_hand,BinLocation.code]
+    fields = [InventoryItem.id,StockItem.name]
     context['mm-active'] = 'inventory_item'
-    models = [InventoryItem,StockItem,BinLocation]
+    models = [InventoryItem,StockItem]
     return admin_index(*models,fields=fields,form=InventoryItemForm(), \
         template='iwms/iwms_index.html', view_modal=False,\
             create_modal=False,kwargs={'active':'inventory'})

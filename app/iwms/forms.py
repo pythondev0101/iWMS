@@ -472,7 +472,7 @@ class ClientEditForm(AdminEditForm):
         return [[self.code,self.name]]
 
 class InventoryItemForm(AdminIndexForm):
-    index_headers = ['name','Qty on hand','Bin location']
+    index_headers = ['name','Sale Price','Cost','Product type','Product Category','Quantity on hand']
     index_title = 'Inventory Items'
     
     name = AdminField(label='Name',required=False)

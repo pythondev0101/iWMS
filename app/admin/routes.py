@@ -23,10 +23,10 @@ from app import db
 # issue to kapag rekta inopen yung edit page sa url address
 index_url = ""
 
-@bp_admin.route('/')
-@login_required
-def dashboard():
-    return admin_dashboard()
+# @bp_admin.route('/')
+# @login_required
+# def dashboard():
+#     return admin_dashboard()
 
 
 @bp_admin.route('/apps')

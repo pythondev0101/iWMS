@@ -126,11 +126,6 @@ suppliers = db.Table('iwms_suppliers',
     db.Column('stock_item_id', db.Integer, db.ForeignKey('iwms_stock_item.id'), primary_key=True)
 )
 
-inventory_items = db.Table('iwms_inventory_item',
-    db.Column('bin_location_id', db.Integer, db.ForeignKey('iwms_bin_location.id'), primary_key=True),
-    db.Column('stock_item_id', db.Integer, db.ForeignKey('iwms_stock_item.id'), primary_key=True),
-    db.Column('qty_on_hand',db.Integer,nullable=True)
-)
 
 class StockItem(Base,Admin):
     __tablename__ = 'iwms_stock_item'
@@ -154,7 +149,6 @@ class StockItem(Base,Admin):
     cap_profile = db.Column(db.Integer,nullable=True,default=None)
     compound = db.Column(db.Integer,nullable=True,default=None)
     suppliers = db.relationship('Supplier', secondary=suppliers, lazy='subquery',backref=db.backref('stock_items', lazy=True))
-    inventory_items = db.relationship('BinLocation',secondary=inventory_items,lazy='subquery',backref=db.backref('stock_items',lazy=True))
     #TODO: clients = db.Column(db.String(255),nullable=True,default="")
     packaging = db.Column(db.String(255),nullable=True,default="")
     tax_code_id = db.Column(db.Integer,db.ForeignKey('iwms_tax_code.id',ondelete="SET NULL"),nullable=True)
@@ -418,3 +412,32 @@ class Client(Base,Admin):
     status = db.Column(db.String(255),nullable=True)
     code = db.Column(db.String(255),nullable=False)
     name = db.Column(db.String(255),nullable=True)
+
+# bin_locations = db.Table('iwms_item_bin_locations',
+#     db.Column('bin_location_id', db.Integer, db.ForeignKey('iwms_bin_location.id'), primary_key=True),
+#     db.Column('inventory_item_id', db.Integer, db.ForeignKey('iwms_inventory_item.id'), primary_key=True),
+#     db.Column('qty_on_hand',db.Integer,nullable=True)
+# )
+
+class ItemBinLocations(db.Model):
+    __tablename__ = 'iwms_item_bin_locations'
+    
+    """ COLUMNS """
+    id = db.Column(db.Integer, primary_key=True)
+    inventory_item_id = db.Column(db.Integer,db.ForeignKey('iwms_inventory_item.id',ondelete="SET NULL"),nullable=True)
+    bin_location_id = db.Column(db.Integer,db.ForeignKey('iwms_bin_location.id',ondelete="SET NULL"),nullable=True)
+    inventory_item = db.relationship('InventoryItem', backref="item_bin_locations")
+    bin_location = db.relationship('BinLocation', backref="item_bin_locations")
+    qty_on_hand = db.Column(db.Integer,nullable=True)
+    
+
+class InventoryItem(Base,Admin):
+    __tablename__ = 'iwms_inventory_item'
+    __amname__ = 'inventory_item'
+    __amdescription__ = 'Inventory Item'
+    __amicon__ = 'pe-7s-download'
+    
+    """ COLUMNS """
+    stock_item_id = db.Column(db.Integer,db.ForeignKey('iwms_stock_item.id',ondelete="SET NULL"),nullable=True)
+    stock_item = db.relationship('StockItem',backref="inventory_stock_item")
+    # bin_locations = db.relationship('BinLocation',secondary=bin_locations,lazy='subquery',backref=db.backref('inventory_items',lazy=True))
