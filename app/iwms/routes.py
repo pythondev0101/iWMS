@@ -32,19 +32,19 @@ from flask_mail import Message
 
 def _generate_number(prefix, lID):
     generated_number = ""
-    if 1 <= lID < 10:
+    if 1 <= lID < 9:
         generated_number = prefix +"0000000" + str(lID+1)
-    elif 10 <= lID < 100:
+    elif 9 <= lID < 99:
         generated_number = prefix + "000000" + str(lID+1)
-    elif 100 <= lID < 1000:
+    elif 999 <= lID < 9999:
         generated_number = prefix + "00000" + str(lID+1)
-    elif 1000 <= lID < 10000:
+    elif 9999 <= lID < 99999:
         generated_number = prefix + "0000" + str(lID+1)
-    elif 10000 <= lID < 100000:
+    elif 99999 <= lID < 999999:
         generated_number = prefix + "000" + str(lID+1)
-    elif 100000 <= lID < 1000000:
+    elif 999999 <= lID < 9999999:
         generated_number = prefix + "00" + str(lID+1)
-    elif 1000000 <= lID < 10000000:
+    elif 9999999 <= lID < 99999999:
         generated_number = prefix + "0" + str(lID+1)
     else:
         generated_number = prefix + str(lID+1)
@@ -1355,7 +1355,7 @@ def putaway_create():
                     """ SENDING CONFIRM ITEMS TO INVENTORY ITEM """
 
                     _check_for_item = InventoryItem.query.filter_by(stock_item_id=item_id).first()
-                    print(_check_for_item)
+                    
                     if _check_for_item is None:
                         inventory_item = InventoryItem()
                         inventory_item.stock_item = item
@@ -1562,7 +1562,7 @@ def purchase_order_view(oid):
         context['model'] = 'purchase_order'
 
         return render_template('iwms/purchase_order/iwms_purchase_order_view.html', oid=oid,stock_items='',line_items=po.product_line, \
-            context=context,form=f,title="Edit purchase order",warehouses=warehouses,suppliers=suppliers)
+            context=context,form=f,title="View purchase order",warehouses=warehouses,suppliers=suppliers)
 
 
 @bp_iwms.route('/suppliers')
