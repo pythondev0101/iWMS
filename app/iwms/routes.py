@@ -269,8 +269,11 @@ def _get_sr_line():
                     _expiry_date = line.expiry_date.strftime("%Y-%m-%d")
 
                 _ii = InventoryItem.query.filter_by(stock_item_id=line.stock_item.id).first()
+                if not _ii == None:
+                    _ibl = ItemBinLocations.query.with_entities(func.sum(ItemBinLocations.qty_on_hand)).filter_by(inventory_item_id=_ii.id).all()
+                else:
+                    _ibl = None
 
-                _ibl = ItemBinLocations.query.with_entities(func.sum(ItemBinLocations.qty_on_hand)).filter_by(inventory_item_id=_ii.id).all()
                 sr_line.append({
                     'id':line.stock_item.id,'name':line.stock_item.name,
                     'uom':line.uom,'number':line.stock_item.number,
@@ -1931,7 +1934,7 @@ def client_edit(oid):
 def inventory_items():
     fields = [InventoryItem.id,StockItem.name,StockItemType.name,Category.description]
     query1 = db.session.query(InventoryItem,StockItem,StockItemType,Category)
-    models = query1.outerjoin(InventoryItem, InventoryItem.stock_item_id == StockItem.id).with_entities(*fields).all()    
+    models = query1.join(InventoryItem, InventoryItem.stock_item_id == StockItem.id).with_entities(*fields).all()    
     # Dahil hindi ko masyadong kabisado ang ORM, ito muna
     mmodels = [list(ii) for ii in models]
     for ii in mmodels:
