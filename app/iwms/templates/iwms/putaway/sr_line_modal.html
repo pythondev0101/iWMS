@@ -16,7 +16,6 @@
                                     <thead>
                                         <tr>
                                             <th style="display:none;">ID</th>
-                                            <th>LINE</th>
                                             <th>ITEM NO.</th>
                                             <th>NAME</th>
                                             <th>LOT NUMBER</th>
@@ -45,7 +44,7 @@
                                     <div class="col-md-6">
                                         <div class="position-relative form-group" style="margin-bottom: 0px;">
                                             <label for="bin_location" class="">Bin Location</label>
-                                            <select name="bin_location" id="bin_location" class="form-control" style="height: 20%;">
+                                            <select name="bin_location" id="bin_location" class="form-control" style="height: 20%;" required>
                                                 <option value="">Choose...</option>
                                                 {% for bin in bin_locations %}
                                                 <option value="{{ bin.id }}">

@@ -316,13 +316,21 @@ class StockItemView(AdminIndexForm):
         return [[self.number],[self.name,self.description]]
 
 class PurchaseOrderViewForm(AdminIndexForm):
+    from .models import Supplier, Warehouse
     index_headers = ['Po no.','date created','created by','status']
     index_title = 'Purchase Orders'
     po_number = AdminField(label='PO No.')
     status = AdminField(label="Status")
+    supplier_id = AdminField(label="Supplier",model=Supplier)
+    warehouse_id = AdminField(label='Warehouse',model=Warehouse)
+    ordered_date = AdminField(label='Ordered',input_type='date')
+    delivery_date = AdminField(label='Delivery',input_type='date')
 
     def create_fields(self):
-        return [[self.po_number,self.status]]
+        return [
+            [self.po_number,self.status],[self.supplier_id,self.warehouse_id],
+            [self.ordered_date,self.delivery_date]
+            ]
 
 class StockReceiptViewForm(AdminIndexForm):
     index_headers = ['SR no.','date created','created by','status']
@@ -472,13 +480,15 @@ class ClientEditForm(AdminEditForm):
         return [[self.code,self.name]]
 
 class InventoryItemForm(AdminIndexForm):
-    index_headers = ['name','Sale Price','Cost','Product type','Product Category','Quantity on hand']
+    from .models import StockItemType, Category
+    index_headers = ['name','Product type','Product Category','Quantity on hand']
     index_title = 'Inventory Items'
     
-    name = AdminField(label='Name',required=False)
-    code = AdminField(label='Code',validators=[DataRequired()])
+    stock_item_type_id = AdminField(label='Product Type',model=StockItemType)
+    category_id = AdminField(label='Category',model=Category)
+
     def create_fields(self):
-        return [[self.code,self.name]]
+        return [[self.stock_item_type_id,self.category_id]]
 
 class SalesViaEditForm(AdminEditForm):
     description = AdminField(label='Description',validators=[DataRequired()])

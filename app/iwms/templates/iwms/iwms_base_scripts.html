@@ -558,11 +558,11 @@
 
         $("#tbl_sr_line_modal").on('click','tr',function(){
             $(this).addClass('selected').siblings().removeClass('selected');
-            $("#item_name").val($("#tbl_sr_line_modal tr.selected td:nth-child(4)").html());
-            $("#unit").val($("#tbl_sr_line_modal tr.selected td:nth-child(7)").html());
-            $("#lot_no").val($("#tbl_sr_line_modal tr.selected td:nth-child(5)").html());
-            $("#expiry").val($("#tbl_sr_line_modal tr.selected td:nth-child(6)").html());
-            $("#quantity").val($("#tbl_sr_line_modal tr.selected td:nth-child(8)").html());
+            $("#item_name").val($("#tbl_sr_line_modal tr.selected td:nth-child(3)").html());
+            $("#unit").val($("#tbl_sr_line_modal tr.selected td:nth-child(6)").html());
+            $("#lot_no").val($("#tbl_sr_line_modal tr.selected td:nth-child(4)").html());
+            $("#expiry").val($("#tbl_sr_line_modal tr.selected td:nth-child(5)").html());
+            $("#quantity").val($("#tbl_sr_line_modal tr.selected td:nth-child(7)").html());
             if (!($("#item_name").val() == '')){
                 $('#btn_add_sr_line').prop('disabled', false);
             }
@@ -577,19 +577,20 @@
 
         $("#btn_confirm_sr_line").click(function(){
             var stock_id = $("#tbl_sr_line_modal tr.selected td:first").html();
-            var item_no = $("#tbl_sr_line_modal tr.selected td:nth-child(3)").html();
-            var item_name = $("#tbl_sr_line_modal tr.selected td:nth-child(4)").html();
-            var base_uom = $("#tbl_sr_line_modal tr.selected td:nth-child(7)").html();
+            var item_no = $("#tbl_sr_line_modal tr.selected td:nth-child(2)").html();
+            var item_name = $("#tbl_sr_line_modal tr.selected td:nth-child(3)").html();
+            var base_uom = $("#tbl_sr_line_modal tr.selected td:nth-child(6)").html();
             var lot_no = $("#lot_no").val();
             var expiry_date = $("#expiry").val();
             var bin_location = $.trim(($("#bin_location option:selected").text()));
             var quantity = $("#quantity").val();
+            var timestamp = + new Date();
+
                 var row = $("#tbl_sr_line_modal tr.selected");
                 $('#tbl_pwy_item_line tr:last').after(
                     `<tr>
                         <td style="display:none;"><input name="pwy_items[]" type="hidden" value="${stock_id}"></input></td>
-                        <td><input class="chkbox" type="checkbox"></td>
-                        <td class='text-center'>1</td>
+                        <td></td>
                         <td class='text-center'>${item_no}</td>
                         <td class='text-center'>${item_name}</td>
                         <td class='text-center'><input name="uom_${stock_id}" type="text" value="${base_uom}" style="width:50px" readonly></td>
@@ -598,11 +599,20 @@
                         <td class='text-center'><input name="expiry_${stock_id}" type="text" value="${expiry_date}" style="width:80px" readonly></td>
                         <td class='text-center'></td>
                         <td class='text-center'><input name="qty_${stock_id}" type="text" value="${quantity}" style="width:50px" readonly></td>
-                        <td class='text-center'></td>
+                        <td class='text-center'><input name="timestamp_${stock_id}" type="text" value="${timestamp}" style="width:110px" readonly></td>
                     </tr>
                     `
                     );
-                table_sr_line.row(row).remove().draw();
+
+                // ADDING NEW QUANTITY TO THE PREV STORED
+                var prev_stored = $("#tbl_sr_line_modal tr.selected td:nth-child(8)");
+                var _add = parseInt(prev_stored.html()) + parseInt(quantity);
+                prev_stored.html(_add);
+                
+                // MAKING ROW COLOR GREEN
+                row.removeClass('list-group-item-danger')
+                row.addClass('list-group-item-success');
+
                 // CLEANING INPUTS
                 $('#btn_add_sr_line').prop('disabled', true);
                 $("#p_item_name").html("");
@@ -655,15 +665,16 @@
                     for (i=0; i < data.items.length;  ++i){
                         var row = table_sr_line.row.add([
                         data.items[i].id,
-                        i+1,
                         data.items[i].number,
                         data.items[i].name,
                         data.items[i].lot_no,
                         data.items[i].expiry_date,
                         data.items[i].uom,
-                        data.items[i].received_qty,'',''
+                        data.items[i].received_qty,
+                        data.items[i].prev_stored,''
                         ]);
                         table_sr_line.row(row).column(0).nodes().to$().addClass('myHiddenColumn');
+                        table_sr_line.row(row).nodes().to$().addClass('list-group-item-danger');
                         table_sr_line.row(row).draw();
                     }
                 }

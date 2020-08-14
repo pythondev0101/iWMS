@@ -26,7 +26,7 @@ from app.core.models import CoreLog
 from app.auth.models import User
 import pdfkit
 from flask_mail import Message
-
+from sqlalchemy import and_, func
 
 """----------------------INTERNAL FUNCTIONS-------------------------"""
 
@@ -180,6 +180,17 @@ def _get_suppliers():
         return res
 
 
+@bp_iwms.route('/_get_PO_status',methods=['POST'])
+def _get_PO_status():
+    if request.method == 'POST':
+        _id = request.json['id']
+        _po = PurchaseOrder.query.get(_id)
+        editable = False
+        if _po.status == "LOGGED":
+            editable = True
+        return jsonify({'editable':editable})
+
+
 @bp_iwms.route('/_update_bin_coord', methods=['POST'])
 def _update_bin_coord():
     if request.method == 'POST':
@@ -256,11 +267,16 @@ def _get_sr_line():
                 _expiry_date = ''
                 if line.expiry_date is not None:
                     _expiry_date = line.expiry_date.strftime("%Y-%m-%d")
+
+                _ii = InventoryItem.query.filter_by(stock_item_id=line.stock_item.id).first()
+
+                _ibl = ItemBinLocations.query.with_entities(func.sum(ItemBinLocations.qty_on_hand)).filter_by(inventory_item_id=_ii.id).all()
                 sr_line.append({
                     'id':line.stock_item.id,'name':line.stock_item.name,
                     'uom':line.uom,'number':line.stock_item.number,
                     'lot_no':line.lot_no,'expiry_date': _expiry_date,
-                    'received_qty':line.received_qty
+                    'received_qty':line.received_qty,
+                    'prev_stored': str(_ibl[0][0]) if not _ibl == None else 0
                     })
         res = jsonify(items=sr_line)
         res.status_code = 200
@@ -1275,9 +1291,9 @@ def stock_receipt_create():
                                 else:
                                     ip.received_qty = int(received_qty)
                                 ip.remaining_qty = ip.remaining_qty - int(received_qty)
-                                _remaining = _remaining + ip.remaining_qty
+                                
+                            _remaining = _remaining + ip.remaining_qty
 
-                print(_remaining)
                 if _remaining == 0:
                     po.status = "RELEASED"
                 else:
@@ -1329,48 +1345,63 @@ def putaway_create():
             warehouses=warehouses,pwy_generated_number=pwy_generated_number,sr_list=sr_list,bin_locations=bin_locations)
     elif request.method == "POST":
         if f.validate_on_submit():
-            obj = Putaway()
-            sr = StockReceipt.query.filter_by(sr_number=f.sr_number.data).first()
-            obj.stock_receipt = sr
-            obj.pwy_number = pwy_generated_number
-            obj.status = "LOGGED"
-            sr.status = "COMPLETED"
-            sr.purchase_order.status = "COMPLETED"
-            # obj.warehouse_id = 
-            obj.reference = f.reference.data
-            obj.remarks = f.remarks.data
-            obj.created_by = "{} {}".format(current_user.fname,current_user.lname)
-            items_list = request.form.getlist('pwy_items[]')
-            if items_list:
-                for item_id in items_list:
-                    item = StockItem.query.get(item_id)
-                    lot_no = request.form.get('lot_no_{}'.format(item_id))
-                    expiry_date = request.form.get('expiry_{}'.format(item_id)) if not request.form.get('expiry_{}'.format(item_id)) == '' else None
-                    uom = request.form.get('uom_{}'.format(item_id))
-                    qty = request.form.get('qty_{}'.format(item_id)) if not request.form.get('qty_{}'.format(item_id)) == '' else None
-                    _bin_location_code = request.form.get("bin_location_{}".format(item_id)) if not request.form.get("bin_location_{}".format(item_id)) == '' else None
-                    line = PutawayItemLine(stock_item=item,lot_no=lot_no,expiry_date=expiry_date,uom=uom,qty=qty)
-                    obj.item_line.append(line)
+            try:
+                obj = Putaway()
+                sr = StockReceipt.query.filter_by(sr_number=f.sr_number.data).first()
+                obj.stock_receipt = sr
+                obj.pwy_number = pwy_generated_number
+                obj.status = "LOGGED"
+                sr.status = "COMPLETED"
+                sr.purchase_order.status = "COMPLETED"
+                # obj.warehouse_id = 
+                obj.reference = f.reference.data
+                obj.remarks = f.remarks.data
+                obj.created_by = "{} {}".format(current_user.fname,current_user.lname)
+                items_list = request.form.getlist('pwy_items[]')
+                if items_list:
+                    for item_id in items_list:
+                        item = StockItem.query.get(item_id)
+                        lot_no = request.form.get('lot_no_{}'.format(item_id))
+                        expiry_date = request.form.get('expiry_{}'.format(item_id)) if not request.form.get('expiry_{}'.format(item_id)) == '' else None
+                        uom = request.form.get('uom_{}'.format(item_id))
+                        qty = request.form.get('qty_{}'.format(item_id)) if not request.form.get('qty_{}'.format(item_id)) == '' else None
+                        _bin_location_code = request.form.get("bin_location_{}".format(item_id)) if not request.form.get("bin_location_{}".format(item_id)) == '' else None
+                        line = PutawayItemLine(stock_item=item,lot_no=lot_no,expiry_date=expiry_date,uom=uom,qty=qty)
+                        obj.item_line.append(line)
 
-                    """ SENDING CONFIRM ITEMS TO INVENTORY ITEM """
+                        """ SENDING CONFIRM ITEMS TO INVENTORY ITEM """
 
-                    _check_for_item = InventoryItem.query.filter_by(stock_item_id=item_id).first()
-                    
-                    if _check_for_item is None:
-                        inventory_item = InventoryItem()
-                        inventory_item.stock_item = item
+                        _check_for_item = InventoryItem.query.filter_by(stock_item_id=item_id).first()
                         bin_location = BinLocation.query.filter_by(code=_bin_location_code).first()
-                        item_location = ItemBinLocations(inventory_item=inventory_item,bin_location=bin_location,\
-                            qty_on_hand=qty)
-                        db.session.add(inventory_item)
-                    else:
-                        _check_for_item.qty_on_hand = _check_for_item.qty_on_hand + int(qty)
-                        db.session.commit()
 
-            db.session.add(obj)
-            db.session.commit()
-            flash('New Putaway added Successfully!','success')
-            return redirect(url_for('bp_iwms.putaways'))
+                        if _check_for_item is None:
+                            inventory_item = InventoryItem()
+                            inventory_item.stock_item = item
+                            inventory_item.category_id = item.category_id
+                            inventory_item.stock_item_type_id = item.stock_item_type_id
+
+                            item_location = ItemBinLocations(inventory_item=inventory_item,bin_location=bin_location,\
+                                qty_on_hand=qty)
+
+                            db.session.add(inventory_item)
+                        else:
+                            bin_item = ItemBinLocations.query.filter_by(inventory_item_id=_check_for_item.id,bin_location_id=bin_location.id).first()
+                            if bin_item is not None:
+                                bin_item.qty_on_hand = bin_item.qty_on_hand + int(qty)
+                                db.session.commit()
+                            else:
+                                new_bin_item_location = ItemBinLocations(inventory_item=_check_for_item,\
+                                    bin_location=bin_location,qty_on_hand=qty)
+                                db.session.add(new_bin_item_location)
+                                db.session.commit()
+
+                db.session.add(obj)
+                db.session.commit()
+                flash('New Putaway added Successfully!','success')
+                return redirect(url_for('bp_iwms.putaways'))
+            except Exception as e:
+                flash(str(e),'error')
+                return redirect(url_for('bp_iwms.putaways'))
         else:
             for key, value in f.errors.items():
                 flash(str(key) + str(value), 'error')
@@ -1398,6 +1429,7 @@ def purchase_order_create():
     else:
         # MAY issue to kasi kapag hindi na truncate yung table magkaiba na yung id at number ng po
         # Make sure nakatruncate ang mga table ng po para reset yung auto increment na id
+        # TODO: dapat kunin yung ibibigay na id ng database
         po_generated_number = "PO00000001"
     
     f = PurchaseOrderCreateForm()
@@ -1897,9 +1929,86 @@ def client_edit(oid):
 @bp_iwms.route('/inventory_items')
 @login_required
 def inventory_items():
-    fields = [InventoryItem.id,StockItem.name]
+    fields = [InventoryItem.id,StockItem.name,StockItemType.name,Category.description]
+    query1 = db.session.query(InventoryItem,StockItem,StockItemType,Category)
+    models = query1.outerjoin(InventoryItem, InventoryItem.stock_item_id == StockItem.id).with_entities(*fields).all()    
+    # Dahil hindi ko masyadong kabisado ang ORM, ito muna
+    mmodels = [list(ii) for ii in models]
+    for ii in mmodels:
+        _ibl = ItemBinLocations.query.with_entities(func.sum(ItemBinLocations.qty_on_hand)).filter_by(inventory_item_id=ii[0]).all()
+        ii.append(_ibl[0][0])
+        
     context['mm-active'] = 'inventory_item'
-    models = [InventoryItem,StockItem]
-    return admin_index(*models,fields=fields,form=InventoryItemForm(), \
-        template='iwms/iwms_index.html', view_modal=False,\
-            create_modal=False,kwargs={'active':'inventory'})
+    return admin_index(InventoryItem,fields=fields,form=InventoryItemForm(), \
+        template='iwms/iwms_index.html',edit_url='bp_iwms.inventory_item_edit',\
+            create_modal=True,create_url=False,kwargs={'active':'inventory',
+            'models': mmodels
+            })
+
+@bp_iwms.route('/inventory_item_edit',methods=['GET','POST'])
+@login_required
+def inventory_item_edit():
+    po = PurchaseOrder.query.get_or_404(oid)
+    f = PurchaseOrderCreateForm(obj=po)
+    if request.method == "GET":
+        warehouses = Warehouse.query.all()
+        suppliers = Supplier.query.all()
+        # stock_items = StockItem.query.all()
+        # Hardcoded html ang irerender natin hindi yung builtin ng admin
+        context['active'] = 'purchases'
+        context['mm-active'] = 'purchase_order'
+        context['module'] = 'iwms'
+        context['model'] = 'purchase_order'
+
+        # query1 = db.session.query(StockItemUomLine.uom_id).filter_by(stock_item_id=oid)
+        # stock_items = db.session.query(UnitOfMeasure).filter(~UnitOfMeasure.id.in_(query1))
+
+        return render_template('iwms/purchase_order/iwms_purchase_order_edit.html', oid=oid,stock_items='',line_items=po.product_line, \
+            context=context,form=f,title="Edit purchase order",warehouses=warehouses,suppliers=suppliers)
+    elif request.method == "POST":
+        if f.validate_on_submit():
+            po.supplier_id = f.supplier_id.data if not f.supplier_id.data == '' else None
+            po.warehouse_id = f.warehouse_id.data if not f.warehouse_id.data == '' else None
+            po.ship_to = f.ship_to.data
+            po.address = f.address.data
+            po.remarks = f.remarks.data
+            po.ordered_date = f.ordered_date.data if not f.ordered_date.data == '' else None
+            po.delivery_date = f.delivery_date.data if not f.delivery_date.data == '' else None
+            po.approved_by = f.approved_by.data
+            po.updated_by = "{} {}".format(current_user.fname,current_user.lname)
+
+            product_list = request.form.getlist('products[]')
+            if product_list:
+                po.product_line = []
+                for product_id in product_list:
+                    product = StockItem.query.get(product_id)
+                    qty = request.form.get("qty_{}".format(product_id))
+                    cost = request.form.get("cost_{}".format(product_id))
+                    amount = request.form.get("amount_{}".format(product_id))
+                    uom = UnitOfMeasure.query.get(request.form.get("uom_{}".format(product_id)))
+                    line = PurchaseOrderProductLine(stock_item=product,qty=qty,unit_cost=cost,amount=amount,uom=uom,remaining_qty=qty)
+                    po.product_line.append(line)
+
+            db.session.commit()
+
+            if request.form['btn_submit'] == 'Save and Print':
+                file_name = po.po_number + '.pdf'
+                file_path = current_app.config['PDF_FOLDER'] + po.po_number + '.pdf'
+                """ CONVERT HTML STRING TO PDF THEN RETURN PDF TO BROWSER TO PRINT
+                """
+                if platform.system() == "Windows":
+                    path_wkhtmltopdf = r'C:\Program Files\wkhtmltopdf\bin\wkhtmltopdf.exe' # CHANGE THIS to the location of wkhtmltopdf
+                    config = pdfkit.configuration(wkhtmltopdf=path_wkhtmltopdf)
+                    pdfkit.from_string(_makePOPDF(po.supplier,po.product_line),file_path,configuration=config)
+                else:
+                    pdfkit.from_string(_makePOPDF(po.supplier,po.product_line),file_path)
+                    
+                flash('Purchase Order updated Successfully!','success')
+                return send_from_directory(directory=current_app.config['PDF_FOLDER'],filename=file_name,as_attachment=True)
+
+            flash('Purchase Order updated Successfully!','success')
+            return redirect(url_for('bp_iwms.purchase_orders'))
+        else:
+            for key, value in f.errors.items():
+                flash(str(key) + str(value), 'error')
+            return redirect(url_for('bp_iwms.purchase_orders'))

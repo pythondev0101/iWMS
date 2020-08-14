@@ -115,7 +115,10 @@ class Category(Base,Admin):
     """ COLUMNS """
     code = db.Column(db.String(64),nullable=False)
     description = db.Column(db.String(255),nullable=True)
-
+    
+    @property
+    def name(self):
+        return self.description
 
 class StockItemStatus(enum.Enum):
     active = "Active"
@@ -413,11 +416,6 @@ class Client(Base,Admin):
     code = db.Column(db.String(255),nullable=False)
     name = db.Column(db.String(255),nullable=True)
 
-# bin_locations = db.Table('iwms_item_bin_locations',
-#     db.Column('bin_location_id', db.Integer, db.ForeignKey('iwms_bin_location.id'), primary_key=True),
-#     db.Column('inventory_item_id', db.Integer, db.ForeignKey('iwms_inventory_item.id'), primary_key=True),
-#     db.Column('qty_on_hand',db.Integer,nullable=True)
-# )
 
 class ItemBinLocations(db.Model):
     __tablename__ = 'iwms_item_bin_locations'
@@ -440,4 +438,7 @@ class InventoryItem(Base,Admin):
     """ COLUMNS """
     stock_item_id = db.Column(db.Integer,db.ForeignKey('iwms_stock_item.id',ondelete="SET NULL"),nullable=True)
     stock_item = db.relationship('StockItem',backref="inventory_stock_item")
-    # bin_locations = db.relationship('BinLocation',secondary=bin_locations,lazy='subquery',backref=db.backref('inventory_items',lazy=True))
+    stock_item_type_id = db.Column(db.Integer,db.ForeignKey('iwms_stock_item_type.id',ondelete="SET NULL"),nullable=True)
+    stock_item_type = db.relationship('StockItemType',backref='inventory_items')
+    category_id = db.Column(db.Integer,db.ForeignKey('iwms_category.id',ondelete="SET NULL"),nullable=True)
+    category = db.relationship('Category',backref='inventory_items')

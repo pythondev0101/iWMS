@@ -175,21 +175,34 @@
                                             $(field).attr('checked', false);
                                         }
                                     }else{
-                                        // IF STATUS IS NOT LOGGED OF PO the edit button will rename to 'view' only
-                                        if (!(data.result == 'LOGGED') && (table=='iwms_purchase_order')){
-                                            $("#view_edit_button").text("View");
-                                            $("#view_edit_button").attr('href', url.replace('edit','view'));
-                                        }else{
-                                            $("#view_edit_button").text("Edit");
-                                            $("#view_edit_button").attr('href', url.replace('view','edit'));
-                                        }
                                         $(field).val(data.result);
                                     }
                                 }
                             }
                         });
                     }
-                }else{
+                    // PO: CHANGE VIEW_EDIT_BUTTON TEXT DEPENDS IN STATUS
+                    if (table == "iwms_purchase_order"){
+                        $.ajax({
+                            url: "/iwms/_get_PO_status",
+                            type: "POST",
+                            dataType: "json",
+                            data: JSON.stringify({'id':field_id}),
+                            contentType: "application/json; charset=utf-8",
+                            success: function(data) {
+                                if (!(data.editable == true)){
+                                // IF STATUS IS NOT LOGGED OF PO the edit button will rename to 'view' only
+                                    $("#view_edit_button").text("View");
+                                    $("#view_edit_button").attr('href', url.replace('edit','view'));
+                                }else{
+                                    $("#view_edit_button").text("Edit");
+                                    $("#view_edit_button").attr('href', url.replace('view','edit'));
+                                }
+                            }
+                        });
+                    }
+                }
+                else{
                     var fields = {% if context['create_modal']['js_fields'] %} {{ context['create_modal']['js_fields'] | tojson }} {% else %} '' {% endif %};
                     var ctr;
                     var field;
