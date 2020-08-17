@@ -1,0 +1,55 @@
+<div id="add_product_modal" class="modal fade bd-example-modal-lg" tabindex="-1" role="dialog"
+     aria-labelledby="myLargeModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Add product line</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="main-card mb-3 card">
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table id="tbl_product_modal" class="mb-0 table" style="width: 100%;">
+                                    <thead>
+                                        <tr>
+                                            <th style="display:none;">ID</th>
+                                            <th></th>
+                                            <th>ITEM NO.</th>
+                                            <th>NAME</th>
+                                            <th>DESCRIPTION</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for ii in inventory_items %}
+                                            <tr>
+                                                <td style="display:none;">{{ii.id}}</td>
+                                                  <td>
+                                                    <input class='chkbox' type='checkbox'>
+                                                </td>
+                                                <td>
+                                                    {{ ii.stock_item.number }}
+                                                </td>
+                                                <td>
+                                                    {{ ii.stock_item.name }}
+                                                </td>
+                                                <td>
+                                                    {{ ii.stock_item.description }}
+                                                </td>
+                                            </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                        <button id="btn_add_product" type="button" class="btn btn-primary" data-dismiss="modal">Add item</button>
+                    </div>
+                </div>
+        </div>
+    </div>
+</div>

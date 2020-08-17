@@ -320,7 +320,7 @@ class Supplier(Base,Admin):
 class Term(Base,Admin):
     __tablename__  = 'iwms_term'
     __amname__ = 'term'
-    __amdescription__ = 'Term'
+    __amdescription__ = 'Terms'
 
     """ COLUMNS """
     code = db.Column(db.String(255),nullable=False)
@@ -388,10 +388,10 @@ class TaxCode(Base,Admin):
     name = db.Column(db.String(255),nullable=False)
 
 
-class SalesVia(Base,Admin):
-    __tablename__ = 'iwms_sales_via'
-    __amname__ = 'sales_via'
-    __amdescription__ = 'Sales Via'
+class ShipVia(Base,Admin):
+    __tablename__ = 'iwms_ship_via'
+    __amname__ = 'ship_via'
+    __amdescription__ = 'Ship Via'
 
     """ COLUMNS """
     description = db.Column(db.String(255),nullable=False)
@@ -442,3 +442,64 @@ class InventoryItem(Base,Admin):
     stock_item_type = db.relationship('StockItemType',backref='inventory_items')
     category_id = db.Column(db.Integer,db.ForeignKey('iwms_category.id',ondelete="SET NULL"),nullable=True)
     category = db.relationship('Category',backref='inventory_items')
+    default_cost = db.Column(db.Numeric(10,2),nullable=True,default=None)
+    default_price = db.Column(db.Numeric(10,2),nullable=True,default=None)
+
+class SalesOrder(Base,Admin):
+    __tablename__ = 'iwms_sales_order'
+    __amname__ = 'sales_order'
+    __amdescription__ = 'Sales Order'
+    __amicon__ = 'pe-7s-wallet'
+
+    """ COLUMNS """
+    number = db.Column(db.String(255),nullable=False)
+    status = db.Column(db.String(255),default="LOGGED")
+    client_id = db.Column(db.Integer,db.ForeignKey('iwms_client.id',ondelete="SET NULL"),nullable=True)
+    client = db.relationship('Client',backref="sales_orders")
+    ship_to = db.Column(db.String(255),nullable=True)
+    end_user = db.Column(db.String(255),nullable=True)
+    tax_info = db.Column(db.String(255),nullable=True)
+    reference = db.Column(db.String(255),nullable=True)
+    sales_representative = db.Column(db.String(255),nullable=True)
+    inco_terms = db.Column(db.String(255),nullable=True)
+    destination_port = db.Column(db.String(255),nullable=True)
+    remarks = db.Column(db.String(255),nullable=True)
+    term_id = db.Column(db.Integer,db.ForeignKey('iwms_term.id',ondelete="SET NULL"),nullable=True)
+    term = db.relationship('Term',backref="sales_orders")
+    ship_via_id = db.Column(db.Integer,db.ForeignKey('iwms_ship_via.id',ondelete="SET NULL"),nullable=True)
+    ship_via = db.relationship('ShipVia',backref="sales_orders")
+    ordered_date = db.Column(db.DateTime, default=datetime.utcnow,nullable=True)
+    delivery_date = db.Column(db.DateTime, default=datetime.utcnow,nullable=True)
+    approved_by = db.Column(db.String(255),nullable=True)
+    active_picklist= db.Column(db.String(255),nullable=True)
+    product_line = db.relationship('SalesOrderLine', cascade='all,delete', backref="sales_order")
+
+class SalesOrderLine(db.Model):
+    __tablename__ = 'iwms_sales_order_line'
+
+    """ COLUMNS """
+    id = db.Column(db.Integer, primary_key=True)
+    sales_order_id = db.Column(db.Integer, db.ForeignKey('iwms_sales_order.id',ondelete='CASCADE'))
+    inventory_item_id = db.Column(db.Integer,db.ForeignKey('iwms_inventory_item.id',ondelete="SET NULL"),nullable=True)
+    inventory_item = db.relationship('InventoryItem',backref="so_line")
+    qty = db.Column(db.Integer,nullable=True)
+    issued_qty = db.Column(db.Integer,nullable=True)
+    unit_price = db.Column(db.Numeric(10,2),nullable=True)
+    uom_id = db.Column(db.Integer,db.ForeignKey('iwms_unit_of_measure.id',ondelete="SET NULL"),nullable=True)
+    uom = db.relationship("UnitOfMeasure",backref='so_line_uom')
+
+
+class Picking(Base,Admin):
+    __tablename__ = 'iwms_picking'
+    __amname__ = 'picking'
+    __amdescription__ = 'Picking'
+    __amicon__ = 'pe-7s-wallet'
+
+    """ COLUMNS """
+    number = db.Column(db.String(255),nullable=False)
+    status = db.Column(db.String(255),nullable=False)
+    warehouse_id = db.Column(db.Integer,db.ForeignKey('iwms_warehouse.id',ondelete="SET NULL"),nullable=True)
+    warehouse = db.relationship('Warehouse',backref="pickings")
+    sales_order_id = db.Column(db.Integer,db.ForeignKey('iwms_sales_order.id',ondelete="SET NULL"),nullable=True)
+    sales_order = db.relationship('SalesOrder',backref="pickings")
+    remarks = db.Column(db.String(255),nullable=True)

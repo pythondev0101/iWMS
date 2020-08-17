@@ -17,8 +17,8 @@ from app.admin.routes import admin_index, admin_edit
 from .models import Group,Department,TransactionType,Warehouse,Zone, \
     BinLocation,Category,StockItem,UnitOfMeasure,Reason,StockReceipt,Putaway, \
         Email as EAddress, PurchaseOrder, Supplier, Term,PurchaseOrderProductLine,StockItemType,TaxCode,\
-            StockItemUomLine,StockReceiptItemLine, PutawayItemLine,Source, SalesVia, ClientGroup, Client, InventoryItem,\
-                ItemBinLocations
+            StockItemUomLine,StockReceiptItemLine, PutawayItemLine,Source, ShipVia, ClientGroup, Client, InventoryItem,\
+                ItemBinLocations,SalesOrder,SalesOrderLine
 
 from .forms import *
 from datetime import datetime
@@ -27,6 +27,8 @@ from app.auth.models import User
 import pdfkit
 from flask_mail import Message
 from sqlalchemy import and_, func
+from flask_cors import cross_origin
+
 
 """----------------------INTERNAL FUNCTIONS-------------------------"""
 
@@ -289,16 +291,26 @@ def _get_sr_line():
 def _get_uom_line():
     if request.method == 'POST':
         stock_item_id = request.json['stock_item_id']
-        obj = StockItem.query.get_or_404(stock_item_id)
-        uom_line = []
-        for line in obj.uom_line:
-            default = "false"
-            if line.uom_id == obj.unit_id:
-                default = 'true'
-            uom_line.append({'id':line.uom_id,'code':line.uom.code,'default':default})
-        res = jsonify(uom_lines=uom_line)
-        res.status_code = 200
-        return res
+        # Pag 0 means kukunin nya lahat ang uom
+        if stock_item_id == 0:
+            obj = UnitOfMeasure.query.all()
+            uom_line = []
+            for line in obj:
+                uom_line.append({'id':line.id,'code':line.code})
+            res = jsonify(uom_lines=uom_line)
+            res.status_code = 200
+            return res 
+        else:
+            obj = StockItem.query.get_or_404(stock_item_id)
+            uom_line = []
+            for line in obj.uom_line:
+                default = "false"
+                if line.uom_id == obj.unit_id:
+                    default = 'true'
+                uom_line.append({'id':line.uom_id,'code':line.uom.code,'default':default})
+            res = jsonify(uom_lines=uom_line)
+            res.status_code = 200
+            return res
 
 @bp_iwms.route('/_barcode_check', methods=['POST'])
 def _barcode_check():
@@ -1382,11 +1394,14 @@ def putaway_create():
                             inventory_item.stock_item = item
                             inventory_item.category_id = item.category_id
                             inventory_item.stock_item_type_id = item.stock_item_type_id
+                            inventory_item.default_price = item.default_price
+                            inventory_item.default_cost = item.default_cost
 
                             item_location = ItemBinLocations(inventory_item=inventory_item,bin_location=bin_location,\
                                 qty_on_hand=qty)
 
                             db.session.add(inventory_item)
+                            db.session.commit()
                         else:
                             bin_item = ItemBinLocations.query.filter_by(inventory_item_id=_check_for_item.id,bin_location_id=bin_location.id).first()
                             if bin_item is not None:
@@ -1730,7 +1745,7 @@ def terms():
     context['mm-active'] = 'term'
     return admin_index(Term,fields=fields,form=TermForm(), \
         template='iwms/iwms_index.html', edit_url='bp_iwms.term_edit',\
-            create_url="bp_iwms.term_create",kwargs={'active':'inventory'})
+            create_url="bp_iwms.term_create",kwargs={'active':'sales'})
 
 @bp_iwms.route('/term_create',methods=['POST'])
 @login_required
@@ -1777,12 +1792,12 @@ def term_edit(oid):
             return redirect(url_for('bp_iwms.terms'))
 
 
-@bp_iwms.route('/sales_via')
+@bp_iwms.route('/ship_via')
 @login_required
-def sales_via():
-    fields = [SalesVia.id,SalesVia.description]
-    context['mm-active'] = 'sales_via'
-    return admin_index(SalesVia,fields=fields,form=SalesViaForm(), \
+def ship_via():
+    fields = [ShipVia.id,ShipVia.description,ShipVia.created_by,ShipVia.created_at]
+    context['mm-active'] = 'ship_via'
+    return admin_index(ShipVia,fields=fields,form=SalesViaForm(), \
         template='iwms/iwms_index.html', edit_url='bp_iwms.sales_via_edit',\
             create_url="bp_iwms.sales_via_create",kwargs={'active':'sales'})
 
@@ -1792,17 +1807,17 @@ def sales_via_create():
     f = SalesViaForm()
     if request.method == "POST":
         if f.validate_on_submit():
-            obj = SalesVia()
+            obj = ShipVia()
             obj.description = f.description.data
             obj.created_by = "{} {}".format(current_user.fname,current_user.lname)
             db.session.add(obj)
             db.session.commit()
             flash("New sales via added successfully!",'success')
-            return redirect(url_for('bp_iwms.sales_via'))
+            return redirect(url_for('bp_iwms.ship_via'))
         else:
             for key, value in f.errors.items():
                 flash(str(key) + str(value), 'error')
-            return redirect(url_for('bp_iwms.sales_via'))
+            return redirect(url_for('bp_iwms.ship_via'))
 
 @bp_iwms.route('/sales_via_edit/<int:oid>',methods=['GET','POST'])
 @login_required
@@ -1820,11 +1835,11 @@ def sales_via_edit(oid):
             obj.updated_at = datetime.now()
             db.session.commit()
             flash('Sales via update Successfully!','success')
-            return redirect(url_for('bp_iwms.sales_via'))
+            return redirect(url_for('bp_iwms.ship_via'))
         else:
             for key, value in form.errors.items():
                 flash(str(key) + str(value), 'error')
-            return redirect(url_for('bp_iwms.sales_via'))
+            return redirect(url_for('bp_iwms.ship_via'))
 
 
 @bp_iwms.route('/client_groups')
@@ -1934,7 +1949,9 @@ def client_edit(oid):
 def inventory_items():
     fields = [InventoryItem.id,StockItem.name,StockItemType.name,Category.description]
     query1 = db.session.query(InventoryItem,StockItem,StockItemType,Category)
-    models = query1.join(InventoryItem, InventoryItem.stock_item_id == StockItem.id).with_entities(*fields).all()    
+    models = query1.outerjoin(StockItem, InventoryItem.stock_item_id == StockItem.id).outerjoin(StockItemType, InventoryItem.stock_item_type_id == StockItemType.id).\
+        outerjoin(Category, InventoryItem.category_id  == Category.id).\
+            with_entities(InventoryItem.id,StockItem.name,StockItemType.name,Category.description).all()    
     # Dahil hindi ko masyadong kabisado ang ORM, ito muna
     mmodels = [list(ii) for ii in models]
     for ii in mmodels:
@@ -1943,75 +1960,155 @@ def inventory_items():
         
     context['mm-active'] = 'inventory_item'
     return admin_index(InventoryItem,fields=fields,form=InventoryItemForm(), \
-        template='iwms/iwms_index.html',edit_url='bp_iwms.inventory_item_edit',\
-            create_modal=True,create_url=False,kwargs={'active':'inventory',
+        template='iwms/inventory_item/iwms_inventory_item_index.html',edit_url="bp_iwms.inventory_item_edit",\
+            create_modal=True,view_modal="iwms/inventory_item/iwms_inventory_item_view_modal.html",create_url=False,kwargs={'active':'inventory',
             'models': mmodels
             })
 
-@bp_iwms.route('/inventory_item_edit',methods=['GET','POST'])
+@bp_iwms.route('/_get_ii_view_modal_data',methods=["POST"])
+@cross_origin()
+def get_ii_view_modal_data():
+    id = request.json['id']
+    # query = "select {} from {} where id = {} limit 1".format(column,table,id)
+    # sql = text(query)
+    # row = db.engine.execute(sql)
+    # res = [x[0] if x[0] is not None else '' for x in row]
+
+    # resp = jsonify(result=str(res[0]),column=column)
+    res = {}
+    ii = InventoryItem.query.get_or_404(id)
+    res['name'] = ii.stock_item.name
+    res['number'] = ii.stock_item.number
+    res['price'] = str(ii.default_price)
+    res['cost'] = str(ii.default_cost)
+    res['stock_item_type_id'] = ii.stock_item_type_id
+    res['category_id'] = ii.category_id
+    print(res)
+    resp = jsonify(result=res)
+    resp.headers.add('Access-Control-Allow-Origin', '*')
+    resp.status_code = 200
+    return resp
+
+
+@bp_iwms.route('/inventory_item_edit/<int:oid>',methods=['GET','POST'])
 @login_required
-def inventory_item_edit():
-    po = PurchaseOrder.query.get_or_404(oid)
-    f = PurchaseOrderCreateForm(obj=po)
+def inventory_item_edit(oid):
+    ii = InventoryItem.query.get_or_404(oid)
+    f = InventoryItemEditForm(obj=ii)
     if request.method == "GET":
-        warehouses = Warehouse.query.all()
-        suppliers = Supplier.query.all()
-        # stock_items = StockItem.query.all()
         # Hardcoded html ang irerender natin hindi yung builtin ng admin
-        context['active'] = 'purchases'
-        context['mm-active'] = 'purchase_order'
+        context['active'] = 'inventory'
+        context['mm-active'] = 'inventory_item'
         context['module'] = 'iwms'
-        context['model'] = 'purchase_order'
+        context['model'] = 'inventory_item'
+        categories = Category.query.all()
+        types = StockItemType.query.all()
 
-        # query1 = db.session.query(StockItemUomLine.uom_id).filter_by(stock_item_id=oid)
-        # stock_items = db.session.query(UnitOfMeasure).filter(~UnitOfMeasure.id.in_(query1))
+        stocks = ItemBinLocations.query.filter_by(inventory_item_id=oid).all()
 
-        return render_template('iwms/purchase_order/iwms_purchase_order_edit.html', oid=oid,stock_items='',line_items=po.product_line, \
-            context=context,form=f,title="Edit purchase order",warehouses=warehouses,suppliers=suppliers)
+        return render_template('iwms/inventory_item/iwms_inventory_item_edit.html', oid=oid,context=context,form=f,stocks=stocks,\
+            title="Edit inventory item",number=ii.stock_item.number,name=ii.stock_item.name,categories=categories,types=types)
     elif request.method == "POST":
         if f.validate_on_submit():
-            po.supplier_id = f.supplier_id.data if not f.supplier_id.data == '' else None
-            po.warehouse_id = f.warehouse_id.data if not f.warehouse_id.data == '' else None
-            po.ship_to = f.ship_to.data
-            po.address = f.address.data
-            po.remarks = f.remarks.data
-            po.ordered_date = f.ordered_date.data if not f.ordered_date.data == '' else None
-            po.delivery_date = f.delivery_date.data if not f.delivery_date.data == '' else None
-            po.approved_by = f.approved_by.data
-            po.updated_by = "{} {}".format(current_user.fname,current_user.lname)
-
-            product_list = request.form.getlist('products[]')
-            if product_list:
-                po.product_line = []
-                for product_id in product_list:
-                    product = StockItem.query.get(product_id)
-                    qty = request.form.get("qty_{}".format(product_id))
-                    cost = request.form.get("cost_{}".format(product_id))
-                    amount = request.form.get("amount_{}".format(product_id))
-                    uom = UnitOfMeasure.query.get(request.form.get("uom_{}".format(product_id)))
-                    line = PurchaseOrderProductLine(stock_item=product,qty=qty,unit_cost=cost,amount=amount,uom=uom,remaining_qty=qty)
-                    po.product_line.append(line)
-
+            ii.default_price = f.default_price.data
+            ii.default_cost = f.default_cost.data
+            ii.stock_item_type_id = f.stock_item_type_id.data if not f.stock_item_type_id.data == '' else None
+            ii.category_id = f.category_id.data if not f.category_id.data == '' else None
+            ii.updated_by = "{} {}".format(current_user.fname,current_user.lname)
+            ii.updated_at = datetime.now()
             db.session.commit()
+            flash('Inventory Item update Successfully!','success')
+            return redirect(url_for('bp_iwms.inventory_items'))
+        else:
+            for key, value in form.errors.items():
+                flash(str(key) + str(value), 'error')
+            return redirect(url_for('bp_iwms.inventory_items'))
 
-            if request.form['btn_submit'] == 'Save and Print':
-                file_name = po.po_number + '.pdf'
-                file_path = current_app.config['PDF_FOLDER'] + po.po_number + '.pdf'
-                """ CONVERT HTML STRING TO PDF THEN RETURN PDF TO BROWSER TO PRINT
-                """
-                if platform.system() == "Windows":
-                    path_wkhtmltopdf = r'C:\Program Files\wkhtmltopdf\bin\wkhtmltopdf.exe' # CHANGE THIS to the location of wkhtmltopdf
-                    config = pdfkit.configuration(wkhtmltopdf=path_wkhtmltopdf)
-                    pdfkit.from_string(_makePOPDF(po.supplier,po.product_line),file_path,configuration=config)
-                else:
-                    pdfkit.from_string(_makePOPDF(po.supplier,po.product_line),file_path)
-                    
-                flash('Purchase Order updated Successfully!','success')
-                return send_from_directory(directory=current_app.config['PDF_FOLDER'],filename=file_name,as_attachment=True)
+@bp_iwms.route('/sales_orders')
+@login_required
+def sales_orders():
+    fields = [SalesOrder.id,SalesOrder.number,SalesOrder.created_at,SalesOrder.created_by,SalesOrder.status]
+    context['mm-active'] = 'sales_order'
+    context['create_modal']['create_url'] = False
+    return admin_index(SalesOrder,fields=fields,form=SalesOrderViewForm(),create_modal=True,template="iwms/iwms_index.html",kwargs={'active':'sales'})
 
-            flash('Purchase Order updated Successfully!','success')
-            return redirect(url_for('bp_iwms.purchase_orders'))
+
+@bp_iwms.route('/sales_order_create',methods=['GET','POST'])
+@login_required
+def sales_order_create():
+    so_generated_number = ""
+    so = db.session.query(SalesOrder).order_by(SalesOrder.id.desc()).first()
+    if so:
+        so_generated_number = _generate_number("SO",so.id)
+    else:
+        # MAY issue to kasi kapag hindi na truncate yung table magkaiba na yung id at number ng po
+        # Make sure nakatruncate ang mga table ng po para reset yung auto increment na id
+        so_generated_number = "SO00000001"
+
+    f = SalesOrderCreateForm()
+    if request.method == "GET":
+        # Hardcoded html ang irerender natin hindi yung builtin ng admin
+        clients = Client.query.all()
+        terms = Term.query.all()
+        ship_vias = ShipVia.query.all()
+        inventory_items = InventoryItem.query.all()
+
+        context['active'] = 'sales'
+        context['mm-active'] = 'sales_order'
+        context['module'] = 'iwms'
+        context['model'] = 'sales_order'
+        return render_template('iwms/sales_order/iwms_sales_order_create.html',context=context,form=f,title="Create sales order"\
+            ,so_generated_number=so_generated_number,clients=clients,terms=terms,ship_vias=ship_vias,inventory_items=inventory_items)
+    elif request.method == "POST":
+        if f.validate_on_submit():
+            try:
+                r = request.form
+                so = SalesOrder()
+                so.number = so_generated_number
+                client = Client.query.filter_by(name=f.client_name.data).first()
+                so.client = client
+                so.ship_to = f.ship_to.data
+                so.end_user = f.end_user.data
+                so.tax_info = f.tax_info.data
+                so.reference = f.reference.data
+                so.sales_representative = f.sales_representative.data
+                so.inco_terms = f.inco_terms.data
+                so.destination_port = f.destination_port.data
+                so.term_id = f.term_id.data if not f.term_id.data == '' else None
+                so.ship_via_id = f.ship_via_id.data if not f.ship_via_id.data == '' else None
+                so.order_date = f.order_date.data if not f.order_date.data == '' else None
+                so.delivery_date = f.delivery_date.data if not f.delivery_date.data == '' else None
+                so.remarks = f.remarks.data
+                so.approved_by = f.approved_by.data
+                so.created_by = "{} {}".format(current_user.fname,current_user.lname)
+
+                product_list = r.getlist('products[]')
+                if product_list:
+                    for product_id in product_list:
+                        print(product_id)
+                        product = InventoryItem.query.get_or_404(product_id)
+                        qty = r.get("qty_{}".format(product_id))
+                        uom = UnitOfMeasure.query.get(r.get("uom_{}".format(product_id)))
+                        line = SalesOrderLine(inventory_item=product,qty=qty,uom=uom)
+                        so.product_line.append(line)
+
+                db.session.add(so)
+                db.session.commit()
+                flash('New Purchase Order added Successfully!','success')
+                return redirect(url_for('bp_iwms.sales_orders'))
+            except Exception as e:
+                flash(str(e),'error')
+                return redirect(url_for('bp_iwms.sales_orders'))
         else:
             for key, value in f.errors.items():
                 flash(str(key) + str(value), 'error')
-            return redirect(url_for('bp_iwms.purchase_orders'))
+            return redirect(url_for('bp_iwms.sales_orders'))
+
+
+@bp_iwms.route('/pickings')
+@login_required
+def pickings():
+    fields = [SalesOrder.id,SalesOrder.number,SalesOrder.created_at,SalesOrder.created_by,SalesOrder.status]
+    context['mm-active'] = 'sales_order'
+    context['create_modal']['create_url'] = False
+    return admin_index(SalesOrder,fields=fields,form=SalesOrderViewForm(),create_modal=True,template="iwms/iwms_index.html",kwargs={'active':'sales'})

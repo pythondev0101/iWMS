@@ -9,7 +9,7 @@
                     <i class="pe-7s-download text-success">
                     </i>
                 </div>
-                <div>{{ sr_generated_number }}
+                <div>{{ so_generated_number }}
                     <div class="page-title-subheading"><div class="mb-2 mr-2 badge badge-pill badge-primary">LOGGED</div>
                     </div>
                 </div>
@@ -22,33 +22,83 @@
                 <span>General Information</span>
             </a>
         </li>
-        <!-- <li class="nav-item">
-            <a role="tab" class="nav-link show" id="tab-1" data-toggle="tab" href="#tab-content-1" aria-selected="false">
-                <span>Other Information</span>
-            </a>
-        </li> -->
     </ul>
-    <form action="{{ url_for('bp_iwms.stock_receipt_create') }}" id="edit_form" class="needs-validation" method="POST" novalidate>
+    <form action="{{ url_for('bp_iwms.sales_order_create') }}" id="edit_form" class="needs-validation" method="POST" novalidate>
     {{ form.csrf_token }}
     <div class="tab-content">
         <div class="tab-pane tabs-animation fade active show" id="tab-content-0" role="tabpanel">
             <div class="main-card mb-3 card">
                 <div class="card-body">
                         <div class="form-row">
-                            <div class="col-md-4">
+                            <div class="col-md-6">
                                 <div class="position-relative form-group">
-                                    <label for="warehouse" class="">Warehouse</label>
-                                    <input name="warehouse" id="warehouse" type="text" class="form-control" readonly>
+                                    <label for="client_name" class="">Customer</label>
+                                    <div class="input-group"><input id="client_name" name="client_name" type="text" class="form-control" required readonly>
+                                        <div class="input-group-append">
+                                            <button id="btn_search_po" type="button" data-toggle="modal" data-target="#search_client_modal" title="Search PO" data-placement="bottom" class="btn btn-primary pe-7s-search"></button>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
-                            <div class="col-md-3">
+                            <div class="col-md-6">
                                 <div class="position-relative form-group">
-                                    <label for="source" class="">Source</label>
-                                    <select name="source" id="source" class="form-control">
+                                    <label for="ship_to" class="">Ship To</label>
+                                    <input name="ship_to" id="ship_to" type="text" class="form-control">
+                                </div>
+                            </div>
+                        </div> 
+
+                        <div class="form-row">
+                            <div class="col-md-4">
+                                <div class="position-relative form-group">
+                                    <label for="end_user" class="">End User Type</label>
+                                    <input name="end_user" id="end_user" type="text" class="form-control">
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="position-relative form-group">
+                                    <label for="tax_info" class="">Tax Info</label>
+                                    <input name="tax_info" id="tax_info" type="text" class="form-control">
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="position-relative form-group">
+                                    <label for="reference" class="">Reference</label>
+                                    <input name="reference" id="reference" type="text" class="form-control">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="col-md-4">
+                                <div class="position-relative form-group">
+                                    <label for="sales_representative" class="">Sales Representative</label>
+                                    <input name="sales_representative" id="sales_representative" type="text" class="form-control">
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="position-relative form-group"> 
+                                    <label for="inco_terms" class="">Inco Terms</label>
+                                    <input name="inco_terms" id="inco_terms" type="text" class="form-control">
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="position-relative form-group"> 
+                                    <label for="destination_port" class="">Destination Port</label>
+                                    <input name="destination_port" id="destination_port" type="text" class="form-control">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="col-md-6">
+                                <div class="position-relative form-group">
+                                    <label for="term_id" class="">Terms</label>
+                                    <select name="term_id" id="term_id" class="form-control">
                                         <option value="">Choose...</option>
-                                        {% for source in sources %}
-                                        <option value="{{ source.id }}">
-                                            {{ source.name }}
+                                        {% for term in terms %}
+                                        <option value="{{ term.id }}">
+                                            {{ term.description }}
                                         </option>
                                         {% endfor %}
                                     </select>
@@ -60,63 +110,53 @@
                                     </div>
                                 </div>
                             </div>
-                            <div class="col-md-5">
+                            <div class="col-md-6">
                                 <div class="position-relative form-group">
-                                    <label for="po_number" class="">PO No.</label>
-                                    <div class="input-group"><input id="po_number" name="po_number" type="text" class="form-control" readonly>
-                                        <div class="input-group-append">
-                                            <button id="btn_search_po" type="button" data-toggle="modal" data-target="#search_po_modal" title="Search PO" data-placement="bottom" class="btn btn-primary pe-7s-search"></button>
-                                        </div>
+                                    <label for="ship_via_id" class="">Ship Via</label>
+                                    <select name="ship_via_id" id="ship_via_id" class="form-control">
+                                        <option value="">Choose...</option>
+                                        {% for ship_via in ship_vias %}
+                                        <option value="{{ ship_via.id }}">
+                                            {{ ship_via.description }}
+                                        </option>
+                                        {% endfor %}
+                                    </select>
+                                    <div class="valid-feedback">
+                                        Looks good!
+                                    </div>
+                                    <div class="invalid-feedback">
+                                        Please provide a valid
                                     </div>
                                 </div>
                             </div>
-                        </div> 
-                        <div class="form-row">
+                        </div>
 
-                            <div class="col-md-4">
-                                <div class="position-relative form-group">
-                                    <label for="supplier" class="">Supplier</label>
-                                    <input name="supplier" id="supplier" type="text" class="form-control" readonly>
-                                </div>
-                            </div>
-                            <div class="col-md-4">
-                                <div class="position-relative form-group">
-                                    <label for="reference" class="">Reference</label>
-                                    <input name="reference" id="reference" type="text" class="form-control">
-                                </div>
-                            </div>
-                            <div class="col-md-4">
-                                <div class="position-relative form-group">
-                                    <label for="si_number" class="">SI Number</label>
-                                    <input name="si_number" id="si_number" type="text" class="form-control">
-                                </div>
-                            </div>
-                        </div>
                         <div class="form-row">
                             <div class="col-md-4">
                                 <div class="position-relative form-group">
-                                    <label for="bol" class="">BOL</label>
-                                    <input name="bol" id="bol" type="text" class="form-control" disabled>
+                                    <label for="order_date" class="">Order Date</label>
+                                    <input value="{{form.order_date.data.strftime('%Y-%m-%d')}}" name="order_date" id="order_date" type="date" class="form-control" readonly>
                                 </div>
                             </div>
                             <div class="col-md-4">
                                 <div class="position-relative form-group">
-                                    <label for="date_received" class="">Date Received</label>
-                                    <input value="{{form.date_received.data.strftime('%Y-%m-%d')}}" name="date_received" id="date_received" type="date" class="form-control" readonly>
+                                    <label for="delivery_date" class="">Delivery Date</label>
+                                    <input name="delivery_date" id="delivery_date" type="date" class="form-control">
                                 </div>
                             </div>
                             <div class="col-md-4">
-                                <div class="position-relative form-group">
-                                    <label for="putaway_txn" class="">Putaway Txn</label>
-                                    <input name="putaway_txn" id="putaway_txn" type="text" class="form-control" disabled>
+                                <div class="position-relative form-group"> 
+                                    <label for="approved_by" class="">Approved By</label>
+                                    <input name="approved_by" id="approved_by" type="text" class="form-control">
                                 </div>
                             </div>
                         </div>
+
                         <div class="form-row">
                             <div class="col-md-12">
                                 <div class="position-relative form-group">
                                     <label for="remarks" class="">Remarks</label>
-                                    <input name="remarks" id="remarks" type="text" class="form-control" readonly>
+                                    <input name="remarks" id="remarks" type="text" class="form-control">
                                 </div>
                             </div>
                         </div>
@@ -126,28 +166,27 @@
                 <div class="card-header">Line Items
                 </div>
                 <div class="table-responsive">
-                    <table id="tbl_sr_line" class="align-middle mb-0 table table-bordered table-hover">
+                    <table id="tbl_so_line" class="align-middle mb-0 table table-bordered table-hover">
                         <thead>
                         <tr>
                             <th style="display:none;">ID</th>
+                            <th style="display:none;">DESCRIPTION</th>
                             <th></th>
                             <th class="text-center">ITEM NO.</th>
                             <th class="text-center">NAME</th>
-                            <th class="text-center">LOT NO.</th>
-                            <th class="text-center">EXPIRY DATE</th>
                             <th class="text-center">UOM</th>
-                            <th class="text-center">RCVD QTY</th>
-                            <th class="text-center">NET WEIGHT</th>
-                            <th class="text-center">TIMESTAMP</th>
+                            <th class="text-center">QTY</th>
+                            <th class="text-center">ISSUED QTY</th>
+                            <th class="text-center">PRICE</th>
                         </tr>
                         </thead>
-                        <tbody id="tbody_sr_line">
+                        <tbody id="tbody_so_line">
                         </tbody>
                     </table>
                 </div>
                 <div class="d-block text-center card-footer">
-                    <!-- <button type="button" class="mr-2 btn-icon btn-icon-only btn btn-outline-danger"><i class="pe-7s-trash btn-icon-wrapper"> </i></button> -->
-                    <button type="button" class="btn-wide btn btn-success" data-toggle="modal" data-target="#po_line_modal" title="Add line" data-placement="bottom">Add</button>
+                    <button id="btn_delete_line" type="button" class="mr-2 btn-icon btn-icon-only btn btn-outline-danger"><i class="pe-7s-trash btn-icon-wrapper"> </i></button>
+                    <button type="button" class="btn-wide btn btn-success" data-toggle="modal" data-target="#add_product_modal" title="Add line" data-placement="bottom">Add</button>
                 </div>
             </div>
         </div>

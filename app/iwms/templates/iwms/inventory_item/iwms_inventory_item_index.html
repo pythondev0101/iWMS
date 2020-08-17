@@ -1,0 +1,208 @@
+{% extends "iwms/iwms_index.html" %}
+{% block content %}
+<div class="app-main__inner">
+    <div class="app-page-title">
+        <div class="page-title-wrapper">
+            <div class="page-title-heading">
+                <div class="page-title-icon">
+                    <i class="{{ rendered_model.__amicon__ }} icon-gradient bg-happy-itmeo"></i>
+                </div>
+                <div>
+                    {{ index_title }}
+                    <div class="page-title-subheading">
+                        {{ index_message }}
+                    </div>
+                </div>
+            </div>
+            {% block actions %}
+            {% if action %}
+            {% include action %}
+            {% endif %}
+            {% endblock %}
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-lg-12">
+            <div class="main-card mb-3 card">
+                <div class="card-body">
+                    <table id="index_table" class="mb-0 table table-hover table-bordered table-striped">
+                        <thead>
+                        <tr>
+                            {% for field in table_fields %}
+                            <th style="text-align: center;">{{ field.upper() }}</th>
+                            {% endfor %}
+                        </tr>
+                        </thead>
+                        <tbody>
+
+                        {% for model in models %}
+                        {% if view_modal %}
+                        <tr class='item row_object' id="{{ model[0] }}"  data-toggle="modal" data-target="#viewModal">
+                            <param id="param_{{ model[0] }}" name="param_{{ model[0] }}" {% if edit_url %} value="{{ url_for(edit_url,oid=model[0]) }}" {% endif %}>
+                        {% else %}
+                        <tr class='item row_object' id="{{ model[0] }}">
+                        {% endif %}
+                            {% for values in model %}
+                            {% if loop.index > 1 %}
+                            <!-- TEMPORARY conversion ng boolean word 'true' to 'YES' and 'false' to 'NO' -->
+                            <td style="font-weight: bold; text-align:center">
+                                {% if values|string == 'True' %}
+                                YES
+                                {% elif values|string == 'False' %}
+                                NO
+                                {% elif values == none %}
+                            
+                                {% elif values == 'LOGGED' %}
+                                <div class="mb-2 mr-2 badge badge-primary">LOGGED</div>
+                                {% elif values == 'RELEASED' %}
+                                <div class="mb-2 mr-2 badge badge-warning">RELEASED</div>
+                                {% elif values == 'COMPLETED' %}
+                                <div class="mb-2 mr-2 badge badge-success">COMPLETED</div>
+                                {% elif values == 'PENDING' %}
+                                <div class="mb-2 mr-2 badge badge-danger">PENDING</div>
+                                {% else %} {{ values }} 
+
+                                {% endif %}</td>
+                            {% endif %}
+                            {% endfor %}
+                        </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+
+{% block scripts %}
+<script type="text/javascript">
+    $(document).ready(function(){
+        var table = $('#index_table').DataTable({
+            "dom": 'rtip',
+            "pageLength": 8
+        });
+
+        $('.search-input').on('keyup', function () {
+            table.search(this.value).draw();
+        } );
+
+        $("#btndelete").click(function(){
+            if($('#btndelete').text()=='Delete'){
+                $('#nav_action_btns').after("<button id='btn_confirm_delete' type='button' tabindex='1' class='dropdown-item'>Confirm Delete</button>");
+                $('#btndelete').html("Cancel");
+                $("tr").removeAttr("data-toggle");
+                $("tr").find("th:last").after('<th>DELETE</th>');
+                $("tr").find("td:last").after("<td><input class='chkbox' type='checkbox'></td>");
+                var ids = [];
+                var csrf_token = "{{ csrf_token() }}";
+                $("#btn_confirm_delete").click(function(){
+                    $("tr.item").each(function() {
+                        var check = $(this).find("input.chkbox").is(':checked');
+                        if(check){
+                            ids.push(this.id)
+                        }
+                    });
+                    var table = '{{ table }}';
+                    $.ajaxSetup({
+                        beforeSend: function(xhr, settings) {
+                            if (!/^(GET|HEAD|OPTIONS|TRACE)$/i.test(settings.type) && !this.crossDomain) {
+                                xhr.setRequestHeader("X-CSRFToken", csrf_token);
+                            }
+                        }
+                    });
+                    $.ajax({
+                        url: "/admin/_delete_data",
+                        type: "POST",
+                        dataType: "json",
+                        data: JSON.stringify({'ids': ids,'table':table}),
+                        contentType: "application/json; charset=utf-8",
+                        success: function(data) {
+                            if(data.result == 2){
+                                alert("Must check some row!");
+                            }else{
+                                location.reload();
+                            }
+                        }
+                    });
+                });
+            }else{
+                $("#btn_confirm_delete").remove();
+                $('#btndelete').html("Delete");
+                $("tr").attr("data-toggle","modal");
+                $("tr").find("th:last").remove();
+                $("tr").find("td:last").remove();
+            }
+        });
+
+        $("#index_table tbody").on('click','.row_object',function(){
+            var view_modal = '{{ view_modal }}';
+            if (view_modal != 'False'){
+                var id = '#param_' + $(this).attr('id');
+                if(document.body.contains(document.getElementById('view_edit_button'))){
+                    var url = $(id).attr('value');
+                    document.getElementById("view_edit_button").setAttribute("href", url);
+                    var fields = {% if context['create_modal']['js_fields'] %} {{ context['create_modal']['js_fields'] | tojson }} {% else %} '' {% endif %};
+                    var ctr;
+                    var field;
+                    var field_id = $(this).attr('id');
+                    var csrf_token = "{{ csrf_token() }}";
+                    var table = '{{ table }}';
+                    $.ajaxSetup({
+                        beforeSend: function(xhr, settings) {
+                            if (!/^(GET|HEAD|OPTIONS|TRACE)$/i.test(settings.type) && !this.crossDomain) {
+                                xhr.setRequestHeader("X-CSRFToken", csrf_token);
+                            }
+                        }
+                    });
+                    $.ajax({
+                            url: "/iwms/_get_ii_view_modal_data",
+                            type: "POST",
+                            dataType: "json",
+                            data: JSON.stringify({'id':field_id}),
+                            contentType: "application/json; charset=utf-8",
+                            success: function(data) {
+                                if (data){
+                                    $("#view_name").val(data.result['name']);
+                                    $("#view_number").val(data.result['number']);
+                                    $("#view_price").val(data.result['price']);
+                                    $("#view_cost").val(data.result['cost']);
+                                    $("#view_category_id").val(data.result['category_id']);
+                                    $("#view_stock_item_type_id").val(data.result['stock_item_type_id']);
+                                }
+                            }
+                    });
+                }
+            }
+        });
+    });
+</script>
+{% endblock %}
+
+{% block toast %}
+{% with messages = get_flashed_messages(with_categories=true) %}
+{% if messages %}
+<div id="toast-container" class="toast-top-center">
+    {% for category, message in messages %}
+        {% if category == 'success' %}
+        <div class="toast toast-success" aria-live="polite">
+            <div class="toast-progress" style="width: 0%;"></div>
+            <button type="button" class="toast-close-button" role="button" onclick="close_toast()">×</button>
+            <div class="toast-title">Success!</div>
+            <div class="toast-message">{{ message }}</div>
+        </div>
+        {% elif category == 'error' %}
+        <div class="toast toast-error" aria-live="polite">
+            <div class="toast-progress" style="width: 0%;"></div>
+            <button type="button" class="toast-close-button" role="button" onclick="close_toast()">×</button>
+            <div class="toast-title">Error!</div>
+            <div class="toast-message">{{ message }}</div>
+        </div>
+        {% endif %}
+    {% endfor %}
+</div>
+{% endif %}
+{% endwith %}
+{% endblock %}

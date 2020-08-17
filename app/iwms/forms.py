@@ -350,6 +350,15 @@ class PutawayViewForm(AdminIndexForm):
     def create_fields(self):
         return [[self.pwy_number,self.status]]
 
+class SalesOrderViewForm(AdminIndexForm):
+    index_headers = ['SO no.','date created','created by','status']
+    index_title = 'Sales Order'
+    number = AdminField(label='SO No.')
+    status = AdminField(label="Status")
+
+    def create_fields(self):
+        return [[self.number,self.status]]
+
 class StockReceiptCreateForm(FlaskForm):
     status = StringField('Status')
     warehouse_id = AdminField(label='warehouse',required=False)
@@ -371,6 +380,24 @@ class PutawayCreateForm(FlaskForm):
     reference = StringField()
     remarks = StringField()
 
+
+class SalesOrderCreateForm(FlaskForm):
+    client_name = StringField()
+    ship_to = StringField()
+    end_user = StringField()
+    tax_info = StringField()
+    reference = StringField()
+    sales_representative = StringField()
+    inco_terms = StringField()
+    destination_port = StringField()
+    term_id = StringField()
+    ship_via_id = StringField()
+    order_date = StringField(default=datetime.today)
+    delivery_date = StringField()
+    remarks = StringField()
+    approved_by = StringField()
+
+
 class PurchaseOrderCreateForm(FlaskForm):
     po_number = StringField()
     status = StringField()
@@ -384,6 +411,33 @@ class PurchaseOrderCreateForm(FlaskForm):
     approved_by = StringField()
     remarks = StringField()
 
+class InventoryItemEditForm(FlaskForm):
+    number = AdminField(label='number')
+    status = AdminField(label='status',required=False)
+    stock_item_type_id = AdminField(label='stock_item_type_id',required=False)
+    category_id = AdminField(label='category_id',required=False)
+    has_serial = AdminField(label='has_serial',required=False)
+    monitor_expiration = AdminField(label='monitor_expiration',required=False)
+    brand = AdminField(label='brand',required=False)
+    name = AdminField(label='name',required=False)
+    description = AdminField(label='description',required=False)
+    packaging = AdminField(label='packaging',required=False)
+    tax_code_id = AdminField(label='tax_code_id',required=False)
+    reorder_qty = AdminField(label='reorder_qty',required=False)
+    description_plu = AdminField(label='description_plu',required=False)
+    barcode = AdminField(label='barcode',required=False)
+    qty_plu = AdminField(label='qty_plu',required=False)
+    length = AdminField(label='length',required=False)
+    width = AdminField(label='width',required=False)
+    height = AdminField(label='height',required=False)
+    unit_id = AdminField(label='unit_id',required=False)
+    default_cost = AdminField(label='default_cost',required=False)
+    default_price = AdminField(label='default_price',required=False)
+    weight = AdminField(label='weight',required=False)
+    cbm = AdminField(label='cbm',required=False)
+    qty_per_pallet = AdminField(label='qty_per_pallet',required=False)
+    shelf_life = AdminField(label='shelf_life',required=False)
+    qa_lead_time = AdminField(label='qa_lead_time',required=False)
 
 
 class SupplierForm(AdminIndexForm):
@@ -435,8 +489,8 @@ class TermForm(AdminIndexForm):
         return [[self.code,self.description],[self.days]]
 
 class SalesViaForm(AdminIndexForm):
-    index_headers = ['description']
-    index_title = 'Sales Via'
+    index_headers = ['description','created by','created at']
+    index_title = 'Ship Via'
     
     description = AdminField(label='Description',validators=[DataRequired()])
 
@@ -483,12 +537,21 @@ class InventoryItemForm(AdminIndexForm):
     from .models import StockItemType, Category
     index_headers = ['name','Product type','Product Category','Quantity on hand']
     index_title = 'Inventory Items'
-    
+
+    number = AdminField(label='Item No.')
+    name = AdminField(label='Item Name')
+    cost = AdminField(label='Default Cost')
+    price = AdminField(label='Default Price')
     stock_item_type_id = AdminField(label='Product Type',model=StockItemType)
     category_id = AdminField(label='Category',model=Category)
 
+
     def create_fields(self):
-        return [[self.stock_item_type_id,self.category_id]]
+        return [
+            [self.number,self.name],
+            [self.price,self.cost],
+            [self.stock_item_type_id,self.category_id]
+            ]
 
 class SalesViaEditForm(AdminEditForm):
     description = AdminField(label='Description',validators=[DataRequired()])
