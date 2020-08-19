@@ -323,7 +323,7 @@
     {% if session['permissions']['picking']['read'] %}
     <li>
       <a
-        href=""
+        href="{{ url_for('bp_iwms.pickings') }}"
         class="{% if context['mm-active'] == 'picking' %} mm-active {% endif %}"
       >
         <i class="metismenu-icon"> </i>Picking

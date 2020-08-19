@@ -24,6 +24,10 @@
     <a href="{{ url_for('bp_iwms.sales_order_create') }}" type="button" class="btn-shadow mr-3 btn btn-primary">
         <i class="fa fa-plus"></i>
     </a>
+    {% elif rendered_model.__amname__ == 'picking' %}
+    <a href="{{ url_for('bp_iwms.picking_create') }}" type="button" class="btn-shadow mr-3 btn btn-primary">
+        <i class="fa fa-plus"></i>
+    </a>
     {% elif rendered_model.__amname__ == 'inventory_item' %}
     {% else %}
     <button type="button" data-toggle="modal" data-target="#create_modal" title="Create new" data-placement="bottom"

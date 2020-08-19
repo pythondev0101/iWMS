@@ -359,6 +359,15 @@ class SalesOrderViewForm(AdminIndexForm):
     def create_fields(self):
         return [[self.number,self.status]]
 
+class PickingIndexForm(AdminIndexForm):
+    index_headers = ['PCK No.','created by','date created','status']
+    index_title = 'Pickings'
+    number = AdminField(label='PCK No.')
+    status = AdminField(label="Status")
+
+    def create_fields(self):
+        return [[self.number,self.status]]
+
 class StockReceiptCreateForm(FlaskForm):
     status = StringField('Status')
     warehouse_id = AdminField(label='warehouse',required=False)
@@ -396,6 +405,10 @@ class SalesOrderCreateForm(FlaskForm):
     delivery_date = StringField()
     remarks = StringField()
     approved_by = StringField()
+
+
+class PickingCreateForm(FlaskForm):
+    remarks = StringField()
 
 
 class PurchaseOrderCreateForm(FlaskForm):

@@ -9,14 +9,15 @@
                     <i class="text-success pe-7s-junk">
                     </i>
                 </div>
-                <div>{{ pwy_generated_number }}
+                <div>{{pck_generated_number}}
                     <div class="page-title-subheading"><div class="mb-2 mr-2 badge badge-pill badge-primary">LOGGED</div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-    <form action="{{ url_for('bp_iwms.putaway_create') }}" id="edit_form" class="needs-validation" method="POST" novalidate>
+
+    <form action="{{ url_for('bp_iwms.picking_create') }}" id="edit_form" class="needs-validation" method="POST" novalidate>
     {{ form.csrf_token }}
             <div class="main-card mb-3 card">
                 <div class="card-body">
@@ -37,10 +38,8 @@
                                     <input name="warehouse" id="warehouse" type="text" class="form-control" readonly>
                                 </div>
                             </div>
-
                         </div> 
                         <div class="form-row">
-                        
                             <div class="col-md-6">
                                 <div class="position-relative form-group">
                                     <label for="reference" class="">Reference</label>

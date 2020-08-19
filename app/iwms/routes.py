@@ -18,7 +18,7 @@ from .models import Group,Department,TransactionType,Warehouse,Zone, \
     BinLocation,Category,StockItem,UnitOfMeasure,Reason,StockReceipt,Putaway, \
         Email as EAddress, PurchaseOrder, Supplier, Term,PurchaseOrderProductLine,StockItemType,TaxCode,\
             StockItemUomLine,StockReceiptItemLine, PutawayItemLine,Source, ShipVia, ClientGroup, Client, InventoryItem,\
-                ItemBinLocations,SalesOrder,SalesOrderLine
+                ItemBinLocations,SalesOrder,SalesOrderLine,Picking
 
 from .forms import *
 from datetime import datetime
@@ -2108,7 +2108,78 @@ def sales_order_create():
 @bp_iwms.route('/pickings')
 @login_required
 def pickings():
-    fields = [SalesOrder.id,SalesOrder.number,SalesOrder.created_at,SalesOrder.created_by,SalesOrder.status]
-    context['mm-active'] = 'sales_order'
+    fields = [Picking.id,Picking.number,Picking.created_by,Picking.created_at,Picking.status]
+    context['mm-active'] = 'picking'
     context['create_modal']['create_url'] = False
-    return admin_index(SalesOrder,fields=fields,form=SalesOrderViewForm(),create_modal=True,template="iwms/iwms_index.html",kwargs={'active':'sales'})
+    return admin_index(Picking,fields=fields,form=PickingIndexForm(),\
+        create_modal=True,template="iwms/iwms_index.html",kwargs={'active':'inventory'})
+
+
+@bp_iwms.route('/picking_create',methods=['GET','POST'])
+@login_required
+def picking_create():
+    pck_generated_number = ""
+    pck = db.session.query(Picking).order_by(Picking.id.desc()).first()
+    if pck:
+        pck_generated_number = _generate_number("PCK",pck.id)
+    else:
+        # MAY issue to kasi kapag hindi na truncate yung table magkaiba na yung id at number ng po
+        # Make sure nakatruncate ang mga table ng po para reset yung auto increment na id
+        pck_generated_number = "PCK00000001"
+
+    f = PickingCreateForm()
+    if request.method == "GET":
+        # Hardcoded html ang irerender natin hindi yung builtin ng admin
+        warehouses = Warehouse.query.all()
+
+        context['active'] = 'inventory'
+        context['mm-active'] = 'picking'
+        context['module'] = 'iwms'
+        context['model'] = 'picking'
+        
+        return render_template('iwms/picking/iwms_picking_create.html',context=context,form=f,title="Create picking"\
+            ,pck_generated_number=pck_generated_number,warehouses=warehouses)
+    elif request.method == "POST":
+        if f.validate_on_submit():
+            try:
+                r = request.form
+                so = SalesOrder()
+                so.number = so_generated_number
+                client = Client.query.filter_by(name=f.client_name.data).first()
+                so.client = client
+                so.ship_to = f.ship_to.data
+                so.end_user = f.end_user.data
+                so.tax_info = f.tax_info.data
+                so.reference = f.reference.data
+                so.sales_representative = f.sales_representative.data
+                so.inco_terms = f.inco_terms.data
+                so.destination_port = f.destination_port.data
+                so.term_id = f.term_id.data if not f.term_id.data == '' else None
+                so.ship_via_id = f.ship_via_id.data if not f.ship_via_id.data == '' else None
+                so.order_date = f.order_date.data if not f.order_date.data == '' else None
+                so.delivery_date = f.delivery_date.data if not f.delivery_date.data == '' else None
+                so.remarks = f.remarks.data
+                so.approved_by = f.approved_by.data
+                so.created_by = "{} {}".format(current_user.fname,current_user.lname)
+
+                product_list = r.getlist('products[]')
+                if product_list:
+                    for product_id in product_list:
+                        print(product_id)
+                        product = InventoryItem.query.get_or_404(product_id)
+                        qty = r.get("qty_{}".format(product_id))
+                        uom = UnitOfMeasure.query.get(r.get("uom_{}".format(product_id)))
+                        line = SalesOrderLine(inventory_item=product,qty=qty,uom=uom)
+                        so.product_line.append(line)
+
+                db.session.add(so)
+                db.session.commit()
+                flash('New Purchase Order added Successfully!','success')
+                return redirect(url_for('bp_iwms.sales_orders'))
+            except Exception as e:
+                flash(str(e),'error')
+                return redirect(url_for('bp_iwms.sales_orders'))
+        else:
+            for key, value in f.errors.items():
+                flash(str(key) + str(value), 'error')
+            return redirect(url_for('bp_iwms.sales_orders'))
