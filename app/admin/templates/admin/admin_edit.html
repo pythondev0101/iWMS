@@ -61,7 +61,9 @@
                         <input type="number" class="form-control {% if field.required %} input_required {% endif %}" 
                                id="{{ field.name }}" value="{{ field.value }}"
                                name="{{ field.name }}" step="0.01" min="0"
-                               {% if field.required %}required{% endif %}>
+                               {% if field.required %}required{% endif %}
+                               {% if field.readonly %}readonly{% endif %}
+                               >
                         <div id="{{ field.name }}-valid-feedback" class="valid-feedback">
                             Looks good!
                         </div>
@@ -85,6 +87,7 @@
                                id="{{ field.name }}"
                                name="{{ field.name }}"
                                {% if field.required %}required{% endif %} 
+                               {% if field.readonly %}readonly{% endif %}
                                value="{% if not field.value == None %}{{field.value}}{% endif %}">
                         <div id="{{field.name}}-valid-feedback" class="valid-feedback">
                             Looks good!

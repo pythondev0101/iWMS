@@ -468,7 +468,7 @@ class SupplierForm(AdminIndexForm):
 
 
 class SupplierEditForm(AdminEditForm):
-    code = AdminField(label='Code',validators=[DataRequired()])
+    code = AdminField(label='Code',validators=[DataRequired()],readonly=True)
     name = AdminField(label='Name',validators=[DataRequired()])
     address = AdminField(label='Address',required=False)
     email_address = AdminField(label='Email Address',required=False,input_type='email')

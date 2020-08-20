@@ -129,7 +129,9 @@ def admin_edit(form, update_url, oid,modal_form=False, action="admin/admin_edit_
                      'value': field.data,'placeholder':field.placeholder,'required':field.required})
             else:
                 fields[row_count].append({'name': field.name, 'label': field.label, 'type': field.input_type,
-                                          'value': field.data,'placeholder':field.placeholder,'required':field.required})
+                                          'value': field.data,'placeholder':field.placeholder,'required':field.required,
+                                          'readonly': field.readonly
+                                          })
             field_count = field_count + 1
 
         if field_count <= 2:
