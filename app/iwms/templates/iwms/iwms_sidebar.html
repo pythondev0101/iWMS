@@ -403,14 +403,6 @@
     {% endif %}
     {% endif %}
 
-    {% if 'client_group' in session['permissions'] %}
-    {% if session['permissions']['client_group']['read'] %}
-    <li>
-      <a href="{{ url_for('bp_iwms.client_groups') }}" class="{% if context['mm-active'] == 'client_group' %} mm-active {% endif %}"> <i class="metismenu-icon"> </i>Client Group</a>
-    </li>
-    {% endif %}
-    {% endif %}
-
     {% if 'client' in session['permissions'] %}
     {% if session['permissions']['client']['read'] %}
     <li>

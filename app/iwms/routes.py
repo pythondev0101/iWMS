@@ -1895,8 +1895,18 @@ def client_group_edit(oid):
 @login_required
 def clients():
     fields = [Client.id,Client.status,Client.code,Client.name,Client.updated_by,Client.updated_at]
+    form = ClientForm()
+    cli_generated_number = ""
+    cli = db.session.query(Client).order_by(Client.id.desc()).first()
+    if cli:
+        cli_generated_number = _generate_number("CLI",cli.id)
+    else:
+        # MAY issue to kasi kapag hindi na truncate yung table magkaiba na yung id at number ng po
+        # Make sure nakatruncate ang mga table ng po para reset yung auto increment na id
+        cli_generated_number = "CLI00000001"
+    form.code.auto_generated = cli_generated_number
     context['mm-active'] = 'client'
-    return admin_index(Client,fields=fields,form=ClientForm(), \
+    return admin_index(Client,fields=fields,form=form, \
         template='iwms/iwms_index.html', edit_url='bp_iwms.client_edit',\
             create_url="bp_iwms.client_create",kwargs={'active':'sales'})
 
@@ -1947,13 +1957,14 @@ def client_edit(oid):
 @bp_iwms.route('/inventory_items')
 @login_required
 def inventory_items():
-    fields = [InventoryItem.id,StockItem.name,StockItemType.name,Category.description]
+    fields = [InventoryItem.id,InventoryItem.default_cost,InventoryItem.default_price,StockItem.name,StockItemType.name,Category.description]
     query1 = db.session.query(InventoryItem,StockItem,StockItemType,Category)
     models = query1.outerjoin(StockItem, InventoryItem.stock_item_id == StockItem.id).outerjoin(StockItemType, InventoryItem.stock_item_type_id == StockItemType.id).\
         outerjoin(Category, InventoryItem.category_id  == Category.id).\
-            with_entities(InventoryItem.id,StockItem.name,StockItemType.name,Category.description).all()    
+            with_entities(InventoryItem.id,StockItem.name,InventoryItem.default_cost,InventoryItem.default_price,StockItemType.name,Category.description).all()    
     # Dahil hindi ko masyadong kabisado ang ORM, ito muna
     mmodels = [list(ii) for ii in models]
+    print(mmodels)
     for ii in mmodels:
         _ibl = ItemBinLocations.query.with_entities(func.sum(ItemBinLocations.qty_on_hand)).filter_by(inventory_item_id=ii[0]).all()
         ii.append(_ibl[0][0])

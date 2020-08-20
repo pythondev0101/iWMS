@@ -533,7 +533,7 @@ class ClientForm(AdminIndexForm):
     index_title = 'Clients'
     
     name = AdminField(label='Name',required=False)
-    code = AdminField(label='Code',validators=[DataRequired()])
+    code = AdminField(label='Code',validators=[DataRequired()],readonly=True)
     # status = AdminField(label='Status',required=False,input_type="checkbox")
     def create_fields(self):
         return [[self.code,self.name]]
@@ -541,14 +541,14 @@ class ClientForm(AdminIndexForm):
 class ClientEditForm(AdminEditForm):
     edit_title = 'Edit client'
     name = AdminField(label='Name',required=False)
-    code = AdminField(label='Code',validators=[DataRequired()])
+    code = AdminField(label='Code',validators=[DataRequired()],readonly=True)
     # status = AdminField(label='Status',required=False,input_type="checkbox")
     def edit_fields(self):
         return [[self.code,self.name]]
 
 class InventoryItemForm(AdminIndexForm):
     from .models import StockItemType, Category
-    index_headers = ['name','Product type','Product Category','Quantity on hand']
+    index_headers = ['name','Cost','Price','Product type','Product Category','Quantity on hand']
     index_title = 'Inventory Items'
 
     number = AdminField(label='Item No.')

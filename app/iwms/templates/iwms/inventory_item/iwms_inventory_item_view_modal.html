@@ -61,7 +61,7 @@
                     {% if edit_url %}
                     {% if session['permissions'][context['model']] is defined %}
                     {% if session['permissions'][context['model']]['write'] or current_user.is_superuser %}
-                    <a id="view_edit_button" href="" class="btn btn-primary">View and edit</a>
+                    <a id="view_edit_button" href="" class="btn btn-primary">View more</a>
                     {% endif %}
                     {% endif %}
                     {% endif %}
