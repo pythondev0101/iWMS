@@ -904,10 +904,16 @@
                         data.items[i].uom,
                         data.items[i].lot_no,
                         data.items[i].expiry_date,
-                        data.items[i].qty,0
+                        data.items[i].qty,data.items[i].issued_qty,
                         ]);
                         table_so_line.row(row).column(0).nodes().to$().addClass('myHiddenColumn');
-                        table_so_line.row(row).nodes().to$().addClass('list-group-item-danger');
+                        if (data.items[i].qty == 0){
+                            table_so_line.row(row).nodes().to$().addClass('list-group-item-success');
+                        }else if(data.items[i].issued_qty == 0){
+                            table_so_line.row(row).nodes().to$().addClass('list-group-item-danger');
+                        }else{
+                            table_so_line.row(row).nodes().to$().addClass('list-group-item-warning');
+                        }
                         table_so_line.row(row).draw();
                     }
                 }
@@ -944,13 +950,25 @@
                     `
                     );
 
-                // ADDING NEW QUANTITY TO THE QTY PICKED
+                // ADDING NEW QUANTITY TO THE QTY PICKED 
                 var qty_picked = $("#tbl_so_line_modal tr.selected td:nth-child(9)");
-                qty_picked.html($("#quantity").val());
+                var _picked_item = parseInt(qty_picked.html()) + parseInt($("#quantity").val());
+                qty_picked.html(_picked_item);
                 
-                // MAKING ROW COLOR GREEN
-                row.removeClass('list-group-item-danger')
-                row.addClass('list-group-item-success');
+                // MAKING ROW COLOR AND REDUCING QTY
+                var qty = $("#tbl_so_line_modal tr.selected td:nth-child(8)");
+                var _qty_item = parseInt(qty.html()) - parseInt($("#quantity").val());
+                qty.html(_qty_item);
+                var issued_qty = $("#tbl_so_line_modal tr.selected td:nth-child(9)");
+
+                if (parseInt(qty.html()) == 0){
+                    row.removeClass('list-group-item-danger')
+                    row.removeClass('list-group-item-warning')
+                    row.addClass('list-group-item-success');
+                }else{
+                    row.removeClass('list-group-item-danger')
+                    row.addClass('list-group-item-warning');
+                }
 
                 // CLEANING INPUTS
                 $('#btn_add_sr_line').prop('disabled', true);

@@ -12,8 +12,20 @@
     Dashboard
   </a>
 </li>
+<li>
+  <a
+    href="{{ url_for('bp_iwms.reports')}}"
+    class="{% if context['active']=='reports' %} mm-active {% endif %}"
+  >
+    <i
+      class="metismenu-icon pe-7s-note icon-gradient bg-premium-dark"
+      aria-hidden="true"
+    ></i>
+    Reports
+  </a>
+</li>
 {% endblock %} {% block second_sidebar_navigation %}
-<li class="app-sidebar__heading">APP Models</li>
+<li class="app-sidebar__heading">Transactions</li>
 <li>
   <a
     href="#"
@@ -456,24 +468,6 @@
     </li>
     {% endif %}
     {% endif %}
-  </ul>
-</li>
-<li>
-  <a
-    href="#"
-    class="{% if context['active']=='reports' %} mm-active {% endif %}"
-  >
-    <i
-      class="metismenu-icon pe-7s-note2 icon-gradient bg-premium-dark"
-      aria-hidden="true"
-    ></i>
-    Reports
-    <i class="metismenu-state-icon pe-7s-angle-down caret-left"></i>
-  </a>
-  <ul>
-    <li>
-      <a href=""> <i class="metismenu-icon"> </i> </a>
-    </li>
   </ul>
 </li>
 <li>

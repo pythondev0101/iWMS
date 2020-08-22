@@ -274,14 +274,14 @@ def _get_sr_line():
                 if not _ii == None:
                     _ibl = ItemBinLocations.query.with_entities(func.sum(ItemBinLocations.qty_on_hand)).filter_by(inventory_item_id=_ii.id).all()
                 else:
-                    _ibl = None
+                    _ibl = [[0]]
 
                 sr_line.append({
                     'id':line.stock_item.id,'name':line.stock_item.name,
                     'uom':line.uom,'number':line.stock_item.number,
                     'lot_no':line.lot_no,'expiry_date': _expiry_date,
                     'received_qty':line.received_qty,
-                    'prev_stored': str(_ibl[0][0]) if not _ibl == None else 0
+                    'prev_stored': str(_ibl[0][0]) if not _ibl[0][0] == None else 0
                     })
         res = jsonify(items=sr_line)
         res.status_code = 200
@@ -304,7 +304,8 @@ def _get_so_line():
                     'id':line.item_bin_location_id,'name':line.inventory_item.stock_item.name,
                     'uom':line.uom.code,'number':line.inventory_item.stock_item.number,
                     'lot_no':line.item_bin_location.lot_no,'expiry_date': _expiry_date,
-                    'qty':line.qty,'bin_location': line.item_bin_location.bin_location.code
+                    'qty':line.qty,'bin_location': line.item_bin_location.bin_location.code,
+                    'issued_qty': line.issued_qty
                     })
 
         res = jsonify(items=so_line)
@@ -417,6 +418,17 @@ def dashboard():
     }
 
     return render_template('iwms/iwms_dashboard.html',context=context,dd=dashboard_data,title="Dashboard")
+
+@bp_iwms.route('/reports')
+@login_required
+def reports():
+    context['module'] = 'iwms'
+    context['active'] = 'reports'
+    context['mm-active'] = ""
+
+    return render_template('iwms/iwms_reports.html',context=context,title="Reports")
+
+
 
 @bp_iwms.route('/bin_location')
 @login_required
@@ -2185,7 +2197,7 @@ def sales_order_create():
                         unit_price = r.get("price_{}".format(product_id))
                         uom = UnitOfMeasure.query.get(r.get("uom_{}".format(product_id)))
                         line = SalesOrderLine(inventory_item=product,item_bin_location=item_bin_location,\
-                            qty=qty,uom=uom,unit_price=unit_price)
+                            qty=qty,uom=uom,unit_price=unit_price,issued_qty=0)
                         so.product_line.append(line)
 
                 db.session.add(so)
@@ -2227,7 +2239,7 @@ def picking_create():
     if request.method == "GET":
         # Hardcoded html ang irerender natin hindi yung builtin ng admin
         warehouses = Warehouse.query.all()
-        sales_orders = SalesOrder.query.all()
+        sales_orders = SalesOrder.query.filter(SalesOrder.status.in_(['ON HOLD','LOGGED']))
         context['active'] = 'inventory'
         context['mm-active'] = 'picking'
         context['module'] = 'iwms'
@@ -2243,10 +2255,10 @@ def picking_create():
                 obj.sales_order = so
                 obj.number = pck_generated_number
                 obj.status = "LOGGED"
-                # so.status = "COMPLETED"
                 obj.remarks = f.remarks.data
                 obj.created_by = "{} {}".format(current_user.fname,current_user.lname)
-
+                
+                _remaining = 0
                 items_list = request.form.getlist('pick_items[]')
                 if items_list:
                     for item_id in items_list:
@@ -2261,11 +2273,25 @@ def picking_create():
                         """ DEDUCTING QUANTITY TO THE PICKED ITEMS """
 
                         bin_item.qty_on_hand = bin_item.qty_on_hand - int(qty)
-                        if bin_item.qty_on_hand <= 0:
-                            db.session.delete(bin_item)
+                      
+                        for pi in so.product_line:
+                            print(item_id,pi.item_bin_location_id)
 
-                        db.session.commit()
-                        
+                            if int(item_id) == pi.item_bin_location_id:
+                                pi.issued_qty = pi.issued_qty + int(qty)
+                                pi.qty = pi.qty - int(qty)
+                                db.session.commit()
+                            
+                            _remaining = _remaining + (pi.issued_qty - int(qty))
+
+                        # if bin_item.qty_on_hand <= 0:
+                        #     db.session.delete(bin_item)
+
+                if _remaining == 0:
+                    so.status = "CONFIRMED"
+                else:
+                    so.status = "ON HOLD"
+
                 db.session.add(obj)
                 db.session.commit()
                 flash('New Picking added Successfully!','success')
