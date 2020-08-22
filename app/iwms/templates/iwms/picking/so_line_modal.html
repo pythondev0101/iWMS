@@ -1,0 +1,85 @@
+<div id="so_line_modal" class="modal fade bd-example-modal-lg" tabindex="-1" role="dialog"
+     aria-labelledby="myLargeModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Line Items</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="main-card mb-3 card">
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table id="tbl_so_line_modal" class="mb-0 table" style="width: 100%;">
+                                    <thead>
+                                        <tr>
+                                            <th style="display:none;">ID</th>
+                                            <th>ITEM NO.</th>
+                                            <th>NAME</th>
+                                            <th>BIN LOCATION</th>
+                                            <th>UOM</th>
+                                            <th>LOT NUMBER</th>
+                                            <th>EXPIRY DATE</th>
+                                            <th>UNIT QTY</th>
+                                            <th>QTY (PICKED)</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <div class="card-body" style="padding: 0 0 0 0;">
+                                <div class="form-row">
+                                    <div class="col-md-6">
+                                        <div class="position-relative form-group" style="margin-bottom: 0px;">
+                                            <label for="item_name" class="">Item Name</label>
+                                            <input name="item_name" id="item_name" type="text" class="form-control" style="height: 20%;" readonly>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="position-relative form-group" style="margin-bottom: 0px;">
+                                            <label for="bin_location" class="">Bin Location</label>
+                                            <input name="bin_location" id="bin_location" type="text" class="form-control" style="height: 20%;" readonly>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="form-row">
+                                    <div class="col-md-6">
+                                        <div class="position-relative form-group" style="margin-bottom: 0px;">
+                                            <label for="unit" class="">Unit</label>
+                                            <input name="unit" id="unit" type="text" class="form-control" style="height: 20%;" readonly>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="position-relative form-group" style="margin-bottom: 0px;">
+                                            <label for="lot_no" class="">Lot No.</label>
+                                            <input name="lot_no" id="lot_no" type="text" class="form-control" style="height: 20%;" readonly>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="form-row">
+                                    <div class="col-md-6">
+                                        <div class="position-relative form-group" style="margin-bottom: 0px;">
+                                            <label for="quantity" class="">Quantity</label>
+                                            <input name="quantity" id="quantity" type="number" class="form-control" style="height: 20%;" value="0">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="position-relative form-group" style="margin-bottom: 0px;">
+                                            <label for="expiry" class="">Expiry</label>
+                                            <input name="expiry" id="expiry" type="text" class="form-control" style="height: 20%;" readonly>
+                                        </div>
+                                    </div>
+                                </div>
+                        </div>
+                        <button id="btn_add_so_line" type="button" class="btn btn-primary" data-toggle="modal" data-target="#confirm_modal" disabled>Add item</button>
+                    </div>
+                </div>
+        </div>
+    </div>
+</div>

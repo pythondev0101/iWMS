@@ -27,7 +27,7 @@
                         <div class="widget-subheading">To be purchased</div>
                     </div>
                     <div class="widget-content-right">
-                        <div class="widget-numbers text-white"><span>0</span></div>
+                        <div class="widget-numbers text-white"><span>{{dd['to_be_purchased']}}</span></div>
                     </div>
                 </div>
             </div>
@@ -40,7 +40,7 @@
                         <div class="widget-subheading">To be receipted</div>
                     </div>
                     <div class="widget-content-right">
-                        <div class="widget-numbers text-white"><span>0</span></div>
+                        <div class="widget-numbers text-white"><span>{{dd['to_be_receipted']}}</span></div>
                     </div>
                 </div>
             </div>
@@ -53,7 +53,7 @@
                         <div class="widget-subheading">To be stored</div>
                     </div>
                     <div class="widget-content-right">
-                        <div class="widget-numbers text-white"><span>0</span></div>
+                        <div class="widget-numbers text-white"><span>{{dd['to_be_stored']}}</span></div>
                     </div>
                 </div>
             </div>
@@ -74,7 +74,7 @@
                                             <div class="widget-subheading">On Hand</div>
                                         </div>
                                         <div class="widget-content-right">
-                                            <div class="widget-numbers text-success">1896</div>
+                                            <div class="widget-numbers text-success">{{dd['qty_on_hand']}}</div>
                                         </div>
                                     </div>
                                 </div>
@@ -89,7 +89,7 @@
                                             <div class="widget-subheading">To be Received</div>
                                         </div>
                                         <div class="widget-content-right">
-                                            <div class="widget-numbers text-primary">$12.6k</div>
+                                            <div class="widget-numbers text-primary">{{dd['qty_to_be_received']}}</div>
                                         </div>
                                     </div>
                                 </div>
@@ -104,7 +104,7 @@
                                             <div class="widget-subheading">(Inventory Items)</div>
                                         </div>
                                         <div class="widget-content-right">
-                                            <div class="widget-numbers text-danger">45,9%</div>
+                                            <div class="widget-numbers text-danger">{{dd['all_items']}}</div>
                                         </div>
                                     </div>
                                 </div>
@@ -117,8 +117,8 @@
         <div class="col-md-6">
             <div class="main-card mb-3 card">
                 <div class="card-body"><div class="chartjs-size-monitor" style="position: absolute; left: 0px; top: 0px; right: 0px; bottom: 0px; overflow: hidden; pointer-events: none; visibility: hidden; z-index: -1;"><div class="chartjs-size-monitor-expand" style="position:absolute;left:0;top:0;right:0;bottom:0;overflow:hidden;pointer-events:none;visibility:hidden;z-index:-1;"><div style="position:absolute;width:1000000px;height:1000000px;left:0;top:0"></div></div><div class="chartjs-size-monitor-shrink" style="position:absolute;left:0;top:0;right:0;bottom:0;overflow:hidden;pointer-events:none;visibility:hidden;z-index:-1;"><div style="position:absolute;width:200%;height:200%;left:0; top:0"></div></div></div>
-                    <canvas id="doughnut-chart" width="364" height="182" class="chartjs-render-monitor" style="display: block; width: 364px; height: 182px;"></canvas>
-                </div>
+                <canvas id="my-chart-area" width="364" height="182" class="chartjs-render-monitor" style="display: block; width: 364px; height: 182px;"></canvas>
+            </div>
             </div>
         </div>
 
@@ -129,14 +129,13 @@
             <div class="main-card mb-3 card">
                 <div class="card-body"><div class="chartjs-size-monitor" style="position: absolute; left: 0px; top: 0px; right: 0px; bottom: 0px; overflow: hidden; pointer-events: none; visibility: hidden; z-index: -1;"><div class="chartjs-size-monitor-expand" style="position:absolute;left:0;top:0;right:0;bottom:0;overflow:hidden;pointer-events:none;visibility:hidden;z-index:-1;"><div style="position:absolute;width:1000000px;height:1000000px;left:0;top:0"></div></div><div class="chartjs-size-monitor-shrink" style="position:absolute;left:0;top:0;right:0;bottom:0;overflow:hidden;pointer-events:none;visibility:hidden;z-index:-1;"><div style="position:absolute;width:200%;height:200%;left:0; top:0"></div></div></div>
                     <h5 class="card-title">Purchase Order</h5>
-                    
-                    <canvas id="my-chart-area" width="364" height="182" class="chartjs-render-monitor" style="display: block; width: 364px; height: 182px;"></canvas>
+                    <canvas id="po-chart-area" width="364" height="182" class="chartjs-render-monitor" style="display: block; width: 364px; height: 182px;"></canvas>
                 </div>
             </div>
             <div class="main-card mb-3 card">
                 <div class="card-body"><div class="chartjs-size-monitor" style="position: absolute; left: 0px; top: 0px; right: 0px; bottom: 0px; overflow: hidden; pointer-events: none; visibility: hidden; z-index: -1;"><div class="chartjs-size-monitor-expand" style="position:absolute;left:0;top:0;right:0;bottom:0;overflow:hidden;pointer-events:none;visibility:hidden;z-index:-1;"><div style="position:absolute;width:1000000px;height:1000000px;left:0;top:0"></div></div><div class="chartjs-size-monitor-shrink" style="position:absolute;left:0;top:0;right:0;bottom:0;overflow:hidden;pointer-events:none;visibility:hidden;z-index:-1;"><div style="position:absolute;width:200%;height:200%;left:0; top:0"></div></div></div>
                     <h5 class="card-title">Putaway</h5>
-                    <canvas id="radar-chart" width="364" height="182" class="chartjs-render-monitor" style="display: block; width: 364px; height: 182px;"></canvas>
+                    <canvas id="pwy-chart" width="364" height="182" class="chartjs-render-monitor" style="display: block; width: 364px; height: 182px;"></canvas>
                 </div>
             </div>
         </div>
@@ -144,18 +143,61 @@
             <div class="main-card mb-3 card">
                 <div class="card-body"><div class="chartjs-size-monitor" style="position: absolute; left: 0px; top: 0px; right: 0px; bottom: 0px; overflow: hidden; pointer-events: none; visibility: hidden; z-index: -1;"><div class="chartjs-size-monitor-expand" style="position:absolute;left:0;top:0;right:0;bottom:0;overflow:hidden;pointer-events:none;visibility:hidden;z-index:-1;"><div style="position:absolute;width:1000000px;height:1000000px;left:0;top:0"></div></div><div class="chartjs-size-monitor-shrink" style="position:absolute;left:0;top:0;right:0;bottom:0;overflow:hidden;pointer-events:none;visibility:hidden;z-index:-1;"><div style="position:absolute;width:200%;height:200%;left:0; top:0"></div></div></div>
                     <h5 class="card-title">Stock Receipt</h5>
-                    <canvas id="doughnut-chart" width="364" height="182" class="chartjs-render-monitor" style="display: block; width: 364px; height: 182px;"></canvas>
-                </div>
+                    <canvas id="sr-chart" width="364" height="182" class="chartjs-render-monitor" style="display: block; width: 364px; height: 182px;"></canvas>
+                </div>                                                                                          
             </div>
             <div class="main-card mb-3 card">
                 <div class="card-body"><div class="chartjs-size-monitor" style="position: absolute; left: 0px; top: 0px; right: 0px; bottom: 0px; overflow: hidden; pointer-events: none; visibility: hidden; z-index: -1;"><div class="chartjs-size-monitor-expand" style="position:absolute;left:0;top:0;right:0;bottom:0;overflow:hidden;pointer-events:none;visibility:hidden;z-index:-1;"><div style="position:absolute;width:1000000px;height:1000000px;left:0;top:0"></div></div><div class="chartjs-size-monitor-shrink" style="position:absolute;left:0;top:0;right:0;bottom:0;overflow:hidden;pointer-events:none;visibility:hidden;z-index:-1;"><div style="position:absolute;width:200%;height:200%;left:0; top:0"></div></div></div>
                     <h5 class="card-title">Picking</h5>
-                    <canvas id="polar-chart" width="364" height="182" class="chartjs-render-monitor" style="display: block; width: 364px; height: 182px;"></canvas>
+                    <canvas id="pck-chart" width="364" height="182" class="chartjs-render-monitor" style="display: block; width: 364px; height: 182px;"></canvas>
+                </div>
+            </div>
+        </div>                                                                                                          
+    </div>                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              
+    <h5 class="card-title">Sales Order                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  </h5>
+    <div class="main-card mb-3 card">
+        <div class="no-gutters row">
+            <div class="col-md-4">
+                <div class="widget-content">
+                    <div class="widget-content-wrapper">
+                        <div class="widget-content-right ml-0 mr-3">
+                            <div class="widget-numbers text-success">{{dd['total_orders']}}</div>
+                        </div>
+                        <div class="widget-content-left">
+                            <div class="widget-heading">Total Orders</div>
+                            <div class="widget-subheading">All status</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="widget-content">
+                    <div class="widget-content-wrapper">
+                        <div class="widget-content-right ml-0 mr-3">
+                            <div class="widget-numbers text-warning">{{dd['items_to_be_confirmed']}}</div>
+                        </div>
+                        <div class="widget-content-left">
+                            <div class="widget-heading">Items</div>
+                            <div class="widget-subheading">To be confirmed</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="widget-content">
+                    <div class="widget-content-wrapper">
+                        <div class="widget-content-right ml-0 mr-3">
+                            <div class="widget-numbers text-danger">0</div>
+                        </div>
+                        <div class="widget-content-left">
+                            <div class="widget-heading">Items</div>
+                            <div class="widget-subheading">Confirmed</div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
-
 </div>
 {% endblock %}
 {% block sidebar %}
@@ -165,44 +207,175 @@
 {% block scripts %}
 <script>
     $(document).ready(function(){
+        var chartColors = window.chartColors;
+        var color = Chart.helpers.color;
         var my_chart_area = $("#my-chart-area");
-
+        
+        var on_hand = parseInt("{{dd['qty_on_hand']}}");
+        var qty_to_be_received = parseInt("{{dd['qty_to_be_received']}}");
+        
         var myChart = new Chart(my_chart_area, {
             type: 'bar',
             data: {
-                labels: ['Red', 'Blue', 'Yellow', 'Green', 'Purple', 'Orange'],
                 datasets: [{
-                    label: '# of Votes',
-                    data: [12, 19, 3, 5, 2, 3],
+                    label: '# To be Received',
+                    data: [qty_to_be_received],
                     backgroundColor: [
-                        'rgba(255, 99, 132, 0.2)',
-                        'rgba(54, 162, 235, 0.2)',
-                        'rgba(255, 206, 86, 0.2)',
-                        'rgba(75, 192, 192, 0.2)',
-                        'rgba(153, 102, 255, 0.2)',
-                        'rgba(255, 159, 64, 0.2)'
+                        'rgba(255, 159, 64, 0.2)',
                     ],
                     borderColor: [
-                        'rgba(255, 99, 132, 1)',
-                        'rgba(54, 162, 235, 1)',
-                        'rgba(255, 206, 86, 1)',
-                        'rgba(75, 192, 192, 1)',
-                        'rgba(153, 102, 255, 1)',
-                        'rgba(255, 159, 64, 1)'
+                        'rgba(255, 159, 64, 1)',
+                    ],
+                    borderWidth: 1
+                },{
+                    label: '# On Hand',
+                    data: [on_hand],
+                    backgroundColor: [
+                        'rgba(153, 102, 255, 0.2)'
+                    ],
+                    borderColor: [
+                        'rgba(153, 102, 255, 1)'
                     ],
                     borderWidth: 1
                 }]
             },
-            options: {
-                scales: {
-                    yAxes: [{
-                        ticks: {
-                            beginAtZero: true
-                        }
-                    }]
-                }
-            }
         });
+
+        // PURCHASE ORDER
+
+        var po_chart_area = $("#po-chart-area");
+        var po_logged = "{{dd['po_data']['logged']}}";
+        var po_pending = "{{dd['po_data']['pending']}}";
+        var po_released = "{{dd['po_data']['released']}}";
+        var po_completed = "{{dd['po_data']['completed']}}";
+
+        var po_config = {
+			type: 'doughnut',
+			data: {
+				datasets: [{
+					data: [
+						po_logged,po_pending,po_released,po_completed
+					],
+                    backgroundColor: [
+                        window.chartColors.blue,
+						window.chartColors.red,
+						window.chartColors.yellow,
+						window.chartColors.green,
+					],
+				}],
+				labels: [
+					'LOGGED',
+					'PENDING',
+					'RELEASED',
+					'COMPLETED',
+				]
+			},
+			options: {
+				responsive: true,
+				legend: {
+					position: 'top',
+				},
+				animation: {
+					animateScale: true,
+					animateRotate: true
+				}
+			}
+        };
+        var poChart = new Chart(po_chart_area, po_config);
+
+        // STOCK RECEIPT
+
+        var sr_chart_area = $("#sr-chart");
+
+        var sr_completed_qty = parseInt("{{dd['sr_data']['completed']}}");
+        var sr_remaining_qty = parseInt("{{dd['sr_data']['remaining']}}");
+        var sr_incomplete_qty = parseInt("{{dd['sr_data']['incomplete']}}");
+
+		var sr_config = {
+			data: {
+				datasets: [{
+					data: [
+						sr_completed_qty,
+						sr_remaining_qty,
+						sr_incomplete_qty,
+					],
+                    backgroundColor: [
+                        color(chartColors.green).alpha(0.5).rgbString(),
+						color(chartColors.yellow).alpha(0.5).rgbString(),
+						color(chartColors.red).alpha(0.5).rgbString(),
+					],
+					label: 'My dataset' // for legend
+				}],
+				labels: [
+					'Completed Item Qty',
+					'Remaining Item Qty',
+					'Incomplete Item Qty',
+				]
+			},
+			options: {
+				responsive: true,
+				legend: {
+					position: 'right',
+                },
+				scale: {
+					ticks: {
+						beginAtZero: true
+					},
+					reverse: false
+				},
+				animation: {
+					animateRotate: false,
+					animateScale: true
+				}
+			}
+		};
+
+        var srChart = new Chart.PolarArea(sr_chart_area, sr_config);
+        
+        // PUTAWAY
+
+        var pwy_chart_area = $("#pwy-chart");
+        var pwy_to_be_stored_qty = "{{dd['pwy_data']['to_be_stored_qty']}}";
+        var pwy_stored_qty = "{{dd['pwy_data']['stored']}}"
+		var pwy_config = {
+			data: {
+				datasets: [{
+					data: [
+						pwy_to_be_stored_qty,
+						pwy_stored_qty,
+					],
+                    backgroundColor: [
+                        color(chartColors.red).alpha(0.5).rgbString(),
+                        color(chartColors.green).alpha(0.5).rgbString(),
+					],
+					label: 'My dataset' // for legend
+				}],
+				labels: [
+					'To be Stored Qty',
+					'Stored Qty',
+				]
+			},
+			options: {
+				responsive: true,
+				legend: {
+					position: 'right',
+                },
+				scale: {
+					ticks: {
+						beginAtZero: true
+					},
+					reverse: false
+				},
+				animation: {
+					animateRotate: false,
+					animateScale: true
+				}
+			}
+		};
+
+        var pwyChart = new Chart.PolarArea(pwy_chart_area, pwy_config);
+        
+        
     });
 </script>
 {% endblock %}

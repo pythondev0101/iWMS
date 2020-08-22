@@ -1,4 +1,4 @@
-<div id="search_po_modal" class="modal fade bd-example-modal-lg" tabindex="-1" role="dialog"
+<div id="search_so_modal" class="modal fade bd-example-modal-lg" tabindex="-1" role="dialog"
      aria-labelledby="myLargeModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
@@ -12,24 +12,22 @@
                     <div class="main-card mb-3 card">
                         <div class="card-body">
                             <div class="table-responsive">
-                                <table id="tbl_po_modal" class="mb-0 table" style="width: 100%;">
+                                <table id="tbl_so_modal" class="mb-0 table" style="width: 100%;">
                                     <thead>
                                         <tr>
                                             <th style="display:none;">ID</th>
                                             <th>NUMBER</th>
-                                            <th>SUPPLIER</th>
-                                            <th>WAREHOUSE</th>
-                                            <th style="display:none;">REMARKS</th>
+                                            <th>CLIENT</th>
+                                            <th>REMARKS</th>
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        {% for po in po_list %}
-                                        <tr class="item" id="{{ po.id }}">
-                                            <td style="display:none;">{{ po.id }}</td>
-                                            <td>{{po.po_number}}</td>
-                                            <td>{{po.supplier.name}}</td>
-                                            <td>{{po.warehouse.name}}</td>
-                                            <td style="display:none;">{{po.remarks}}</td>
+                                        {% for so in sales_orders %}
+                                        <tr class="item" id="{{ so.id }}">
+                                            <td style="display:none;">{{ so.id }}</td>
+                                            <td>{{so.number}}</td>
+                                            <td>{{so.client.name}}</td>
+                                            <td>{{so.remarks}}</td>
                                         </tr>
                                         {% endfor %}
                                     </tbody>
@@ -39,7 +37,7 @@
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                        <button id="btn_select_po" type="button" class="btn btn-primary" data-dismiss="modal">Select</button>
+                        <button id="btn_select_so" type="button" class="btn btn-primary" data-dismiss="modal">Select</button>
                     </div>
                 </div>
         </div>

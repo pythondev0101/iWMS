@@ -408,6 +408,7 @@ class SalesOrderCreateForm(FlaskForm):
 
 
 class PickingCreateForm(FlaskForm):
+    so_number = StringField()
     remarks = StringField()
 
 
@@ -529,22 +530,30 @@ class ClienGroupEditForm(AdminEditForm):
         return [[self.name]]
 
 class ClientForm(AdminIndexForm):
-    index_headers = ['status','code','name','updated by','updated at']
+    from .models import Term,ShipVia
+    index_headers = ['code','name','updated by','updated at']
     index_title = 'Clients'
     
     name = AdminField(label='Name',required=False)
     code = AdminField(label='Code',validators=[DataRequired()],readonly=True)
-    # status = AdminField(label='Status',required=False,input_type="checkbox")
+    # status = AdminField(label='Status',required=False,input_tye="checkbox")
+    term_id = AdminField(label='Term',model=Term,required=False)
+    ship_via_id = AdminField(label='Ship Via',model=ShipVia,required=False)
+
     def create_fields(self):
-        return [[self.code,self.name]]
+        return [[self.code,self.name],[self.term_id,self.ship_via_id]]
 
 class ClientEditForm(AdminEditForm):
+    from .models import Term, ShipVia
     edit_title = 'Edit client'
     name = AdminField(label='Name',required=False)
     code = AdminField(label='Code',validators=[DataRequired()],readonly=True)
+    term_id = AdminField(label='Term',model=Term,required=False)
+    ship_via_id = AdminField(label='Ship Via',model=ShipVia,required=False)    
     # status = AdminField(label='Status',required=False,input_type="checkbox")
     def edit_fields(self):
-        return [[self.code,self.name]]
+        return [[self.code,self.name],[self.term_id,self.ship_via_id]]
+
 
 class InventoryItemForm(AdminIndexForm):
     from .models import StockItemType, Category

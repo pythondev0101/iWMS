@@ -24,29 +24,36 @@
                         <div class="form-row">
                             <div class="col-md-6">
                                 <div class="position-relative form-group">
-                                    <label for="sr_number" class="">Receipt No.</label>
-                                    <div class="input-group"><input id="sr_number" name="sr_number" type="text" class="form-control" readonly>
+                                    <label for="so_number" class="">Sales Order No.</label>
+                                    <div class="input-group"><input id="so_number" name="so_number" type="text" class="form-control" readonly>
                                         <div class="input-group-append">
-                                            <button id="btn_search_po" type="button" data-toggle="modal" data-target="#search_sr_modal" title="Search SR" data-placement="bottom" class="btn btn-primary pe-7s-search"></button>
+                                            <button id="btn_search_so" type="button" data-toggle="modal" data-target="#search_so_modal" title="Search SO" data-placement="bottom" class="btn btn-primary pe-7s-search"></button>
                                         </div>
                                     </div>
                                 </div>
                             </div>
                             <div class="col-md-6">
                                 <div class="position-relative form-group">
-                                    <label for="warehouse" class="">Warehouse</label>
-                                    <input name="warehouse" id="warehouse" type="text" class="form-control" readonly>
+                                    <label for="warehouse_id" class="">Warehouse</label>
+                                    <select name="warehouse_id" id="warehouse_id" class="form-control" required>
+                                        <option value="">Choose...</option>
+                                        {% for warehouse in warehouses %}
+                                        <option value="{{warehouse.id}}">
+                                            {{ warehouse.name }}
+                                        </option>
+                                        {% endfor %}
+                                    </select>
+                                    <div class="valid-feedback">
+                                        Looks good!
+                                    </div>
+                                    <div class="invalid-feedback">
+                                        Please provide a warehouse
+                                    </div>
                                 </div>
                             </div>
                         </div> 
                         <div class="form-row">
-                            <div class="col-md-6">
-                                <div class="position-relative form-group">
-                                    <label for="reference" class="">Reference</label>
-                                    <input name="reference" id="reference" type="text" class="form-control" readonly>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
+                            <div class="col-md-12">
                                 <div class="position-relative form-group">
                                     <label for="remarks" class="">Remarks</label>
                                     <input name="remarks" id="remarks" type="text" class="form-control" readonly>
@@ -66,13 +73,13 @@
                             <th></th>
                             <th class="text-center">ITEM NO.</th>
                             <th class="text-center">NAME</th>
-                            <th class="text-center">UOM</th>
                             <th class="text-center">BIN LOCATION</th>
                             <th class="text-center">LOT</th>
                             <th class="text-center">EXPIRY</th>
-                            <th class="text-center">SERIALS</th>
+                            <th class="text-center">UOM</th>
                             <th class="text-center">QTY</th>
                             <th class="text-center">TIMESTAMP</th>
+                            <th class="text-center">PICKER</th>
                         </tr>
                         </thead>
                         <tbody>
@@ -81,7 +88,7 @@
                 </div>
                 <div class="d-block text-center card-footer">
                     <!-- <button class="mr-2 btn-icon btn-icon-only btn btn-outline-danger"><i class="pe-7s-trash btn-icon-wrapper"> </i></button> -->
-                    <button type="button" class="btn-wide btn btn-success" data-toggle="modal" data-target="#sr_line_modal" title="Add sr line" data-placement="bottom">Add</button>
+                    <button type="button" class="btn-wide btn btn-success" data-toggle="modal" data-target="#so_line_modal" data-placement="bottom">Add</button>
                 </div>
             </div>
         <script>

@@ -22,6 +22,7 @@
                                     <label for="view_{{ field.name }}" class="">{{ field.label.upper() }}</label>
                                     <select disabled name="{{ field.name }}" id="view_{{ field.name }}" class="form-control {% if field.required %}input_required{% endif %}"
                                     {% if field.required %}required{% endif %}>
+                                        <option value=""></option>
                                         {% for odata in field.data %}
                                         <option value="{{ odata.id }}">{{ odata.name }}</option>
                                         {% endfor %}

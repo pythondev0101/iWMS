@@ -104,8 +104,10 @@
                     <table id="tbl_uom_line" class="mb-0 table table-bordered">
                         <thead>
                         <tr>
-                            <th class="text-center">Bin Location</th>
-                            <th class="text-center">On Hand</th>
+                            <th class="text-center">BIN LOCATION</th>
+                            <th class="text-center">EXPIRY DATE</th>
+                            <th class="text-center">LOT NO.</th>
+                            <th class="text-center">ON HAND</th>
                         </tr>
                         </thead>
                         <tbody>
@@ -113,6 +115,12 @@
                             <tr>
                                 <td class="text-center">
                                     {{oh.bin_location.code}} / {{oh.bin_location.description}}
+                                </td>
+                                <td class="text-center">
+                                    {{oh.expiry_date}}
+                                </td>
+                                <td class="text-center">
+                                    {{oh.lot_no}}
                                 </td>
                                 <td class="text-center">
                                     {{oh.qty_on_hand}}

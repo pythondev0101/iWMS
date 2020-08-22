@@ -327,6 +327,9 @@ class Term(Base,Admin):
     description = db.Column(db.String(255),nullable=True)
     days = db.Column(db.Integer,nullable=True)
 
+    @property
+    def name(self):
+        return self.description
 
 class ShipTo(enum.Enum):
     warehouse = "Warehouse"
@@ -396,6 +399,10 @@ class ShipVia(Base,Admin):
     """ COLUMNS """
     description = db.Column(db.String(255),nullable=False)
 
+    @property
+    def name(self):
+        return self.description
+
 
 class ClientGroup(Base,Admin):
     __tablename__ = 'iwms_client_group'
@@ -412,10 +419,13 @@ class Client(Base,Admin):
     __amdescription__ = 'Client'
 
     """ COLUMNS """
-    status = db.Column(db.String(255),nullable=True)
     code = db.Column(db.String(255),nullable=False)
     name = db.Column(db.String(255),nullable=True)
-
+    ship_to = db.Column(db.String(255),nullable=True)
+    term_id = db.Column(db.Integer,db.ForeignKey('iwms_term.id',ondelete="SET NULL"),nullable=True)
+    term = db.relationship('Term',backref="clients")
+    ship_via_id = db.Column(db.Integer,db.ForeignKey('iwms_ship_via.id',ondelete="SET NULL"),nullable=True)
+    ship_via = db.relationship('ShipVia',backref="clients")
 
 class ItemBinLocations(db.Model):
     __tablename__ = 'iwms_item_bin_locations'
@@ -427,7 +437,10 @@ class ItemBinLocations(db.Model):
     inventory_item = db.relationship('InventoryItem', backref="item_bin_locations")
     bin_location = db.relationship('BinLocation', backref="item_bin_locations")
     qty_on_hand = db.Column(db.Integer,nullable=True)
-    
+    expiry_date = db.Column(db.DateTime,nullable=True)
+    lot_no = db.Column(db.String(255),nullable=True)
+    putaway_id = db.Column(db.Integer,db.ForeignKey('iwms_putaway.id',ondelete="SET NULL"),nullable=True)
+    putaway = db.relationship('Putaway',backref='items')
 
 class InventoryItem(Base,Admin):
     __tablename__ = 'iwms_inventory_item'
@@ -482,6 +495,8 @@ class SalesOrderLine(db.Model):
     sales_order_id = db.Column(db.Integer, db.ForeignKey('iwms_sales_order.id',ondelete='CASCADE'))
     inventory_item_id = db.Column(db.Integer,db.ForeignKey('iwms_inventory_item.id',ondelete="SET NULL"),nullable=True)
     inventory_item = db.relationship('InventoryItem',backref="so_line")
+    item_bin_location_id = db.Column(db.Integer,db.ForeignKey('iwms_item_bin_locations.id',ondelete="SET NULL"),nullable=True)
+    item_bin_location = db.relationship('ItemBinLocations',backref="so_line")
     qty = db.Column(db.Integer,nullable=True)
     issued_qty = db.Column(db.Integer,nullable=True)
     unit_price = db.Column(db.Numeric(10,2),nullable=True)
@@ -503,3 +518,19 @@ class Picking(Base,Admin):
     sales_order_id = db.Column(db.Integer,db.ForeignKey('iwms_sales_order.id',ondelete="SET NULL"),nullable=True)
     sales_order = db.relationship('SalesOrder',backref="pickings")
     remarks = db.Column(db.String(255),nullable=True)
+    item_line = db.relationship('PickingItemLine', cascade='all,delete', backref="picking")
+
+
+class PickingItemLine(db.Model):
+    __tablename__ = 'iwms_picking_item_line'
+
+    """ COLUMNS """
+    id = db.Column(db.Integer, primary_key=True)
+    picking_id = db.Column(db.Integer, db.ForeignKey('iwms_picking.id',ondelete='CASCADE'))
+    item_bin_location_id = db.Column(db.Integer,db.ForeignKey('iwms_item_bin_locations.id',ondelete="SET NULL"),nullable=True)
+    item_bin_location = db.relationship('ItemBinLocations',backref="pck_line")
+    lot_no = db.Column(db.String(255),nullable=True,default="")
+    expiry_date = db.Column(db.DateTime,nullable=True)
+    uom = db.Column(db.String(255),nullable=True, default="")
+    qty = db.Column(db.Integer,nullable=True,default=None)
+    timestamp = db.Column(db.String(255),nullable=True)

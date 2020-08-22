@@ -20,24 +20,34 @@
                                             <th>ITEM NO.</th>
                                             <th>NAME</th>
                                             <th>DESCRIPTION</th>
+                                            <th>EXPIRY DATE</th>
+                                            <th>QTY ON HAND</th>
+                                            <th style="display:none;">PRICE</th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         {% for ii in inventory_items %}
                                             <tr>
                                                 <td style="display:none;">{{ii.id}}</td>
-                                                  <td>
+                                                <td>
                                                     <input class='chkbox' type='checkbox'>
                                                 </td>
                                                 <td>
-                                                    {{ ii.stock_item.number }}
+                                                    {{ ii.inventory_item.stock_item.number }}
                                                 </td>
                                                 <td>
-                                                    {{ ii.stock_item.name }}
+                                                    {{ ii.inventory_item.stock_item.name }}
                                                 </td>
                                                 <td>
-                                                    {{ ii.stock_item.description }}
+                                                    {{ ii.inventory_item.stock_item.description }}
                                                 </td>
+                                                <td>
+                                                    {{ ii.expiry_date }}
+                                                </td>
+                                                <td>
+                                                    {{ ii.qty_on_hand }}
+                                                </td>
+                                                <td style="display:none;">{{ii.inventory_item.default_price}}</td>
                                             </tr>
                                         {% endfor %}
                                     </tbody>

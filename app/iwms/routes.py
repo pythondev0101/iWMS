@@ -18,7 +18,7 @@ from .models import Group,Department,TransactionType,Warehouse,Zone, \
     BinLocation,Category,StockItem,UnitOfMeasure,Reason,StockReceipt,Putaway, \
         Email as EAddress, PurchaseOrder, Supplier, Term,PurchaseOrderProductLine,StockItemType,TaxCode,\
             StockItemUomLine,StockReceiptItemLine, PutawayItemLine,Source, ShipVia, ClientGroup, Client, InventoryItem,\
-                ItemBinLocations,SalesOrder,SalesOrderLine,Picking
+                ItemBinLocations,SalesOrder,SalesOrderLine,Picking,PickingItemLine
 
 from .forms import *
 from datetime import datetime
@@ -287,6 +287,31 @@ def _get_sr_line():
         res.status_code = 200
         return res
 
+@bp_iwms.route('/_get_so_line',methods=['POST'])
+def _get_so_line():
+    if request.method == "POST":
+        so_id = request.json['so_id']
+        so = SalesOrder.query.get_or_404(so_id)
+        so_line = []
+
+        for line in so.product_line:
+            if line:
+                _expiry_date = ''
+                if line.item_bin_location.expiry_date is not None:
+                    _expiry_date = line.item_bin_location.expiry_date.strftime("%Y-%m-%d")
+
+                so_line.append({
+                    'id':line.item_bin_location_id,'name':line.inventory_item.stock_item.name,
+                    'uom':line.uom.code,'number':line.inventory_item.stock_item.number,
+                    'lot_no':line.item_bin_location.lot_no,'expiry_date': _expiry_date,
+                    'qty':line.qty,'bin_location': line.item_bin_location.bin_location.code
+                    })
+
+        res = jsonify(items=so_line)
+        res.status_code = 200
+        return res
+
+
 @bp_iwms.route('/_get_uom_line',methods=['POST'])
 def _get_uom_line():
     if request.method == 'POST':
@@ -336,7 +361,62 @@ def dashboard():
     context['module'] = 'iwms'
     context['active'] = 'main_dashboard'
     context['mm-active'] = ""
-    return render_template('iwms/iwms_dashboard.html',context=context,title="Dashboard")
+    
+    """ DATA SA DASHBOARD """
+    _qty_on_hand = ItemBinLocations.query.with_entities(func.sum(ItemBinLocations.qty_on_hand)).all()
+    _qty_to_be_received = StockReceipt.query.filter_by(status="LOGGED").join(StockReceiptItemLine)\
+        .with_entities(func.sum(StockReceiptItemLine.received_qty)).all()
+    _all_items = InventoryItem.query.count()
+    _to_be_purchased = PurchaseOrder.query.filter(PurchaseOrder.status.in_(["LOGGED","PENDING"])).count()
+    _to_be_receipted = StockReceipt.query.filter_by(status="LOGGED").count()
+    _to_be_stored = Putaway.query.filter_by(status="LOGGED").count()
+
+    _po_logged = PurchaseOrder.query.filter_by(status="LOGGED").count()
+    _po_pending = PurchaseOrder.query.filter_by(status="PENDING").count()
+    _po_released = PurchaseOrder.query.filter_by(status="RELEASED").count()
+    _po_completed = PurchaseOrder.query.filter_by(status="COMPLETED").count()
+    _po_data ={
+        'logged': _po_logged,
+        'pending': _po_pending,
+        'released': _po_released,
+        'completed': _po_completed
+    }
+
+    _sr_remaining_items = PurchaseOrder.query.filter_by(status="PENDING").join(PurchaseOrderProductLine)\
+        .with_entities(func.sum(PurchaseOrderProductLine.remaining_qty)).all()
+    _sr_incomplete_items = PurchaseOrder.query.filter(PurchaseOrder.status.in_(["LOGGED","PENDING"]))\
+        .join(PurchaseOrderProductLine).filter_by(received_qty=None)\
+        .with_entities(func.sum(PurchaseOrderProductLine.remaining_qty)).all()
+    _sr_data = {
+        'completed': str(_qty_to_be_received[0][0]),
+        'remaining': str(_sr_remaining_items[0][0]),
+        'incomplete': str(_sr_incomplete_items[0][0]),
+    }
+
+    _pwy_data = {
+        'to_be_stored_qty': str(_qty_to_be_received),
+        'stored': str(_qty_on_hand[0][0]),
+    }
+
+    _total_orders = SalesOrder.query.count()
+    _items_to_be_confirmed = SalesOrderLine.query.count()
+
+
+    dashboard_data = {
+        'qty_on_hand': str(_qty_on_hand[0][0]),
+        'qty_to_be_received': str(_qty_to_be_received[0][0]),
+        'all_items': _all_items,
+        'to_be_purchased': _to_be_purchased,
+        'to_be_receipted': _to_be_receipted,
+        'to_be_stored': _to_be_stored,
+        'po_data': _po_data,
+        'sr_data': _sr_data,
+        'pwy_data': _pwy_data,
+        'total_orders': _total_orders,
+        'items_to_be_confirmed': _items_to_be_confirmed
+    }
+
+    return render_template('iwms/iwms_dashboard.html',context=context,dd=dashboard_data,title="Dashboard")
 
 @bp_iwms.route('/bin_location')
 @login_required
@@ -1398,7 +1478,7 @@ def putaway_create():
                             inventory_item.default_cost = item.default_cost
 
                             item_location = ItemBinLocations(inventory_item=inventory_item,bin_location=bin_location,\
-                                qty_on_hand=qty)
+                                qty_on_hand=qty,expiry_date=expiry_date,lot_no=lot_no)
 
                             db.session.add(inventory_item)
                             db.session.commit()
@@ -1409,7 +1489,7 @@ def putaway_create():
                                 db.session.commit()
                             else:
                                 new_bin_item_location = ItemBinLocations(inventory_item=_check_for_item,\
-                                    bin_location=bin_location,qty_on_hand=qty)
+                                    bin_location=bin_location,qty_on_hand=qty,expiry_date=expiry_date,lot_no=lot_no)
                                 db.session.add(new_bin_item_location)
                                 db.session.commit()
 
@@ -1894,7 +1974,7 @@ def client_group_edit(oid):
 @bp_iwms.route('/clients')
 @login_required
 def clients():
-    fields = [Client.id,Client.status,Client.code,Client.name,Client.updated_by,Client.updated_at]
+    fields = [Client.id,Client.code,Client.name,Client.updated_by,Client.updated_at]
     form = ClientForm()
     cli_generated_number = ""
     cli = db.session.query(Client).order_by(Client.id.desc()).first()
@@ -1919,7 +1999,8 @@ def client_create():
             obj = Client()
             obj.name = f.name.data
             obj.code = f.code.data
-            obj.status = "ACTIVE"
+            obj.term_id = f.term_id.data if not f.term_id.data == '' else None
+            obj.ship_via_id = f.ship_via_id.data if not f.ship_via_id.data == '' else None
             obj.created_by = "{} {}".format(current_user.fname,current_user.lname)
             db.session.add(obj)
             db.session.commit()
@@ -1943,6 +2024,8 @@ def client_edit(oid):
         if f.validate_on_submit():
             obj.name = f.name.data
             obj.code = f.code.data
+            obj.term_id = f.term_id.data if not f.term_id.data == '' else None
+            obj.ship_via_id = f.ship_via_id.data if not f.ship_via_id.data == '' else None
             obj.updated_by = "{} {}".format(current_user.fname,current_user.lname)
             obj.updated_at = datetime.now()
             db.session.commit()
@@ -1964,7 +2047,7 @@ def inventory_items():
             with_entities(InventoryItem.id,StockItem.name,InventoryItem.default_cost,InventoryItem.default_price,StockItemType.name,Category.description).all()    
     # Dahil hindi ko masyadong kabisado ang ORM, ito muna
     mmodels = [list(ii) for ii in models]
-    print(mmodels)
+
     for ii in mmodels:
         _ibl = ItemBinLocations.query.with_entities(func.sum(ItemBinLocations.qty_on_hand)).filter_by(inventory_item_id=ii[0]).all()
         ii.append(_ibl[0][0])
@@ -2018,7 +2101,7 @@ def inventory_item_edit(oid):
         stocks = ItemBinLocations.query.filter_by(inventory_item_id=oid).all()
 
         return render_template('iwms/inventory_item/iwms_inventory_item_edit.html', oid=oid,context=context,form=f,stocks=stocks,\
-            title="Edit inventory item",number=ii.stock_item.number,name=ii.stock_item.name,categories=categories,types=types)
+            title="View inventory item",number=ii.stock_item.number,name=ii.stock_item.name,categories=categories,types=types)
     elif request.method == "POST":
         if f.validate_on_submit():
             ii.default_price = f.default_price.data
@@ -2062,14 +2145,14 @@ def sales_order_create():
         clients = Client.query.all()
         terms = Term.query.all()
         ship_vias = ShipVia.query.all()
-        inventory_items = InventoryItem.query.all()
+        items = ItemBinLocations.query.all()
 
         context['active'] = 'sales'
         context['mm-active'] = 'sales_order'
         context['module'] = 'iwms'
         context['model'] = 'sales_order'
         return render_template('iwms/sales_order/iwms_sales_order_create.html',context=context,form=f,title="Create sales order"\
-            ,so_generated_number=so_generated_number,clients=clients,terms=terms,ship_vias=ship_vias,inventory_items=inventory_items)
+            ,so_generated_number=so_generated_number,clients=clients,terms=terms,ship_vias=ship_vias,inventory_items=items)
     elif request.method == "POST":
         if f.validate_on_submit():
             try:
@@ -2096,11 +2179,13 @@ def sales_order_create():
                 product_list = r.getlist('products[]')
                 if product_list:
                     for product_id in product_list:
-                        print(product_id)
-                        product = InventoryItem.query.get_or_404(product_id)
+                        item_bin_location= ItemBinLocations.query.get_or_404(product_id)
+                        product = InventoryItem.query.get_or_404(item_bin_location.inventory_item.id)
                         qty = r.get("qty_{}".format(product_id))
+                        unit_price = r.get("price_{}".format(product_id))
                         uom = UnitOfMeasure.query.get(r.get("uom_{}".format(product_id)))
-                        line = SalesOrderLine(inventory_item=product,qty=qty,uom=uom)
+                        line = SalesOrderLine(inventory_item=product,item_bin_location=item_bin_location,\
+                            qty=qty,uom=uom,unit_price=unit_price)
                         so.product_line.append(line)
 
                 db.session.add(so)
@@ -2142,55 +2227,53 @@ def picking_create():
     if request.method == "GET":
         # Hardcoded html ang irerender natin hindi yung builtin ng admin
         warehouses = Warehouse.query.all()
-
+        sales_orders = SalesOrder.query.all()
         context['active'] = 'inventory'
         context['mm-active'] = 'picking'
         context['module'] = 'iwms'
         context['model'] = 'picking'
         
         return render_template('iwms/picking/iwms_picking_create.html',context=context,form=f,title="Create picking"\
-            ,pck_generated_number=pck_generated_number,warehouses=warehouses)
+            ,pck_generated_number=pck_generated_number,warehouses=warehouses,sales_orders=sales_orders)
     elif request.method == "POST":
         if f.validate_on_submit():
             try:
-                r = request.form
-                so = SalesOrder()
-                so.number = so_generated_number
-                client = Client.query.filter_by(name=f.client_name.data).first()
-                so.client = client
-                so.ship_to = f.ship_to.data
-                so.end_user = f.end_user.data
-                so.tax_info = f.tax_info.data
-                so.reference = f.reference.data
-                so.sales_representative = f.sales_representative.data
-                so.inco_terms = f.inco_terms.data
-                so.destination_port = f.destination_port.data
-                so.term_id = f.term_id.data if not f.term_id.data == '' else None
-                so.ship_via_id = f.ship_via_id.data if not f.ship_via_id.data == '' else None
-                so.order_date = f.order_date.data if not f.order_date.data == '' else None
-                so.delivery_date = f.delivery_date.data if not f.delivery_date.data == '' else None
-                so.remarks = f.remarks.data
-                so.approved_by = f.approved_by.data
-                so.created_by = "{} {}".format(current_user.fname,current_user.lname)
+                obj = Picking()
+                so = SalesOrder.query.filter_by(number=f.so_number.data).first()
+                obj.sales_order = so
+                obj.number = pck_generated_number
+                obj.status = "LOGGED"
+                # so.status = "COMPLETED"
+                obj.remarks = f.remarks.data
+                obj.created_by = "{} {}".format(current_user.fname,current_user.lname)
 
-                product_list = r.getlist('products[]')
-                if product_list:
-                    for product_id in product_list:
-                        print(product_id)
-                        product = InventoryItem.query.get_or_404(product_id)
-                        qty = r.get("qty_{}".format(product_id))
-                        uom = UnitOfMeasure.query.get(r.get("uom_{}".format(product_id)))
-                        line = SalesOrderLine(inventory_item=product,qty=qty,uom=uom)
-                        so.product_line.append(line)
+                items_list = request.form.getlist('pick_items[]')
+                if items_list:
+                    for item_id in items_list:
+                        bin_item = ItemBinLocations.query.get_or_404(item_id)
+                        lot_no = request.form.get('lot_no_{}'.format(item_id))
+                        expiry_date = request.form.get('expiry_{}'.format(item_id)) if not request.form.get('expiry_{}'.format(item_id)) == '' else None
+                        uom = request.form.get('uom_{}'.format(item_id))
+                        qty = request.form.get('qty_{}'.format(item_id)) if not request.form.get('qty_{}'.format(item_id)) == '' else None
+                        line = PickingItemLine(item_bin_location=bin_item,lot_no=lot_no,expiry_date=expiry_date,uom=uom,qty=qty)
+                        obj.item_line.append(line)
 
-                db.session.add(so)
+                        """ DEDUCTING QUANTITY TO THE PICKED ITEMS """
+
+                        bin_item.qty_on_hand = bin_item.qty_on_hand - int(qty)
+                        if bin_item.qty_on_hand <= 0:
+                            db.session.delete(bin_item)
+
+                        db.session.commit()
+                        
+                db.session.add(obj)
                 db.session.commit()
-                flash('New Purchase Order added Successfully!','success')
-                return redirect(url_for('bp_iwms.sales_orders'))
+                flash('New Picking added Successfully!','success')
+                return redirect(url_for('bp_iwms.pickings'))
             except Exception as e:
                 flash(str(e),'error')
-                return redirect(url_for('bp_iwms.sales_orders'))
+                return redirect(url_for('bp_iwms.pickings'))
         else:
             for key, value in f.errors.items():
                 flash(str(key) + str(value), 'error')
-            return redirect(url_for('bp_iwms.sales_orders'))
+            return redirect(url_for('bp_iwms.pickings'))

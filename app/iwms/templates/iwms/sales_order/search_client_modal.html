@@ -18,6 +18,8 @@
                                             <th style="display:none;">ID</th>
                                             <th>CODE</th>
                                             <th>NAME</th>
+                                            <th>TERM</th>
+                                            <th>SHIP VIA</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -26,6 +28,8 @@
                                             <td style="display:none;">{{ client.id }}</td>
                                             <td>{{client.code}}</td>
                                             <td>{{client.name}}</td>
+                                            <td>{{client.term.description}}</td>
+                                            <td>{{client.ship_via.description}}</td>
                                         </tr>
                                         {% endfor %}
                                     </tbody>
