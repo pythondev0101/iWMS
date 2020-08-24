@@ -265,7 +265,7 @@ class StockReceiptItemLine(db.Model):
     received_qty = db.Column(db.Integer,nullable=True,default=None)
     net_weight = db.Column(db.Integer,nullable=True,default=None)
     timestamp = db.Column(db.String(255),nullable=True)
-
+    is_putaway = db.Column(db.Boolean,default=False)
 
 class Putaway(Base,Admin):
     __tablename__ = 'iwms_putaway'

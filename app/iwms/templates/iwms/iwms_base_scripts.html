@@ -416,7 +416,7 @@
                 $('#tbl_sr_line tr:last').after(
                     `<tr>
                         <td style="display:none;"><input name="sr_items[]" type="hidden" value="${stock_id}"></input></td>
-                        <td><input class="chkbox" type="checkbox"></td>
+                        <td></td>
                         <td class='text-center'>${item_no}</td>
                         <td class='text-center'>${item_name}</td>
                         <td class='text-center'><input name="lot_no_${stock_id}" type="text" value="${lot_no}" readonly></td>
@@ -597,7 +597,6 @@
                         <td class='text-center'><input name="bin_location_${stock_id}" type="text" value="${bin_location}" style="width:50px" readonly></td>
                         <td class='text-center'><input name="lot_no_${stock_id}" type="text" value="${lot_no}" style="width:50px" readonly></td>
                         <td class='text-center'><input name="expiry_${stock_id}" type="text" value="${expiry_date}" style="width:80px" readonly></td>
-                        <td class='text-center'></td>
                         <td class='text-center'><input name="qty_${stock_id}" type="text" value="${quantity}" style="width:50px" readonly></td>
                         <td class='text-center'><input name="timestamp_${stock_id}" type="text" value="${timestamp}" style="width:110px" readonly></td>
                     </tr>
@@ -671,10 +670,14 @@
                         data.items[i].expiry_date,
                         data.items[i].uom,
                         data.items[i].received_qty,
-                        data.items[i].prev_stored,''
+                        data.items[i].prev_stored
                         ]);
                         table_sr_line.row(row).column(0).nodes().to$().addClass('myHiddenColumn');
-                        table_sr_line.row(row).nodes().to$().addClass('list-group-item-danger');
+                        if (data.items[i].is_putaway){
+                            table_sr_line.row(row).nodes().to$().addClass('list-group-item-success');
+                        }else{
+                            table_sr_line.row(row).nodes().to$().addClass('list-group-item-danger');
+                        }
                         table_sr_line.row(row).draw();
                     }
                 }

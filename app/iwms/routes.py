@@ -292,7 +292,8 @@ def _get_sr_line():
                     'uom':line.uom,'number':line.stock_item.number,
                     'lot_no':line.lot_no,'expiry_date': _expiry_date,
                     'received_qty':line.received_qty,
-                    'prev_stored': str(_ibl[0][0]) if not _ibl[0][0] == None else 0
+                    'prev_stored': str(_ibl[0][0]) if not _ibl[0][0] == None else 0,
+                    'is_putaway': line.is_putaway
                     })
         res = jsonify(items=sr_line)
         res.status_code = 200
@@ -1330,7 +1331,7 @@ def stock_item_edit(oid):
 def stock_receipts():
     fields = [StockReceipt.id,StockReceipt.sr_number,StockReceipt.created_at,StockReceipt.created_by,StockReceipt.status]
     # Custom models pass to admin_index
-    models = StockReceipt.query.with_entities(*fields).filter_by(status="LOGGED").all()
+    models = StockReceipt.query.with_entities(*fields).filter(StockReceipt.status.in_(['LOGGED','PENDING'])).all()
     context['mm-active'] = 'stock_receipt'
     context['create_modal']['create_url'] = False
     return admin_index(StockReceipt,fields=fields,form=StockReceiptViewForm(),create_modal=True,template="iwms/iwms_index.html",\
@@ -1409,8 +1410,9 @@ def stock_receipt_create():
                                 else:
                                     ip.received_qty = int(received_qty)
                                 ip.remaining_qty = ip.remaining_qty - int(received_qty)
-                                
-                            _remaining = _remaining + ip.remaining_qty
+
+                for ip in po.product_line:
+                    _remaining = _remaining + ip.remaining_qty               
 
                 if _remaining == 0:
                     po.status = "RELEASED"
@@ -1453,7 +1455,7 @@ def putaway_create():
     if request.method == "GET":
         # Hardcoded html ang irerender natin hindi yung builtin ng admin
         warehouses = Warehouse.query.all()
-        sr_list = StockReceipt.query.filter_by(status="LOGGED")
+        sr_list = StockReceipt.query.filter(StockReceipt.status.in_(['LOGGED','PENDING']))
         bin_locations = BinLocation.query.all()
         context['active'] = 'inventory'
         context['mm-active'] = 'putaway'
@@ -1469,12 +1471,11 @@ def putaway_create():
                 obj.stock_receipt = sr
                 obj.pwy_number = pwy_generated_number
                 obj.status = "LOGGED"
-                sr.status = "COMPLETED"
-                sr.purchase_order.status = "COMPLETED"
-                # obj.warehouse_id = 
                 obj.reference = f.reference.data
                 obj.remarks = f.remarks.data
                 obj.created_by = "{} {}".format(current_user.fname,current_user.lname)
+
+                _remaining = False
                 items_list = request.form.getlist('pwy_items[]')
                 if items_list:
                     for item_id in items_list:
@@ -1515,6 +1516,22 @@ def putaway_create():
                                     bin_location=bin_location,qty_on_hand=qty,expiry_date=expiry_date,lot_no=lot_no)
                                 db.session.add(new_bin_item_location)
                                 db.session.commit()
+
+                        for srp in sr.item_line:
+                            if int(item_id) == srp.stock_item_id:
+                                srp.is_putaway = True
+                                db.session.commit()
+
+
+                for srp in sr.item_line:
+                    if srp.is_putaway == False:
+                        _remaining = True
+
+                if _remaining == False:
+                    sr.status = "COMPLETED"
+                    sr.purchase_order.status = "COMPLETED"
+                else:
+                    sr.status = "PENDING"
 
                 db.session.add(obj)
                 db.session.commit()
