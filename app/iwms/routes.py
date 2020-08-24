@@ -719,7 +719,8 @@ def logs():
 @bp_iwms.route('/warehouses')
 @login_required
 def warehouses():
-    fields = [Warehouse.id,Warehouse.code,Warehouse.name,Warehouse.active,Warehouse.main_warehouse,Warehouse.updated_by,Warehouse.updated_at]
+    fields = [Warehouse.id,Warehouse.code,Warehouse.name,\
+        Warehouse.created_by,Warehouse.created_at,Warehouse.updated_by,Warehouse.updated_at]
     context['mm-active'] = 'warehouse'
     return admin_index(Warehouse,fields=fields,form=WarehouseForm(),create_url='bp_iwms.warehouse_create',\
         edit_url='bp_iwms.warehouse_edit',template='iwms/iwms_index.html',kwargs={'active':'inventory','convert_boolean':2})
@@ -731,16 +732,20 @@ def warehouse_create():
         form = WarehouseForm()
         if request.method == "POST":
             if form.validate_on_submit():
-                wh = Warehouse()
-                wh.code = form.code.data
-                wh.name = form.name.data
-                wh.active = 1 if form.active.data == 'on' else 0
-                wh.main_warehouse = 1 if form.main_warehouse.data == 'on' else 0
-                wh.created_by = "{} {}".format(current_user.fname,current_user.lname)
-                db.session.add(wh)
-                db.session.commit()
-                flash("New warehouse added successfully!",'success')
-                return redirect(url_for('bp_iwms.warehouses'))
+                try:
+                    wh = Warehouse()
+                    wh.code = form.code.data
+                    wh.name = form.name.data
+                    wh.active = 1
+                    wh.main_warehouse = 1
+                    wh.created_by = "{} {}".format(current_user.fname,current_user.lname)
+                    db.session.add(wh)
+                    db.session.commit()
+                    flash("New warehouse added successfully!",'success')
+                    return redirect(url_for('bp_iwms.warehouses'))
+                except Exception as e:
+                    flash(str(e),'error')
+                    return redirect(url_for('bp_iwms.warehouses'))
             else:
                 for key, value in form.errors.items():
                     flash(str(key) + str(value), 'error')
@@ -760,15 +765,19 @@ def warehouse_edit(oid):
             model=Warehouse,template='iwms/iwms_edit.html',kwargs={'active':'inventory'})
     elif request.method == "POST":
         if f.validate_on_submit():
-            obj.code = f.code.data
-            obj.name = f.name.data
-            obj.active = 1 if f.active.data == 'on' else 0
-            obj.main_warehouse = 1 if f.main_warehouse.data == 'on' else 0
-            obj.updated_at = datetime.now()
-            obj.updated_by = "{} {}".format(current_user.fname,current_user.lname)
-            db.session.commit()
-            flash('Warehouse update Successfully!','success')
-            return redirect(url_for('bp_iwms.warehouses'))
+            try:
+                obj.code = f.code.data
+                obj.name = f.name.data
+                obj.active = 1
+                obj.main_warehouse = 1
+                obj.updated_at = datetime.now()
+                obj.updated_by = "{} {}".format(current_user.fname,current_user.lname)
+                db.session.commit()
+                flash('Warehouse update Successfully!','success')
+                return redirect(url_for('bp_iwms.warehouses'))
+            except Exception as e:
+                flash(str(e),'error')
+                return redirect(url_for('bp_iwms.warehouses'))
         else:    
             for key, value in form.errors.items():
                 flash(str(key) + str(value), 'error')
@@ -777,7 +786,7 @@ def warehouse_edit(oid):
 @bp_iwms.route('/zones')
 @login_required
 def zones():
-    fields = [Zone.id,Zone.code,Zone.description]
+    fields = [Zone.id,Zone.code,Zone.description,Zone.created_by,Zone.created_at,Zone.updated_by,Zone.updated_at]
     context['mm-active'] = 'zone'
     return admin_index(Zone,fields=fields,form=ZoneForm(),create_url='bp_iwms.zone_create', \
         edit_url='bp_iwms.zone_edit',template='iwms/iwms_index.html',kwargs={'active':'inventory'})
@@ -789,14 +798,18 @@ def zone_create():
         f = ZoneForm()
         if request.method == "POST":
             if f.validate_on_submit():
-                obj = Zone()
-                obj.code = f.code.data
-                obj.description = f.description.data
-                obj.created_by = "{} {}".format(current_user.fname,current_user.lname)
-                db.session.add(obj)
-                db.session.commit()
-                flash("New zone added successfully!",'success')
-                return redirect(url_for('bp_iwms.zones'))
+                try:
+                    obj = Zone()
+                    obj.code = f.code.data
+                    obj.description = f.description.data
+                    obj.created_by = "{} {}".format(current_user.fname,current_user.lname)
+                    db.session.add(obj)
+                    db.session.commit()
+                    flash("New zone added successfully!",'success')
+                    return redirect(url_for('bp_iwms.zones'))
+                except Exception as e:
+                    flash(str(e),'error')
+                    return redirect(url_for('bp_iwms.zones'))
             else:
                 for key, value in f.errors.items():
                     flash(str(key) + str(value), 'error')
@@ -811,18 +824,21 @@ def zone_edit(oid):
     f = ZoneEditForm(obj=obj)
     if request.method == "GET":
         context['mm-active'] = 'zone'
-
         return admin_edit(f,'bp_iwms.zone_edit',oid, \
             model=Warehouse,template='iwms/iwms_edit.html',kwargs={'active':'inventory'})
     elif request.method == "POST":
         if f.validate_on_submit():
-            obj.code = f.code.data
-            obj.description = f.description.data
-            obj.updated_at = datetime.now()
-            obj.updated_by = "{} {}".format(current_user.fname,current_user.lname)
-            db.session.commit()
-            flash('Zone update Successfully!','success')
-            return redirect(url_for('bp_iwms.zones'))
+            try:
+                obj.code = f.code.data
+                obj.description = f.description.data
+                obj.updated_at = datetime.now()
+                obj.updated_by = "{} {}".format(current_user.fname,current_user.lname)
+                db.session.commit()
+                flash('Zone update Successfully!','success')
+                return redirect(url_for('bp_iwms.zones'))
+            except Exception as e:
+                flash(str(e),'error')
+                return redirect(url_for('bp_iwms.zones'))
         else:    
             for key, value in form.errors.items():
                 flash(str(key) + str(value), 'error')
@@ -833,10 +849,8 @@ def zone_edit(oid):
 @login_required
 def bin_locations():
     fields = [
-        BinLocation.id,BinLocation.index,BinLocation.code,BinLocation.description, \
-            Warehouse.name,Zone.code,BinLocation.pallet_slot,BinLocation.pallet_cs, \
-                BinLocation.capacity,BinLocation.weight_cap,BinLocation.cbm_cap
-    ]
+        BinLocation.id,BinLocation.code,BinLocation.description, \
+            Warehouse.name,Zone.code]
     models = [BinLocation,Warehouse,Zone]
     context['mm-active'] = 'bin_location'
     return admin_index(*models,fields=fields,form=BinLocationForm(), \
@@ -884,26 +898,29 @@ def bin_location_edit(oid):
     f = BinLocationEditForm(obj=obj)
     if request.method == "GET":
         context['mm-active'] = 'bin_location'
-
         return admin_edit(f,'bp_iwms.bin_location_edit',oid, \
             model=BinLocation,template='iwms/iwms_edit.html',kwargs={'active':'inventory'})
     elif request.method == "POST":
         if f.validate_on_submit():
-            obj.code = f.code.data
-            obj.description = f.description.data
-            obj.index = f.index.data if not f.index.data == '' else None
-            obj.warehouse_id = f.warehouse_id.data if not f.warehouse_id.data == '' else None
-            obj.zone_id = f.zone_id.data if not f.zone_id.data == '' else None
-            obj.pallet_slot = f.pallet_slot.data if not f.pallet_slot.data == '' else None
-            obj.pallet_cs = f.pallet_cs.data if not f.pallet_cs.data == '' else None
-            obj.capacity = f.capacity.data if not f.capacity.data == '' else None
-            obj.weight_cap = f.weight_cap.data if not f.weight_cap.data == '' else None
-            obj.cbm_cap = f.cbm_cap.data if not f.cbm_cap.data == '' else None
-            obj.updated_by = "{} {}".format(current_user.fname,current_user.lname)
-            obj.updated_at = datetime.now()
-            db.session.commit()
-            flash('Bin Location update Successfully!','success')
-            return redirect(url_for('bp_iwms.bin_locations'))
+            try:
+                obj.code = f.code.data
+                obj.description = f.description.data
+                obj.index = f.index.data if not f.index.data == '' else None
+                obj.warehouse_id = f.warehouse_id.data if not f.warehouse_id.data == '' else None
+                obj.zone_id = f.zone_id.data if not f.zone_id.data == '' else None
+                obj.pallet_slot = f.pallet_slot.data if not f.pallet_slot.data == '' else None
+                obj.pallet_cs = f.pallet_cs.data if not f.pallet_cs.data == '' else None
+                obj.capacity = f.capacity.data if not f.capacity.data == '' else None
+                obj.weight_cap = f.weight_cap.data if not f.weight_cap.data == '' else None
+                obj.cbm_cap = f.cbm_cap.data if not f.cbm_cap.data == '' else None
+                obj.updated_by = "{} {}".format(current_user.fname,current_user.lname)
+                obj.updated_at = datetime.now()
+                db.session.commit()
+                flash('Bin Location update Successfully!','success')
+                return redirect(url_for('bp_iwms.bin_locations'))
+            except Exception as e:
+                flash(str(e),'error')
+                return redirect(url_for('bp_iwms.bin_locations'))
         else:
             for key, value in form.errors.items():
                 flash(str(key) + str(value), 'error')
@@ -912,7 +929,8 @@ def bin_location_edit(oid):
 @bp_iwms.route('/categories')
 @login_required
 def categories():
-    fields = [Category.id,Category.code,Category.description]
+    fields = [Category.id,Category.code,Category.description,Category.created_by,Category.created_at,\
+        Category.updated_by,Category.updated_at]
     context['mm-active'] = 'category'
     return admin_index(Category,fields=fields,form=CategoryForm(), \
         template='iwms/iwms_index.html',create_url="bp_iwms.category_create", \
@@ -924,14 +942,18 @@ def category_create():
     f = CategoryForm()
     if request.method == "POST":
         if f.validate_on_submit():
-            obj = Category()
-            obj.code = f.code.data
-            obj.description = f.description.data
-            obj.created_by = "{} {}".format(current_user.fname,current_user.lname)
-            db.session.add(obj)
-            db.session.commit()
-            flash("New Category added successfully!",'success')
-            return redirect(url_for('bp_iwms.categories'))
+            try:
+                obj = Category()
+                obj.code = f.code.data
+                obj.description = f.description.data
+                obj.created_by = "{} {}".format(current_user.fname,current_user.lname)
+                db.session.add(obj)
+                db.session.commit()
+                flash("New Category added successfully!",'success')
+                return redirect(url_for('bp_iwms.categories'))
+            except Exception as e:
+                flash(str(e),'error')
+                return redirect(url_for('bp_iwms.categories'))
         else:
             for key, value in f.errors.items():
                 flash(str(key) + str(value), 'error')
@@ -944,18 +966,21 @@ def category_edit(oid):
     f = CategoryEditForm(obj=obj)
     if request.method == "GET":
         context['mm-active'] = 'category'
-
         return admin_edit(f,'bp_iwms.category_edit',oid, \
             model=Category,template='iwms/iwms_edit.html',kwargs={'active':'inventory'})
     elif request.method == "POST":
         if f.validate_on_submit():
-            obj.code = f.code.data
-            obj.description = f.description.data
-            obj.updated_by = "{} {}".format(current_user.fname,current_user.lname)
-            obj.updated_at = datetime.now()
-            db.session.commit()
-            flash('Category update Successfully!','success')
-            return redirect(url_for('bp_iwms.categories'))
+            try:
+                obj.code = f.code.data
+                obj.description = f.description.data
+                obj.updated_by = "{} {}".format(current_user.fname,current_user.lname)
+                obj.updated_at = datetime.now()
+                db.session.commit()
+                flash('Category update Successfully!','success')
+                return redirect(url_for('bp_iwms.categories'))
+            except Exception as e:
+                flash(str(e),'error')
+                return redirect(url_for('bp_iwms.categories'))
         else:
             for key, value in form.errors.items():
                 flash(str(key) + str(value), 'error')
@@ -964,7 +989,8 @@ def category_edit(oid):
 @bp_iwms.route('/unit_of_measures')
 @login_required
 def unit_of_measures():
-    fields = [UnitOfMeasure.id,UnitOfMeasure.code,UnitOfMeasure.description,UnitOfMeasure.active]
+    fields = [UnitOfMeasure.id,UnitOfMeasure.code,UnitOfMeasure.description,UnitOfMeasure.active,\
+        UnitOfMeasure.created_by,UnitOfMeasure.created_at,UnitOfMeasure.updated_by,UnitOfMeasure.updated_at]
     context['mm-active'] = 'unit_of_measure'
     return admin_index(UnitOfMeasure,fields=fields,form=UnitOfMeasureForm(), \
         template='iwms/iwms_index.html', edit_url='bp_iwms.unit_of_measure_edit', \
@@ -976,15 +1002,19 @@ def unit_of_measure_create():
     f = UnitOfMeasureForm()
     if request.method == "POST":
         if f.validate_on_submit():
-            obj = UnitOfMeasure()
-            obj.code = f.code.data
-            obj.description = f.description.data
-            obj.active = 1 if f.active.data == 'on' else 0
-            obj.created_by = "{} {}".format(current_user.fname,current_user.lname)
-            db.session.add(obj)
-            db.session.commit()
-            flash("New Unit of measure added successfully!",'success')
-            return redirect(url_for('bp_iwms.unit_of_measures'))
+            try:
+                obj = UnitOfMeasure()
+                obj.code = f.code.data
+                obj.description = f.description.data
+                obj.active = 1 if f.active.data == 'on' else 0
+                obj.created_by = "{} {}".format(current_user.fname,current_user.lname)
+                db.session.add(obj)
+                db.session.commit()
+                flash("New Unit of measure added successfully!",'success')
+                return redirect(url_for('bp_iwms.unit_of_measures'))
+            except Exception as e:
+                flash(str(e),'error')
+                return redirect(url_for('bp_iwms.unit_of_measures'))
         else:
             for key, value in f.errors.items():
                 flash(str(key) + str(value), 'error')
@@ -1003,78 +1033,82 @@ def unit_of_measure_edit(oid):
             model=UnitOfMeasure,template='iwms/iwms_edit.html',kwargs={'active':'inventory'})
     elif request.method == "POST":
         if f.validate_on_submit():
-            obj.code = f.code.data
-            obj.description = f.description.data
-            obj.active = 1 if f.active.data == 'on' else 0
-            obj.updated_by = "{} {}".format(current_user.fname,current_user.lname)
-            obj.updated_at = datetime.now()
-            db.session.commit()
-            flash('Unit of measure update Successfully!','success')
-            return redirect(url_for('bp_iwms.unit_of_measures'))
+            try:
+                obj.code = f.code.data
+                obj.description = f.description.data
+                obj.active = 1 if f.active.data == 'on' else 0
+                obj.updated_by = "{} {}".format(current_user.fname,current_user.lname)
+                obj.updated_at = datetime.now()
+                db.session.commit()
+                flash('Unit of measure update Successfully!','success')
+                return redirect(url_for('bp_iwms.unit_of_measures'))
+            except Exception as e:
+                flash(str(e),'error')
+                return redirect(url_for('bp_iwms.unit_of_measures'))
         else:
             for key, value in form.errors.items():
                 flash(str(key) + str(value), 'error')
             return redirect(url_for('bp_iwms.unit_of_measures'))
 
-@bp_iwms.route('/reasons')
-@login_required
-def reasons():
-    fields = [Reason.id,Reason.code,Reason.type,Reason.description]
-    context['mm-active'] = 'reason'
-    return admin_index(Reason,fields=fields,form=ReasonForm(), \
-        template='iwms/iwms_index.html', edit_url='bp_iwms.reason_edit',\
-            create_url="bp_iwms.reason_create",kwargs={'active':'inventory'})
+# @bp_iwms.route('/reasons')
+# @login_required
+# def reasons():
+#     fields = [Reason.id,Reason.code,Reason.type,Reason.description]
+#     context['mm-active'] = 'reason'
+#     return admin_index(Reason,fields=fields,form=ReasonForm(), \
+#         template='iwms/iwms_index.html', edit_url='bp_iwms.reason_edit',\
+#             create_url="bp_iwms.reason_create",kwargs={'active':'inventory'})
 
-@bp_iwms.route('/reason_create',methods=['POST'])
-@login_required
-def reason_create():
-    f = ReasonForm()
-    if request.method == "POST":
-        if f.validate_on_submit():
-            obj = Reason()
-            obj.code = f.code.data
-            obj.description = f.description.data
-            obj.type = f.type.data
-            obj.created_by = "{} {}".format(current_user.fname,current_user.lname)
-            db.session.add(obj)
-            db.session.commit()
-            flash("New reason added successfully!",'success')
-            return redirect(url_for('bp_iwms.reasons'))
-        else:
-            for key, value in f.errors.items():
-                flash(str(key) + str(value), 'error')
-            return redirect(url_for('bp_iwms.reasons'))
+# @bp_iwms.route('/reason_create',methods=['POST'])
+# @login_required
+# def reason_create():
+#     f = ReasonForm()
+#     if request.method == "POST":
+#         if f.validate_on_submit():
+#             obj = Reason()
+#             obj.code = f.code.data
+#             obj.description = f.description.data
+#             obj.type = f.type.data
+#             obj.created_by = "{} {}".format(current_user.fname,current_user.lname)
+#             db.session.add(obj)
+#             db.session.commit()
+#             flash("New reason added successfully!",'success')
+#             return redirect(url_for('bp_iwms.reasons'))
+#         else:
+#             for key, value in f.errors.items():
+#                 flash(str(key) + str(value), 'error')
+#             return redirect(url_for('bp_iwms.reasons'))
 
-@bp_iwms.route('/reason_edit/<int:oid>',methods=['GET','POST'])
-@login_required
-def reason_edit(oid):
-    obj = Reason.query.get_or_404(oid)
-    f = ReasonEditForm(obj=obj)
-    if request.method == "GET":
-        context['mm-active'] = 'reason'
+# @bp_iwms.route('/reason_edit/<int:oid>',methods=['GET','POST'])
+# @login_required
+# def reason_edit(oid):
+#     obj = Reason.query.get_or_404(oid)
+#     f = ReasonEditForm(obj=obj)
+#     if request.method == "GET":
+#         context['mm-active'] = 'reason'
 
-        return admin_edit(f,'bp_iwms.reason_edit',oid, \
-            model=Reason,template='iwms/iwms_edit.html',kwargs={'active':'inventory'})
-    elif request.method == "POST":
-        if f.validate_on_submit():
-            obj.code = f.code.data
-            obj.description = f.description.data
-            obj.type = f.type.data
-            obj.updated_by = "{} {}".format(current_user.fname,current_user.lname)
-            obj.updated_at = datetime.now()
-            db.session.commit()
-            flash('Reason update Successfully!','success')
-            return redirect(url_for('bp_iwms.reasons'))
-        else:
-            for key, value in form.errors.items():
-                flash(str(key) + str(value), 'error')
-            return redirect(url_for('bp_iwms.reasons'))
+#         return admin_edit(f,'bp_iwms.reason_edit',oid, \
+#             model=Reason,template='iwms/iwms_edit.html',kwargs={'active':'inventory'})
+#     elif request.method == "POST":
+#         if f.validate_on_submit():
+#             obj.code = f.code.data
+#             obj.description = f.description.data
+#             obj.type = f.type.data
+#             obj.updated_by = "{} {}".format(current_user.fname,current_user.lname)
+#             obj.updated_at = datetime.now()
+#             db.session.commit()
+#             flash('Reason update Successfully!','success')
+#             return redirect(url_for('bp_iwms.reasons'))
+#         else:
+#             for key, value in form.errors.items():
+#                 flash(str(key) + str(value), 'error')
+#             return redirect(url_for('bp_iwms.reasons'))
 
 
 @bp_iwms.route('/sources')
 @login_required
 def sources():
-    fields = [Source.id,Source.name,Source.description]
+    fields = [Source.id,Source.name,Source.description,Source.created_by,Source.created_at,Source.updated_by,Source.updated_at]
     context['mm-active'] = 'source'
     return admin_index(Source,fields=fields,form=SourceForm(), \
         template='iwms/iwms_index.html', edit_url='bp_iwms.source_edit',\
@@ -1086,14 +1120,18 @@ def source_create():
     f = SourceForm()
     if request.method == "POST":
         if f.validate_on_submit():
-            obj = Source()
-            obj.name = f.name.data
-            obj.description = f.description.data
-            obj.created_by = "{} {}".format(current_user.fname,current_user.lname)
-            db.session.add(obj)
-            db.session.commit()
-            flash("New source added successfully!",'success')
-            return redirect(url_for('bp_iwms.sources'))
+            try:
+                obj = Source()
+                obj.name = f.name.data
+                obj.description = f.description.data
+                obj.created_by = "{} {}".format(current_user.fname,current_user.lname)
+                db.session.add(obj)
+                db.session.commit()
+                flash("New source added successfully!",'success')
+                return redirect(url_for('bp_iwms.sources'))
+            except Exception as e:
+                flash(str(e),'error')
+                return redirect(url_for('bp_iwms.sources'))
         else:
             for key, value in f.errors.items():
                 flash(str(key) + str(value), 'error')
@@ -1110,13 +1148,17 @@ def source_edit(oid):
             model=Source,template='iwms/iwms_edit.html',kwargs={'active':'inventory'})
     elif request.method == "POST":
         if f.validate_on_submit():
-            obj.name = f.name.data
-            obj.description = f.description.data
-            obj.updated_by = "{} {}".format(current_user.fname,current_user.lname)
-            obj.updated_at = datetime.now()
-            db.session.commit()
-            flash('Source update Successfully!','success')
-            return redirect(url_for('bp_iwms.sources'))
+            try:
+                obj.name = f.name.data
+                obj.description = f.description.data
+                obj.updated_by = "{} {}".format(current_user.fname,current_user.lname)
+                obj.updated_at = datetime.now()
+                db.session.commit()
+                flash('Source update Successfully!','success')
+                return redirect(url_for('bp_iwms.sources'))
+            except Exception as e:
+                flash(str(e),'error')
+                return redirect(url_for('bp_iwms.sources'))
         else:
             for key, value in form.errors.items():
                 flash(str(key) + str(value), 'error')
@@ -1811,7 +1853,8 @@ def supplier_edit(oid):
 @bp_iwms.route('/stock_item_types')
 @login_required
 def stock_item_types():
-    fields = [StockItemType.id,StockItemType.name,StockItemType.created_by,StockItemType.created_at]
+    fields = [StockItemType.id,StockItemType.name,StockItemType.created_by,\
+        StockItemType.created_at,StockItemType.updated_by,StockItemType.updated_at]
     context['mm-active'] = 'stock_item_type'
     return admin_index(StockItemType,fields=fields,form=TypeForm(), \
         template='iwms/iwms_index.html', edit_url='bp_iwms.type_edit',\
@@ -1823,13 +1866,17 @@ def type_create():
     f = TypeForm()
     if request.method == "POST":
         if f.validate_on_submit():
-            obj = StockItemType()
-            obj.name = f.name.data
-            obj.created_by = "{} {}".format(current_user.fname,current_user.lname)
-            db.session.add(obj)
-            db.session.commit()
-            flash("New type added successfully!",'success')
-            return redirect(url_for('bp_iwms.stock_item_types'))
+            try:
+                obj = StockItemType()
+                obj.name = f.name.data
+                obj.created_by = "{} {}".format(current_user.fname,current_user.lname)
+                db.session.add(obj)
+                db.session.commit()
+                flash("New type added successfully!",'success')
+                return redirect(url_for('bp_iwms.stock_item_types'))
+            except Exception as e:
+                flash(str(e),'error')
+                return redirect(url_for('bp_iwms.stock_item_types'))
         else:
             for key, value in f.errors.items():
                 flash(str(key) + str(value), 'error')
@@ -1846,12 +1893,16 @@ def type_edit(oid):
             model=StockItemType,template='iwms/iwms_edit.html',kwargs={'active':'inventory'})
     elif request.method == "POST":
         if f.validate_on_submit():
-            obj.name = f.name.data
-            obj.updated_by = "{} {}".format(current_user.fname,current_user.lname)
-            obj.updated_at = datetime.now()
-            db.session.commit()
-            flash('Type update Successfully!','success')
-            return redirect(url_for('bp_iwms.stock_item_types'))
+            try:
+                obj.name = f.name.data
+                obj.updated_by = "{} {}".format(current_user.fname,current_user.lname)
+                obj.updated_at = datetime.now()
+                db.session.commit()
+                flash('Type update Successfully!','success')
+                return redirect(url_for('bp_iwms.stock_item_types'))
+            except Exception as e:
+                flash(str(e),'error')
+                return redirect(url_for('bp_iwms.stock_item_types'))
         else:
             for key, value in form.errors.items():
                 flash(str(key) + str(value), 'error')

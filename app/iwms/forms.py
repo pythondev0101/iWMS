@@ -63,12 +63,12 @@ class TransactionTypeEditForm(AdminEditForm):
 class WarehouseEditForm(AdminEditForm):
     code = AdminField(label='Code',validators=[DataRequired()])
     name = AdminField(label='Name',validators=[DataRequired()])
-    active = AdminField(label='Active Flag',required=False,input_type='checkbox')
-    main_warehouse = AdminField(label="Main Warehouse",required=False,input_type='checkbox')
+    # active = AdminField(label='Active Flag',required=False,input_type='checkbox')
+    # main_warehouse = AdminField(label="Main Warehouse",required=False,input_type='checkbox')
     
     def edit_fields(self):
         return [
-            [self.code,self.name],[self.active,self.main_warehouse]
+            [self.code,self.name]
         ]
     edit_title = 'Edit warehouse'
 
@@ -98,10 +98,8 @@ class BinLocationEditForm(AdminEditForm):
 
     def edit_fields(self):
         return [
-            [self.code,self.description,self.index],
+            [self.code,self.description],
             [self.warehouse_id,self.zone_id],
-            [self.pallet_slot,self.pallet_cs],
-            [self.capacity,self.weight_cap,self.cbm_cap]
             ]
     edit_title = 'Edit Bin Location'
 
@@ -147,7 +145,7 @@ class SourceEditForm(AdminEditForm):
         return [
             [self.name,self.description]
         ]    
-    edit_title = 'Edit reasons'
+    edit_title = 'Edit source'
 
 class EmailForm(AdminIndexForm):
     index_headers = ['Module Code','Description','Type','Email Address']
@@ -185,19 +183,19 @@ class TransactionTypeForm(AdminIndexForm):
         return [[self.code,self.description],[self.prefix,self.next_number_series]]
 
 class WarehouseForm(AdminIndexForm):
-    index_headers = ['Code','Name','Active Flag','Main Warehouse','updated by','updated date']
+    index_headers = ['Code','Name','created by','created at','updated by','updated at']
     index_title = 'Warehouses'
 
     code = AdminField(label='Code',validators=[DataRequired()])
     name = AdminField(label='Name',validators=[DataRequired()])
-    active = AdminField(label='Active Flag',required=False,input_type='checkbox')
-    main_warehouse = AdminField(label="Main Warehouse",required=False,input_type='checkbox')
+    # active = AdminField(label='Active Flag',required=False,input_type='checkbox')
+    # main_warehouse = AdminField(label="Main Warehouse",required=False,input_type='checkbox')
     
     def create_fields(self):
-        return [[self.code,self.name],[self.active,self.main_warehouse]]
+        return [[self.code,self.name]]
     
 class ZoneForm(AdminIndexForm):
-    index_headers = ['Code','Description']
+    index_headers = ['Code','Description','created by','created by','updated by','updated at']
     index_title = 'Zones'
 
     code = AdminField(label='Code',validators=[DataRequired()])
@@ -210,9 +208,8 @@ class BinLocationForm(AdminIndexForm):
     from .models import Warehouse,Zone
 
     index_headers = [
-        'Index','Code','Description','Warehouse',
-        'Zone','Pallet Slot','Pallet CS','Capacity',
-        'weight cap','cbm cap'
+        'Code','Description','Warehouse',
+        'Zone'
         ]
     index_title = 'Bin Locations'
 
@@ -229,14 +226,12 @@ class BinLocationForm(AdminIndexForm):
 
     def create_fields(self):
         return [
-            [self.code,self.description,self.index],
+            [self.code,self.description],
             [self.warehouse_id,self.zone_id],
-            [self.pallet_slot,self.pallet_cs],
-            [self.capacity,self.weight_cap,self.cbm_cap]
             ]
 
 class CategoryForm(AdminIndexForm):
-    index_headers = ['code','description']
+    index_headers = ['code','description','created by','created at','updated by','updated at']
     index_title = 'Categories'
     
     code = AdminField(label='Code',validators=[DataRequired()])
@@ -246,7 +241,7 @@ class CategoryForm(AdminIndexForm):
         return [[self.code,self.description]]
 
 class UnitOfMeasureForm(AdminIndexForm):
-    index_headers = ['code','description','active']
+    index_headers = ['code','description','active','created by','created at ','updated by','updated at']
     index_title = 'Unit of Measurements'
     
     code = AdminField(label='Code',validators=[DataRequired()])
@@ -268,7 +263,7 @@ class ReasonForm(AdminIndexForm):
         return [[self.code,self.description],[self.type]]
 
 class SourceForm(AdminIndexForm):
-    index_headers = ['name','description']
+    index_headers = ['name','description','created by','created at','updated by','updated at']
     index_title = 'Sources'
     
     name = AdminField(label='Name',validators=[DataRequired()])
@@ -485,7 +480,7 @@ class SupplierEditForm(AdminEditForm):
 
 
 class TypeForm(AdminIndexForm):
-    index_headers = ['name','created by','created at']
+    index_headers = ['name','created by','created at','updated by','updated at']
     index_title = 'Types'
     
     name = AdminField(label='Name',validators=[DataRequired()])

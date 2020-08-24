@@ -37,7 +37,7 @@ class TransactionType(Base,Admin):
     __amicon__ = 'pe-7s-network'
 
     """ COLUMNS """
-    code = db.Column(db.String(64),nullable=False)
+    code = db.Column(db.String(64),nullable=False,unique=True)
     description = db.Column(db.String(255),nullable=True)
     prefix = db.Column(db.String(64),nullable=False)
     next_number_series = db.Column(db.Integer,nullable=True)
@@ -63,7 +63,7 @@ class Warehouse(Base,Admin):
     __amicon__ = 'pe-7s-map'
 
     """ COLUMNS """
-    code = db.Column(db.String(64),nullable=False)
+    code = db.Column(db.String(64),nullable=False,unique=True)
     name = db.Column(db.String(64),nullable=False)
     main_warehouse = db.Column(db.Boolean, nullable=False, default="0")
     bins = db.relationship('BinLocation',backref='warehouse')
@@ -76,7 +76,7 @@ class Zone(Base,Admin):
     __amicon__ = 'pe-7s-map-2'
 
     """ COLUMNS """
-    code = db.Column(db.String(64),nullable=False)
+    code = db.Column(db.String(64),nullable=False,unique=True)
     description = db.Column(db.String(255),nullable=True)
 
     @property
@@ -91,7 +91,7 @@ class BinLocation(Base,Admin):
     __amicon__ = 'pe-7s-map-marker'
 
     """ COLUMNS """
-    code = db.Column(db.String(64),nullable=False)
+    code = db.Column(db.String(64),nullable=False,unique=True)
     description = db.Column(db.String(255),nullable=True)
     index = db.Column(db.Integer,nullable=True)
     warehouse_id = db.Column(db.Integer, db.ForeignKey('iwms_warehouse.id',ondelete="SET NULL"),nullable=True)
@@ -113,7 +113,7 @@ class Category(Base,Admin):
     __amicon__ = 'pe-7s-network'
 
     """ COLUMNS """
-    code = db.Column(db.String(64),nullable=False)
+    code = db.Column(db.String(64),nullable=False,unique=True)
     description = db.Column(db.String(255),nullable=True)
     
     @property
@@ -199,7 +199,7 @@ class UnitOfMeasure(Base,Admin):
     __amicon__ = 'pe-7s-vector'
 
     """ COLUMNS """
-    code = db.Column(db.String(64),nullable=False)
+    code = db.Column(db.String(64),nullable=False,unique=True)
     description = db.Column(db.String(255),nullable=True)
 
 
@@ -210,7 +210,7 @@ class Reason(Base,Admin):
     __amicon__ = 'pe-7s-news-paper'
 
     """ COLUMNS """
-    code = db.Column(db.String(64),nullable=False)
+    code = db.Column(db.String(64),nullable=False,unique=True)
     description = db.Column(db.String(255),nullable=True)
     type = db.Column(db.String(64),nullable=False)
 
@@ -308,7 +308,7 @@ class Supplier(Base,Admin):
     __amicon__ = ''
 
     """ COLUMNS """
-    code = db.Column(db.String(255),nullable=False)
+    code = db.Column(db.String(255),nullable=False,unique=True)
     name = db.Column(db.String(255),nullable=False)
     status = db.Column(db.String(255),nullable=True)
     address = db.Column(db.String(255),nullable=True)
@@ -323,7 +323,7 @@ class Term(Base,Admin):
     __amdescription__ = 'Terms'
 
     """ COLUMNS """
-    code = db.Column(db.String(255),nullable=False)
+    code = db.Column(db.String(255),nullable=False,unique=True)
     description = db.Column(db.String(255),nullable=True)
     days = db.Column(db.Integer,nullable=True)
 
@@ -377,6 +377,7 @@ class StockItemType(Base,Admin):
     __tablename__ = 'iwms_stock_item_type'
     __amname__ = 'stock_item_type'
     __amdescription__ = 'Stock Item Type'
+    __amicon__ = 'pe-7s-network'
 
     """ COLUMNS """
     name = db.Column(db.String(255),nullable=False)
@@ -419,7 +420,7 @@ class Client(Base,Admin):
     __amdescription__ = 'Client'
 
     """ COLUMNS """
-    code = db.Column(db.String(255),nullable=False)
+    code = db.Column(db.String(255),nullable=False,unique=True)
     name = db.Column(db.String(255),nullable=True)
     ship_to = db.Column(db.String(255),nullable=True)
     term_id = db.Column(db.Integer,db.ForeignKey('iwms_term.id',ondelete="SET NULL"),nullable=True)

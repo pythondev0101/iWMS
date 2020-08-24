@@ -661,7 +661,7 @@
                 data: JSON.stringify({'sr_id':sr_id}),
                 contentType: "application/json; charset=utf-8",
                 success: function(data){
-                    for (i=0; i < data.items.length;  ++i){
+                    for (i=0; i < data.items.length; ++i){
                         var row = table_sr_line.row.add([
                         data.items[i].id,
                         data.items[i].number,

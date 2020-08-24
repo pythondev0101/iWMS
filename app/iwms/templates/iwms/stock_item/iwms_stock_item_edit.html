@@ -32,11 +32,11 @@
                 <span>PLU Group</span>
             </a>
         </li>
-        <li class="nav-item">
+        <!-- <li class="nav-item">
             <a role="tab" class="nav-link show" id="tab-2" data-toggle="tab" href="#tab-content-2" aria-selected="false">
                 <span>Other Information</span>
             </a>
-        </li>
+        </li> -->
     </ul>
     <form action="{{ url_for('bp_iwms.stock_item_edit',oid=oid) }}" id="edit_form" class="needs-validation" method="POST" novalidate>
     {{ form.csrf_token }}
@@ -105,41 +105,13 @@
                             </div>
                         </div>
                         <div class="form-row">
-
                             <div class="col-md-4">
                                 <div class="position-relative form-group">
                                     <label for="packaging" class="">Packaging</label>
                                     <input name="packaging" id="packaging" type="text" class="form-control" value="{{form.packaging.data}}">
                                 </div>
                             </div>
-                            <div class="col-md-4">
-                                <div class="position-relative form-group">
-                                    <label for="tax_code" class="">Tax Code</label>
-                                    <select name="tax_code_id" id="tax_code_id" class="form-control" disabled>
-                                        <option value="">Choose...</option>
-                                        {% for tax_code in tax_codes %}
-                                        <option value="{{ tax_code.id }}" {% if form.tax_code_id.data == tax_code.id %}selected{% endif %}>
-                                            {{ tax_code.name }}
-                                        </option>
-                                        {% endfor %}
-                                    </select>
-                                    <div class="valid-feedback">
-                                        Looks good!
-                                    </div>
-                                    <div class="invalid-feedback">
-                                        Please provide a valid
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-md-4">
-                                <div class="position-relative form-group">
-                                    <label for="reorder_qty" class="">Reorder Qty</label>
-                                    <input name="reorder_qty" id="reorder_qty" type="text" class="form-control" value="{% if not form.reorder_qty.data == None %}{{form.reorder_qty.data}}{% endif %}" readonly>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="form-row">
-                            <div class="col-md-4">
+                            <div class="col-md-8">
                                 <div class="position-relative form-group"><label for="suppliers" class="">Supplier(s)</label>
                                     <select multiple="" name="suppliers" id="suppliers" class="form-control" required>
                                         {% for supplier in suppliers %}
@@ -148,6 +120,7 @@
                                 </select></div>
                             </div>
                         </div>
+                            
                 </div>
             </div>
         </div>

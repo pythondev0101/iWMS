@@ -134,6 +134,7 @@ def install():
         print("Inserting unit of measures...")
         pc = UnitOfMeasure()
         pc.code,pc.description = "pc", "pcs"
+        pc.created_by = "System"
         db.session.add(pc)
         db.session.commit()
         print("pc unit of measure inserted!")
@@ -142,6 +143,7 @@ def install():
         print("Inserting sources...")
         s = Source()
         s.name,s.description = "Purchase Order", "Purchase Order"
+        s.created_by = "System"
         db.session.add(s)
         db.session.commit()
         print("Sources inserted!")        

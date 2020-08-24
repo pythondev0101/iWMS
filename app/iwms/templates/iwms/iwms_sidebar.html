@@ -224,20 +224,6 @@
     {% endif %}
     {% endif %}
 
-    {% if 'reason' in session['permissions'] %}
-    {% if session['permissions']['reason']['read'] %}
-
-    <li>
-      <a
-        href="{{ url_for('bp_iwms.reasons') }}"
-        class="{% if context['mm-active'] == 'reason' %} mm-active {% endif %}"
-      >
-        <i class="metismenu-icon"> </i>Reason
-      </a>
-    </li>
-    {% endif %}
-    {% endif %}
-
     {% if 'source' in session['permissions'] %}
     {% if session['permissions']['source']['read'] %}
 
