@@ -1,0 +1,228 @@
+{% extends "iwms/iwms_base_scripts.html" %}
+
+{% block content %}
+<div class="app-main__inner">
+    <div class="app-page-title">
+        <div class="page-title-wrapper">
+            <div class="page-title-heading">
+                <div class="page-title-icon">
+                    <i class="pe-7s-download text-success">
+                    </i>
+                </div>
+                <div>{{ form.number.data }}
+                    <div class="page-title-subheading">
+                        {% if form.status.data == 'LOGGED' %}
+                        <div class="mb-2 mr-2 badge badge-pill badge-primary">LOGGED</div>
+                        {% elif form.status.data == 'CONFIRMED' %}
+                        <div class="mb-2 mr-2 badge badge-pill badge-success">CONFIRMED</div>
+                        {% elif form.status.data == 'ON HOLD' %}
+                        <div class="mb-2 mr-2 badge badge-pill badge-danger">ON HOLD</div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <ul class="body-tabs body-tabs-layout tabs-animated body-tabs-animated nav">
+        <li class="nav-item">
+            <a role="tab" class="nav-link show active" id="tab-0" data-toggle="tab" href="#tab-content-0" aria-selected="true">
+                <span>General Information</span>
+            </a>
+        </li>
+    </ul>
+    <form action="{{ url_for('bp_iwms.sales_order_edit',oid=oid) }}" id="edit_form" class="needs-validation" method="POST" novalidate>
+    {{ form.csrf_token }}
+    <div class="tab-content">
+        <div class="tab-pane tabs-animation fade active show" id="tab-content-0" role="tabpanel">
+            <div class="main-card mb-3 card">
+                <div class="card-body">
+                        <div class="form-row">
+                            <div class="col-md-6">
+                                <div class="position-relative form-group">
+                                    <label for="client_name" class="">Customer</label>
+                                    <div class="input-group"><input value="{{form.client_name.data}}" id="client_name" name="client_name" type="text" class="form-control" required readonly>
+                                        
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="position-relative form-group">
+                                    <label for="ship_to" class="">Ship To</label>
+                                    <input readonly value="{{form.ship_to.data}}" name="ship_to" id="ship_to" type="text" class="form-control">
+                                </div>
+                            </div>
+                        </div> 
+
+                        <div class="form-row">
+                            <div class="col-md-6">
+                                <div class="position-relative form-group">
+                                    <label for="reference" class="">Reference/DR</label>
+                                    <input readonly value="{{form.reference.data}}" name="reference" id="reference" type="text" class="form-control">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="position-relative form-group">
+                                    <label for="sales_representative" class="">Sales Representative</label>
+                                    <input readonly value="{{form.sales_representative.data}}" name="sales_representative" id="sales_representative" type="text" class="form-control">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="col-md-6">
+                                <div class="position-relative form-group">
+                                    <label for="term" class="">Terms</label>
+                                    <input value="{{form.term_id.data}}" readonly name="term" id="term" type="text" class="form-control">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="position-relative form-group">
+                                    <label for="ship_via" class="">Ship Via</label>
+                                    <input readonly value="{{form.ship_via_id.data}}" name="ship_via" id="ship_via" type="text" class="form-control">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="col-md-4">
+                                <div class="position-relative form-group">
+                                    <label for="order_date" class="">Order Date</label>
+                                    <input readonly value="{{form.order_date.data.strftime('%Y-%m-%d')}}" name="order_date" id="order_date" type="date" class="form-control">
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="position-relative form-group">
+                                    <label for="delivery_date" class="">Delivery Date</label>
+                                    <input readonly value="{{form.delivery_date.data.strftime('%Y-%m-%d')}}" name="delivery_date" id="delivery_date" type="date" class="form-control">
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="position-relative form-group"> 
+                                    <label for="approved_by" class="">Approved By</label>
+                                    <input readonly value="{{form.approved_by.data}}" name="approved_by" id="approved_by" type="text" class="form-control">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="col-md-12">
+                                <div class="position-relative form-group">
+                                    <label for="remarks" class="">Remarks</label>
+                                    <input readonly value="{{form.remarks.data}}" name="remarks" id="remarks" type="text" class="form-control">
+                                </div>
+                            </div>
+                        </div>
+                </div>
+            </div>
+            <div class="main-card mb-3 card">
+                <div class="card-header">Line Items
+                </div>
+                <div class="table-responsive">
+                    <table id="tbl_so_line" class="align-middle mb-0 table table-bordered table-hover">
+                        <thead>
+                        <tr>
+                            <th style="display:none;">ID</th>
+                            <th style="display:none;">DESCRIPTION</th>
+                            <th style="display:none;">EXPIRY DATE</th>
+                            <th></th>
+                            <th class="text-center">ITEM NO.</th>
+                            <th class="text-center">NAME</th>
+                            <th class="text-center">UOM</th>
+                            <th class="text-center">QTY</th>
+                            <th class="text-center">AVAILABLE QTY</th>
+                            <th class="text-center">UNIT PRICE</th>
+                            <th class="text-center">SUBTOTAL</th>
+                        </tr>
+                        </thead>
+                        <tbody id="tbody_so_line">
+                            {% for line in line_items %}
+                            <tr>
+                                <td style="display:none;"><input name="products[]" type="hidden" value="{{line.item_bin_location_id}}"></td>
+                                <td style="display:none;">{{line.inventory_item.stock_item.description}}</td>
+                                <td style="display:none;">{{line.item_bin_location.expiry_date}}</td>
+                                <td><input disabled class="chkbox" type="checkbox"></td>
+                                <td class='text-center'>{{line.inventory_item.stock_item.number}}</td>
+                                <td class='text-center'>{{line.inventory_item.stock_item.name}}</td>
+                                <td class='text-center'>
+                                    <select disabled name="uom_{{line.item_bin_location_id}}" style='width: 100%;'>
+                                        {% for uom in line.inventory_item.stock_item.uom_line %}
+                                        <option value="{{uom.uom_id}}" {% if uom.uom_id == line.uom_id %}selected{% endif %}>{{uom.uom.code}}</option>
+                                        {% endfor %}
+                                    </select>
+                                </td>
+                                <td class='text-center'><input readonly class="input_qty" name="qty_{{line.item_bin_location_id}}" type="number" style="width:100px" value="{{line.qty}}"></td>
+                                <td class='text-center'>{{line.item_bin_location.qty_on_hand}}</td>
+                                <td class='text-center'><input readonly class="input_price" name="price_{{line.item_bin_location_id}}" type="number" value="{{line.unit_price}}" style="width:100px"></td>
+                                <td class='text-center'><input readonly class="input_subtotal" name="subtotal_{{line.item_bin_location_id}}" type="number" value="" style="width:100px"></td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                <div class="d-block text-center card-footer">
+                    <div class="d-block text-right card-footer">
+                        <p id='p_total'><strong>TOTAL: &nbsp;&nbsp;</strong></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! -->
+        <!-- !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! -->
+        <!-- !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! -->
+       
+        <script>
+            // Example starter JavaScript for disabling form submissions if there are invalid fields
+            (function() {
+            'use strict';
+            window.addEventListener('load', function() {
+            // Fetch all the forms we want to apply custom Bootstrap validation styles to
+            var forms = document.getElementsByClassName('needs-validation');
+            // Loop over them and prevent submission
+            var validation = Array.prototype.filter.call(forms, function(form) {
+            form.addEventListener('submit', function(event) {
+            if (form.checkValidity() === false) {
+                event.preventDefault();
+                event.stopPropagation();
+            }
+            form.classList.add('was-validated');
+            }, false);
+            });
+            }, false);
+            })();
+        </script>
+    </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block inner_footer %}
+<div class="app-footer-right">
+    <button type="button" class="btn btn-secondary" onclick="history.back(-1)" 
+    style="margin-right: 10px;">Back</button>
+</div>
+{% endblock %}
+
+{% block toast %}
+{% with messages = get_flashed_messages(with_categories=true) %}
+{% if messages %}
+<div id="toast-container" class="toast-top-center">
+    {% for category, message in messages %}
+        {% if category == 'success' %}
+        <div class="toast toast-success" aria-live="polite">
+            <div class="toast-progress" style="width: 0%;"></div>
+            <button type="button" class="toast-close-button" role="button" onclick="close_toast()">×</button>
+            <div class="toast-title">Success!</div>
+            <div class="toast-message">{{ message }}</div>
+        </div>
+        {% elif category == 'error' %}
+        <div class="toast toast-error" aria-live="polite">
+            <div class="toast-progress" style="width: 0%;"></div>
+            <button type="button" class="toast-close-button" role="button" onclick="close_toast()">×</button>
+            <div class="toast-title">Error!</div>
+            <div class="toast-message">{{ message }}</div>
+        </div>
+        {% endif %}
+    {% endfor %}
+</div>
+{% endif %}
+{% endwith %}
+{% endblock %}

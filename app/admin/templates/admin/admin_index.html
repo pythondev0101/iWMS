@@ -60,6 +60,10 @@
                                 <div class="mb-2 mr-2 badge badge-success">COMPLETED</div>
                                 {% elif values == 'PENDING' %}
                                 <div class="mb-2 mr-2 badge badge-danger">PENDING</div>
+                                {% elif values == 'ON HOLD' %}
+                                <div class="mb-2 mr-2 badge badge-danger">ON HOLD</div>
+                                {% elif values == 'CONFIRMED' %}
+                                <div class="mb-2 mr-2 badge badge-success">CONFIRMED</div>
                                 {% else %} {{ values }} 
 
                                 {% endif %}</td>
@@ -192,6 +196,24 @@
                             success: function(data) {
                                 if (!(data.editable == true)){
                                 // IF STATUS IS NOT LOGGED OF PO the edit button will rename to 'view' only
+                                    $("#view_edit_button").text("View");
+                                    $("#view_edit_button").attr('href', url.replace('edit','view'));
+                                }else{
+                                    $("#view_edit_button").text("Edit");
+                                    $("#view_edit_button").attr('href', url.replace('view','edit'));
+                                }
+                            }
+                        });
+                    }else if(table == "iwms_sales_order"){
+                        $.ajax({
+                            url: "/iwms/_get_SO_status",
+                            type: "POST",
+                            dataType: "json",
+                            data: JSON.stringify({'id':field_id}),
+                            contentType: "application/json; charset=utf-8",
+                            success: function(data) {
+                                if (!(data.editable == true)){
+                                // IF STATUS IS NOT LOGGED OF SO the edit button will rename to 'view' only
                                     $("#view_edit_button").text("View");
                                     $("#view_edit_button").attr('href', url.replace('edit','view'));
                                 }else{

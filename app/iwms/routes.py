@@ -193,6 +193,17 @@ def _get_PO_status():
         return jsonify({'editable':editable})
 
 
+@bp_iwms.route('/_get_SO_status',methods=['POST'])
+def _get_SO_status():
+    if request.method == 'POST':
+        _id = request.json['id']
+        _so = SalesOrder.query.get(_id)
+        editable = False
+        if _so.status == "LOGGED":
+            editable = True
+        return jsonify({'editable':editable})
+
+
 @bp_iwms.route('/_update_bin_coord', methods=['POST'])
 def _update_bin_coord():
     if request.method == 'POST':
@@ -2136,7 +2147,8 @@ def sales_orders():
     fields = [SalesOrder.id,SalesOrder.number,SalesOrder.created_at,SalesOrder.created_by,SalesOrder.status]
     context['mm-active'] = 'sales_order'
     context['create_modal']['create_url'] = False
-    return admin_index(SalesOrder,fields=fields,form=SalesOrderViewForm(),create_modal=True,template="iwms/iwms_index.html",kwargs={'active':'sales'})
+    return admin_index(SalesOrder,fields=fields,form=SalesOrderViewForm(),create_modal=True,\
+        template="iwms/iwms_index.html",kwargs={'active':'sales'},edit_url="bp_iwms.sales_order_edit")
 
 
 @bp_iwms.route('/sales_order_create',methods=['GET','POST'])
@@ -2157,7 +2169,7 @@ def sales_order_create():
         clients = Client.query.all()
         terms = Term.query.all()
         ship_vias = ShipVia.query.all()
-        items = ItemBinLocations.query.all()
+        items = ItemBinLocations.query.filter(ItemBinLocations.qty_on_hand>0).all()
 
         context['active'] = 'sales'
         context['mm-active'] = 'sales_order'
@@ -2180,8 +2192,8 @@ def sales_order_create():
                 so.sales_representative = f.sales_representative.data
                 so.inco_terms = f.inco_terms.data
                 so.destination_port = f.destination_port.data
-                so.term_id = f.term_id.data if not f.term_id.data == '' else None
-                so.ship_via_id = f.ship_via_id.data if not f.ship_via_id.data == '' else None
+                so.term_id = None
+                so.ship_via_id = None
                 so.order_date = f.order_date.data if not f.order_date.data == '' else None
                 so.delivery_date = f.delivery_date.data if not f.delivery_date.data == '' else None
                 so.remarks = f.remarks.data
@@ -2212,6 +2224,95 @@ def sales_order_create():
                 flash(str(key) + str(value), 'error')
             return redirect(url_for('bp_iwms.sales_orders'))
 
+
+@bp_iwms.route('/sales_order_edit/<int:oid>',methods=['GET','POST'])
+@login_required
+def sales_order_edit(oid):
+    so = SalesOrder.query.get_or_404(oid)
+    f = SalesOrderCreateForm(obj=so)
+    if request.method == "GET":
+        clients = Client.query.all()
+        _so_items = [x.item_bin_location_id for x in so.product_line]
+        items = ItemBinLocations.query.filter(ItemBinLocations.qty_on_hand>0, ~ItemBinLocations.id.in_(_so_items)).all()
+        f.client_name.data = so.client.name
+        f.term_id.data = so.client.term.description
+        f.ship_via_id.data = so.client.ship_via.description
+        context['active'] = 'sales'
+        context['mm-active'] = 'sales_order'
+        context['module'] = 'iwms'
+        context['model'] = 'sales_order'
+
+        return render_template('iwms/sales_order/iwms_sales_order_edit.html', oid=oid,\
+            context=context,form=f,title="Edit sales order",clients=clients,inventory_items=items,line_items=so.product_line)
+    
+    elif request.method == "POST":
+        if f.validate_on_submit():
+            try:
+                r = request.form
+                client = Client.query.filter_by(name=f.client_name.data).first()
+                so.client = client
+                so.ship_to = f.ship_to.data
+                so.end_user = f.end_user.data
+                so.tax_info = f.tax_info.data
+                so.reference = f.reference.data
+                so.sales_representative = f.sales_representative.data
+                so.inco_terms = f.inco_terms.data
+                so.destination_port = f.destination_port.data
+                so.term_id = None
+                so.ship_via_id = None
+                so.order_date = f.order_date.data if not f.order_date.data == '' else None
+                so.delivery_date = f.delivery_date.data if not f.delivery_date.data == '' else None
+                so.remarks = f.remarks.data
+                so.approved_by = f.approved_by.data
+                so.updated_by = "{} {}".format(current_user.fname,current_user.lname)
+
+                product_list = r.getlist('products[]')
+                if product_list:
+                    so.product_line = []
+                    for product_id in product_list:
+                        item_bin_location= ItemBinLocations.query.get_or_404(product_id)
+                        product = InventoryItem.query.get_or_404(item_bin_location.inventory_item.id)
+                        qty = r.get("qty_{}".format(product_id))
+                        unit_price = r.get("price_{}".format(product_id))
+                        uom = UnitOfMeasure.query.get(r.get("uom_{}".format(product_id)))
+                        print("TEST",qty,unit_price,uom)
+                        line = SalesOrderLine(inventory_item=product,item_bin_location=item_bin_location,\
+                            qty=qty,uom=uom,unit_price=unit_price,issued_qty=0)
+                        so.product_line.append(line)
+
+                db.session.commit()
+                flash('Sales Order updated Successfully!','success')
+                return redirect(url_for('bp_iwms.sales_orders'))
+            except Exception as e:
+                flash(str(e),'error')
+                return redirect(url_for('bp_iwms.sales_orders'))
+        else:
+            for key, value in f.errors.items():
+                flash(str(key) + str(value), 'error')
+            return redirect(url_for('bp_iwms.sales_orders'))
+
+
+@bp_iwms.route('/sales_order_view/<int:oid>')
+@login_required
+def sales_order_view(oid):
+    """ First view function for viewing only and not editable html """
+    so = SalesOrder.query.get_or_404(oid)
+    f = SalesOrderCreateForm(obj=so)
+    if request.method == "GET":
+        clients = Client.query.all()
+        _so_items = [x.item_bin_location_id for x in so.product_line]
+        items = ItemBinLocations.query.filter(ItemBinLocations.qty_on_hand>0, ~ItemBinLocations.id.in_(_so_items)).all()
+        f.client_name.data = so.client.name
+        f.term_id.data = so.client.term.description
+        f.ship_via_id.data = so.client.ship_via.description
+        context['active'] = 'sales'
+        context['mm-active'] = 'sales_order'
+        context['module'] = 'iwms'
+        context['model'] = 'sales_order'
+
+        return render_template('iwms/sales_order/iwms_sales_order_view.html', oid=oid,\
+            context=context,form=f,title="View sales order",clients=clients,inventory_items=items,line_items=so.product_line)
+    
 
 @bp_iwms.route('/pickings')
 @login_required
@@ -2275,18 +2376,17 @@ def picking_create():
                         bin_item.qty_on_hand = bin_item.qty_on_hand - int(qty)
                       
                         for pi in so.product_line:
-                            print(item_id,pi.item_bin_location_id)
 
                             if int(item_id) == pi.item_bin_location_id:
                                 pi.issued_qty = pi.issued_qty + int(qty)
                                 pi.qty = pi.qty - int(qty)
                                 db.session.commit()
-                            
-                            _remaining = _remaining + (pi.issued_qty - int(qty))
 
+                            print(_remaining, "+", pi.qty)
+                            _remaining = _remaining + pi.qty
                         # if bin_item.qty_on_hand <= 0:
                         #     db.session.delete(bin_item)
-
+                print(_remaining)
                 if _remaining == 0:
                     so.status = "CONFIRMED"
                 else:

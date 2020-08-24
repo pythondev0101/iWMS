@@ -391,6 +391,8 @@ class PutawayCreateForm(FlaskForm):
 
 
 class SalesOrderCreateForm(FlaskForm):
+    number = StringField()
+    status = StringField()
     client_name = StringField()
     ship_to = StringField()
     end_user = StringField()

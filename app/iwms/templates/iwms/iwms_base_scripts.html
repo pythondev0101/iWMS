@@ -508,7 +508,7 @@
                         data.items[i].uom,
                         data.items[i].qty,
                         data.items[i].received_qty,
-                        data.items[i].remaining_qty,''
+                        data.items[i].remaining_qty
                         ]);
                         table_po_line.row(row).column(0).nodes().to$().addClass('myHiddenColumn');
                         if (data.items[i].remaining_qty == 0){
@@ -815,7 +815,22 @@
             });
         });
     });
-
+    var _total = 0
+    $("#tbl_so_line tr").each(function() {
+        var row = $(this).closest("tr");
+        var price = row.find('.input_price').val();
+        var qty = row.find('.input_qty').val();
+        var amount = parseFloat(qty) * parseFloat(price); 
+        row.find('.input_subtotal').val(amount.toFixed(2));
+        var _total = 0;
+        $("#tbl_so_line tr").each(function() {
+            if ($(this).find("input").eq(0).val()){
+                var subtotal = $(this).find("input").eq(4).val();
+                _total += parseFloat(subtotal);
+                $("#p_total").html(`<strong>TOTAL: &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</strong>${_total}`);
+            }
+        });
+    });
     (function() {
         var fixed_footer = document.getElementById('chkbox_fixed_footer');
         setTimeout(function() {
