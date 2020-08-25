@@ -1854,19 +1854,23 @@ def supplier_create():
     f = SupplierForm()
     if request.method == "POST":
         if f.validate_on_submit():
-            obj = Supplier()
-            obj.code = f.code.data
-            obj.name = f.name.data
-            obj.status = "ACTIVE"
-            obj.address = f.address.data
-            obj.email_address = f.email_address.data
-            obj.contact_person = f.contact_person.data
-            obj.contact_number = f.contact_number.data
-            obj.created_by = "{} {}".format(current_user.fname,current_user.lname)
-            db.session.add(obj)
-            db.session.commit()
-            flash("New supplier added successfully!",'success')
-            return redirect(url_for('bp_iwms.suppliers'))
+            try:
+                obj = Supplier()
+                obj.code = f.code.data
+                obj.name = f.name.data
+                obj.status = "ACTIVE"
+                obj.address = f.address.data
+                obj.email_address = f.email_address.data
+                obj.contact_person = f.contact_person.data
+                obj.contact_number = f.contact_number.data
+                obj.created_by = "{} {}".format(current_user.fname,current_user.lname)
+                db.session.add(obj)
+                db.session.commit()
+                flash("New supplier added successfully!",'success')
+                return redirect(url_for('bp_iwms.suppliers'))
+            except Exception as e:
+                flash(str(e),'error')
+                return redirect(url_for('bp_iwms.suppliers'))
         else:
             for key, value in f.errors.items():
                 flash(str(key) + str(value), 'error')
@@ -1884,18 +1888,22 @@ def supplier_edit(oid):
             model=Supplier,template='iwms/iwms_edit.html',kwargs={'active':'purchases'})
     elif request.method == "POST":
         if f.validate_on_submit():
-            obj.code = f.code.data
-            obj.name = f.name.data
-            obj.status = "ACTIVE"
-            obj.address = f.address.data
-            obj.email_address = f.email_address.data
-            obj.contact_person = f.contact_person.data
-            obj.contact_number = f.contact_number.data
-            obj.updated_by = "{} {}".format(current_user.fname,current_user.lname)
-            obj.updated_at = datetime.now()
-            db.session.commit()
-            flash('Supplier update Successfully!','success')
-            return redirect(url_for('bp_iwms.suppliers'))
+            try:
+                obj.code = f.code.data
+                obj.name = f.name.data
+                obj.status = "ACTIVE"
+                obj.address = f.address.data
+                obj.email_address = f.email_address.data
+                obj.contact_person = f.contact_person.data
+                obj.contact_number = f.contact_number.data
+                obj.updated_by = "{} {}".format(current_user.fname,current_user.lname)
+                obj.updated_at = datetime.now()
+                db.session.commit()
+                flash('Supplier update Successfully!','success')
+                return redirect(url_for('bp_iwms.suppliers'))
+            except Exception as e:
+                flash(str(e),'error')
+                return redirect(url_for('bp_iwms.suppliers'))
         else:
             for key, value in form.errors.items():
                 flash(str(key) + str(value), 'error')
@@ -1976,15 +1984,19 @@ def term_create():
     f = TermForm()
     if request.method == "POST":
         if f.validate_on_submit():
-            obj = Term()
-            obj.code = f.code.data
-            obj.description = f.description.data
-            obj.days = f.days.data if not f.days.data == '' else None
-            obj.created_by = "{} {}".format(current_user.fname,current_user.lname)
-            db.session.add(obj)
-            db.session.commit()
-            flash("New term added successfully!",'success')
-            return redirect(url_for('bp_iwms.terms'))
+            try:
+                obj = Term()
+                obj.code = f.code.data
+                obj.description = f.description.data
+                obj.days = f.days.data if not f.days.data == '' else None
+                obj.created_by = "{} {}".format(current_user.fname,current_user.lname)
+                db.session.add(obj)
+                db.session.commit()
+                flash("New term added successfully!",'success')
+                return redirect(url_for('bp_iwms.terms'))
+            except Exception as e:
+                flash(str(e),'error')
+                return redirect(url_for('bp_iwms.terms'))
         else:
             for key, value in f.errors.items():
                 flash(str(key) + str(value), 'error')
@@ -2001,14 +2013,18 @@ def term_edit(oid):
             model=Term,template='iwms/iwms_edit.html',kwargs={'active':'inventory'})
     elif request.method == "POST":
         if f.validate_on_submit():
-            obj.code = f.code.data
-            obj.description = f.description.data
-            obj.days = f.days.data if not f.days.data == '' else None
-            obj.updated_by = "{} {}".format(current_user.fname,current_user.lname)
-            obj.updated_at = datetime.now()
-            db.session.commit()
-            flash('Term update Successfully!','success')
-            return redirect(url_for('bp_iwms.terms'))
+            try:
+                obj.code = f.code.data
+                obj.description = f.description.data
+                obj.days = f.days.data if not f.days.data == '' else None
+                obj.updated_by = "{} {}".format(current_user.fname,current_user.lname)
+                obj.updated_at = datetime.now()
+                db.session.commit()
+                flash('Term update Successfully!','success')
+                return redirect(url_for('bp_iwms.terms'))
+            except Exception as e:
+                flash(str(e),'error')
+                return redirect(url_for('bp_iwms.terms'))
         else:
             for key, value in form.errors.items():
                 flash(str(key) + str(value), 'error')
@@ -2030,13 +2046,17 @@ def sales_via_create():
     f = SalesViaForm()
     if request.method == "POST":
         if f.validate_on_submit():
-            obj = ShipVia()
-            obj.description = f.description.data
-            obj.created_by = "{} {}".format(current_user.fname,current_user.lname)
-            db.session.add(obj)
-            db.session.commit()
-            flash("New sales via added successfully!",'success')
-            return redirect(url_for('bp_iwms.ship_via'))
+            try:
+                obj = ShipVia()
+                obj.description = f.description.data
+                obj.created_by = "{} {}".format(current_user.fname,current_user.lname)
+                db.session.add(obj)
+                db.session.commit()
+                flash("New sales via added successfully!",'success')
+                return redirect(url_for('bp_iwms.ship_via'))
+            except Exception as e:
+                flash(str(e),'error')
+                return redirect(url_for('bp_iwms.ship_via'))
         else:
             for key, value in f.errors.items():
                 flash(str(key) + str(value), 'error')
@@ -2045,20 +2065,24 @@ def sales_via_create():
 @bp_iwms.route('/sales_via_edit/<int:oid>',methods=['GET','POST'])
 @login_required
 def sales_via_edit(oid):
-    obj = SalesVia.query.get_or_404(oid)
+    obj = ShipVia.query.get_or_404(oid)
     f = SalesViaEditForm(obj=obj)
     if request.method == "GET":
         context['mm-active'] = 'sales_via'
         return admin_edit(f,'bp_iwms.sales_via_edit',oid, \
-            model=SalesVia,template='iwms/iwms_edit.html',kwargs={'active':'sales'})
+            model=ShipVia,template='iwms/iwms_edit.html',kwargs={'active':'sales'})
     elif request.method == "POST":
         if f.validate_on_submit():
-            obj.description = f.description.data
-            obj.updated_by = "{} {}".format(current_user.fname,current_user.lname)
-            obj.updated_at = datetime.now()
-            db.session.commit()
-            flash('Sales via update Successfully!','success')
-            return redirect(url_for('bp_iwms.ship_via'))
+            try:
+                obj.description = f.description.data
+                obj.updated_by = "{} {}".format(current_user.fname,current_user.lname)
+                obj.updated_at = datetime.now()
+                db.session.commit()
+                flash('Sales via update Successfully!','success')
+                return redirect(url_for('bp_iwms.ship_via'))
+            except Exception as e:
+                flash(str(e),'error')
+                return redirect(url_for('bp_iwms.ship_via'))
         else:
             for key, value in form.errors.items():
                 flash(str(key) + str(value), 'error')
@@ -2139,16 +2163,20 @@ def client_create():
     f = ClientForm()
     if request.method == "POST":
         if f.validate_on_submit():
-            obj = Client()
-            obj.name = f.name.data
-            obj.code = f.code.data
-            obj.term_id = f.term_id.data if not f.term_id.data == '' else None
-            obj.ship_via_id = f.ship_via_id.data if not f.ship_via_id.data == '' else None
-            obj.created_by = "{} {}".format(current_user.fname,current_user.lname)
-            db.session.add(obj)
-            db.session.commit()
-            flash("New Client added successfully!",'success')
-            return redirect(url_for('bp_iwms.clients'))
+            try:
+                obj = Client()
+                obj.name = f.name.data
+                obj.code = f.code.data
+                obj.term_id = f.term_id.data if not f.term_id.data == '' else None
+                obj.ship_via_id = f.ship_via_id.data if not f.ship_via_id.data == '' else None
+                obj.created_by = "{} {}".format(current_user.fname,current_user.lname)
+                db.session.add(obj)
+                db.session.commit()
+                flash("New Client added successfully!",'success')
+                return redirect(url_for('bp_iwms.clients'))
+            except Exception as e:
+                flash(str(e),'error')
+                return redirect(url_for('bp_iwms.clients'))
         else:
             for key, value in f.errors.items():
                 flash(str(key) + str(value), 'error')
@@ -2165,15 +2193,19 @@ def client_edit(oid):
             model=ClientGroup,template='iwms/iwms_edit.html',kwargs={'active':'sales'})
     elif request.method == "POST":
         if f.validate_on_submit():
-            obj.name = f.name.data
-            obj.code = f.code.data
-            obj.term_id = f.term_id.data if not f.term_id.data == '' else None
-            obj.ship_via_id = f.ship_via_id.data if not f.ship_via_id.data == '' else None
-            obj.updated_by = "{} {}".format(current_user.fname,current_user.lname)
-            obj.updated_at = datetime.now()
-            db.session.commit()
-            flash('Client update Successfully!','success')
-            return redirect(url_for('bp_iwms.clients'))
+            try:
+                obj.name = f.name.data
+                obj.code = f.code.data
+                obj.term_id = f.term_id.data if not f.term_id.data == '' else None
+                obj.ship_via_id = f.ship_via_id.data if not f.ship_via_id.data == '' else None
+                obj.updated_by = "{} {}".format(current_user.fname,current_user.lname)
+                obj.updated_at = datetime.now()
+                db.session.commit()
+                flash('Client update Successfully!','success')
+                return redirect(url_for('bp_iwms.clients'))
+            except Exception as e:
+                flash(str(e),'error')
+                return redirect(url_for('bp_iwms.clients'))
         else:
             for key, value in form.errors.items():
                 flash(str(key) + str(value), 'error')

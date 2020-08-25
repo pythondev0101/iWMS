@@ -305,7 +305,7 @@ class Supplier(Base,Admin):
     __tablename__ = 'iwms_supplier'
     __amname__ = 'supplier'
     __amdescription__ = 'Supplier'
-    __amicon__ = ''
+    __amicon__ = 'pe-7s-server'
 
     """ COLUMNS """
     code = db.Column(db.String(255),nullable=False,unique=True)
@@ -321,6 +321,7 @@ class Term(Base,Admin):
     __tablename__  = 'iwms_term'
     __amname__ = 'term'
     __amdescription__ = 'Terms'
+    __amicon__ = 'pe-7s-pen'
 
     """ COLUMNS """
     code = db.Column(db.String(255),nullable=False,unique=True)
@@ -396,6 +397,7 @@ class ShipVia(Base,Admin):
     __tablename__ = 'iwms_ship_via'
     __amname__ = 'ship_via'
     __amdescription__ = 'Ship Via'
+    __amicon__ = 'pe-7s-plane'
 
     """ COLUMNS """
     description = db.Column(db.String(255),nullable=False)
@@ -418,6 +420,7 @@ class Client(Base,Admin):
     __tablename__ = 'iwms_client'
     __amname__ = 'client'
     __amdescription__ = 'Client'
+    __amicon__ = 'pe-7s-global'
 
     """ COLUMNS """
     code = db.Column(db.String(255),nullable=False,unique=True)
