@@ -19,17 +19,13 @@
     </div>
 
     <div class="row">
-        <div class="col-md-12 col-lg-6">
+        <div class="col-md-12 col-lg-12">
             <div class="mb-3 card">
                 <div class="card-header-tab card-header-tab-animation card-header">
                     <div class="card-header-title">
                         <i class="header-icon lnr-apartment icon-gradient bg-love-kiss"> </i>
                         Sales Report
                     </div>
-                    <ul class="nav">
-                        <li class="nav-item"><a href="javascript:void(0);" class="active nav-link">Last</a></li>
-                        <li class="nav-item"><a href="javascript:void(0);" class="nav-link second-tab-toggle">Current</a></li>
-                    </ul>
                 </div>
                 <div class="card-body">
                     <div class="tab-content">
@@ -37,124 +33,33 @@
                             <div class="card mb-3 widget-chart widget-chart2 text-left w-100">
                                 <div class="widget-chat-wrapper-outer">
                                     <div class="widget-chart-wrapper widget-chart-wrapper-lg opacity-10 m-0"><div class="chartjs-size-monitor" style="position: absolute; left: 0px; top: 0px; right: 0px; bottom: 0px; overflow: hidden; pointer-events: none; visibility: hidden; z-index: -1;"><div class="chartjs-size-monitor-expand" style="position:absolute;left:0;top:0;right:0;bottom:0;overflow:hidden;pointer-events:none;visibility:hidden;z-index:-1;"><div style="position:absolute;width:1000000px;height:1000000px;left:0;top:0"></div></div><div class="chartjs-size-monitor-shrink" style="position:absolute;left:0;top:0;right:0;bottom:0;overflow:hidden;pointer-events:none;visibility:hidden;z-index:-1;"><div style="position:absolute;width:200%;height:200%;left:0; top:0"></div></div></div>
-                                        <canvas id="canvas" width="864" height="432" class="chartjs-render-monitor" style="display: block; width: 864px; height: 432px;"></canvas>
+                                        <canvas id="sales_report_chart" width="864" height="432" class="chartjs-render-monitor" style="display: block; width: 864px; height: 432px;"></canvas>
                                     </div>
                                 </div>
                             </div>
-                            <h6 class="text-muted text-uppercase font-size-md opacity-5 font-weight-normal">Top Authors</h6>
+                            <h6 class="text-muted text-uppercase font-size-md opacity-5 font-weight-normal">Top Clients</h6>
                             <div class="scroll-area-sm">
                                 <div class="scrollbar-container ps ps--active-y">
                                     <ul class="rm-list-borders rm-list-borders-scroll list-group list-group-flush">
+                                        {% for client in rd['top_clients'] %}
                                         <li class="list-group-item">
                                             <div class="widget-content p-0">
                                                 <div class="widget-content-wrapper">
-                                                    <div class="widget-content-left mr-3">
-                                                        <img width="42" class="rounded-circle" src="assets/images/avatars/9.jpg" alt="">
-                                                    </div>
+                                                 
                                                     <div class="widget-content-left">
-                                                        <div class="widget-heading">Ella-Rose Henry</div>
-                                                        <div class="widget-subheading">Web Developer</div>
+                                                        <div class="widget-heading">{{client[1]}}</div>
+                                                        <div class="widget-subheading">{{client[0]}}</div>
                                                     </div>
                                                     <div class="widget-content-right">
                                                         <div class="font-size-xlg text-muted">
-                                                            <small class="opacity-5 pr-1">$</small>
-                                                            <span>129</span>
-                                                            <small class="text-danger pl-2">
-                                                                <i class="fa fa-angle-down"></i>
-                                                            </small>
+                                                            <small class="opacity-5 pr-1">Sales Order:</small>
+                                                            <span>{{client[2]}}</span>
                                                         </div>
                                                     </div>
                                                 </div>
                                             </div>
                                         </li>
-                                        <li class="list-group-item">
-                                            <div class="widget-content p-0">
-                                                <div class="widget-content-wrapper">
-                                                    <div class="widget-content-left mr-3">
-                                                        <img width="42" class="rounded-circle" src="assets/images/avatars/5.jpg" alt="">
-                                                    </div>
-                                                    <div class="widget-content-left">
-                                                        <div class="widget-heading">Ruben Tillman</div>
-                                                        <div class="widget-subheading">UI Designer</div>
-                                                    </div>
-                                                    <div class="widget-content-right">
-                                                        <div class="font-size-xlg text-muted">
-                                                            <small class="opacity-5 pr-1">$</small>
-                                                            <span>54</span>
-                                                            <small class="text-success pl-2">
-                                                                <i class="fa fa-angle-up"></i>
-                                                            </small>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </li>
-                                        <li class="list-group-item">
-                                            <div class="widget-content p-0">
-                                                <div class="widget-content-wrapper">
-                                                    <div class="widget-content-left mr-3">
-                                                        <img width="42" class="rounded-circle" src="assets/images/avatars/4.jpg" alt="">
-                                                    </div>
-                                                    <div class="widget-content-left">
-                                                        <div class="widget-heading">Vinnie Wagstaff</div>
-                                                        <div class="widget-subheading">Java Programmer</div>
-                                                    </div>
-                                                    <div class="widget-content-right">
-                                                        <div class="font-size-xlg text-muted">
-                                                            <small class="opacity-5 pr-1">$</small>
-                                                            <span>429</span>
-                                                            <small class="text-warning pl-2">
-                                                                <i class="fa fa-dot-circle"></i>
-                                                            </small>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </li>
-                                        <li class="list-group-item">
-                                            <div class="widget-content p-0">
-                                                <div class="widget-content-wrapper">
-                                                    <div class="widget-content-left mr-3">
-                                                        <img width="42" class="rounded-circle" src="assets/images/avatars/3.jpg" alt="">
-                                                    </div>
-                                                    <div class="widget-content-left">
-                                                        <div class="widget-heading">Ella-Rose Henry</div>
-                                                        <div class="widget-subheading">Web Developer</div>
-                                                    </div>
-                                                    <div class="widget-content-right">
-                                                        <div class="font-size-xlg text-muted">
-                                                            <small class="opacity-5 pr-1">$</small>
-                                                            <span>129</span>
-                                                            <small class="text-danger pl-2">
-                                                                <i class="fa fa-angle-down"></i>
-                                                            </small>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </li>
-                                        <li class="list-group-item">
-                                            <div class="widget-content p-0">
-                                                <div class="widget-content-wrapper">
-                                                    <div class="widget-content-left mr-3">
-                                                        <img width="42" class="rounded-circle" src="assets/images/avatars/2.jpg" alt="">
-                                                    </div>
-                                                    <div class="widget-content-left">
-                                                        <div class="widget-heading">Ruben Tillman</div>
-                                                        <div class="widget-subheading">UI Designer</div>
-                                                    </div>
-                                                    <div class="widget-content-right">
-                                                        <div class="font-size-xlg text-muted">
-                                                            <small class="opacity-5 pr-1">$</small>
-                                                            <span>54</span>
-                                                            <small class="text-success pl-2">
-                                                                <i class="fa fa-angle-up"></i>
-                                                            </small>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </li>
+                                        {% endfor %}
                                     </ul>
                                 <div class="ps__rail-x" style="left: 0px; bottom: 0px;"><div class="ps__thumb-x" tabindex="0" style="left: 0px; width: 0px;"></div></div><div class="ps__rail-y" style="top: 0px; height: 200px; right: 0px;"><div class="ps__thumb-y" tabindex="0" style="top: 0px; height: 139px;"></div></div></div>
                             </div>
@@ -163,111 +68,128 @@
                 </div>
             </div>
         </div>
-        <div class="col-md-12 col-lg-6">
+    </div>
+    
+    <div class="row">
+        <div class="col-md-12 col-lg-12">
             <div class="mb-3 card">
-                <div class="card-header-tab card-header">
+                <div class="card-header-tab card-header-tab-animation card-header">
                     <div class="card-header-title">
-                        <i class="header-icon lnr-rocket icon-gradient bg-tempting-azure"> </i>
-                        Bandwidth Reports
+                        <i class="header-icon lnr-apartment icon-gradient bg-love-kiss"> </i>
+                        Purchasing Report
                     </div>
-                    <div class="btn-actions-pane-right">
-                        <div class="nav">
-                            <a href="javascript:void(0);" class="border-0 btn-pill btn-wide btn-transition active btn btn-outline-alternate">Tab 1</a>
-                            <a href="javascript:void(0);" class="ml-1 btn-pill btn-wide border-0 btn-transition  btn btn-outline-alternate second-tab-toggle-alt">Tab 2</a>
+                </div>
+                <div class="card-body">
+                    <div class="tab-content">
+                        <div class="tab-pane fade show active" id="tabs-eg-77">
+                            <div class="main-card mb-3 card">
+                                <div class="card-body">
+                                    <table id="tbl_po" class="mb-0 table">
+                                        <thead>
+                                        <tr>
+                                            <th>PO NO.</th>
+                                            <th>DATE</th>
+                                            <th>COMPANY POs</th>
+                                            <th>WHO ORDER</th>
+                                            <th>DESCRIPTION</th>
+                                            <th>QTY</th>
+                                            <th>PRICE</th>
+                                            <th>TYPES</th>
+                                            <th>STATUS</th>
+                                        </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for po in rd['pos'] %}
+                                            <tr>
+                                                <td>{{po.po_number}}</td>
+                                                <td>{{po.ordered_date.strftime('%Y-%m-%d')}}</td>
+                                                <td>{{po.supplier.name}}</td>
+                                                <td>{{po.created_by}}</td>
+                                                <td></td><td></td><td></td><td></td>
+                                                <td>{{po.status}}</td>
+                                            </tr>
+                                                {% for product in po.product_line %}
+                                                <tr>
+                                                    <td></td><td></td><td></td><td></td>
+                                                    <td>{{product.stock_item.name}}</td>
+                                                    <td>{{product.qty}}</td>
+                                                    <td>{{product.stock_item.default_cost}}</td>
+                                                    <td>{{product.stock_item.stock_item_type.name}}</td>
+                                                </tr>
+                                                {% endfor %}
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                            <h6 class="text-muted text-uppercase font-size-md opacity-5 font-weight-normal">Top Items</h6>
+                            <div class="scroll-area-sm">
+                                <div class="scrollbar-container ps ps--active-y">
+                                    <ul class="rm-list-borders rm-list-borders-scroll list-group list-group-flush">
+                                        {% for item in rd['top_items'] %}
+                                        <li class="list-group-item">
+                                            <div class="widget-content p-0">
+                                                <div class="widget-content-wrapper">
+                                                    <div class="widget-content-left">
+                                                        <div class="widget-heading">{{item[1]}}</div>
+                                                        <div class="widget-subheading">{{item[0]}}</div>
+                                                    </div>
+                                                    <div class="widget-content-right">
+                                                        <div class="font-size-xlg text-muted">
+                                                            <small class="opacity-5 pr-1">Purchase Order:</small>
+                                                            <span>{{item[2]}}</span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </li>
+                                        {% endfor %}
+                                    </ul>
+                                <div class="ps__rail-x" style="left: 0px; bottom: 0px;"><div class="ps__thumb-x" tabindex="0" style="left: 0px; width: 0px;"></div></div><div class="ps__rail-y" style="top: 0px; height: 200px; right: 0px;"><div class="ps__thumb-y" tabindex="0" style="top: 0px; height: 139px;"></div></div></div>
+                            </div>
                         </div>
                     </div>
                 </div>
-                <div class="tab-content">
-                    <div class="tab-pane fade active show" id="tab-eg-55">
-                        <div class="widget-chart p-3">
-                            <div style="height: 350px"><div class="chartjs-size-monitor" style="position: absolute; left: 0px; top: 0px; right: 0px; bottom: 0px; overflow: hidden; pointer-events: none; visibility: hidden; z-index: -1;"><div class="chartjs-size-monitor-expand" style="position:absolute;left:0;top:0;right:0;bottom:0;overflow:hidden;pointer-events:none;visibility:hidden;z-index:-1;"><div style="position:absolute;width:1000000px;height:1000000px;left:0;top:0"></div></div><div class="chartjs-size-monitor-shrink" style="position:absolute;left:0;top:0;right:0;bottom:0;overflow:hidden;pointer-events:none;visibility:hidden;z-index:-1;"><div style="position:absolute;width:200%;height:200%;left:0; top:0"></div></div></div>
-                                <canvas id="line-chart" width="872" height="350" class="chartjs-render-monitor" style="display: block; width: 872px; height: 350px;"></canvas>
-                            </div>
-                            <div class="widget-chart-content text-center mt-5">
-                                <div class="widget-description mt-0 text-warning">
-                                    <i class="fa fa-arrow-left"></i>
-                                    <span class="pl-1">175.5%</span>
-                                    <span class="text-muted opacity-8 pl-1">increased server resources</span>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="pt-2 card-body">
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <div class="widget-content">
-                                        <div class="widget-content-outer">
-                                            <div class="widget-content-wrapper">
-                                                <div class="widget-content-left">
-                                                    <div class="widget-numbers fsize-3 text-muted">63%</div>
-                                                </div>
-                                                <div class="widget-content-right">
-                                                    <div class="text-muted opacity-6">Generated Leads</div>
-                                                </div>
-                                            </div>
-                                            <div class="widget-progress-wrapper mt-1">
-                                                <div class="progress-bar-sm progress-bar-animated-alt progress">
-                                                    <div class="progress-bar bg-danger" role="progressbar" aria-valuenow="63" aria-valuemin="0" aria-valuemax="100" style="width: 63%;"></div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="col-md-6">
-                                    <div class="widget-content">
-                                        <div class="widget-content-outer">
-                                            <div class="widget-content-wrapper">
-                                                <div class="widget-content-left">
-                                                    <div class="widget-numbers fsize-3 text-muted">32%</div>
-                                                </div>
-                                                <div class="widget-content-right">
-                                                    <div class="text-muted opacity-6">Submitted Tickers</div>
-                                                </div>
-                                            </div>
-                                            <div class="widget-progress-wrapper mt-1">
-                                                <div class="progress-bar-sm progress-bar-animated-alt progress">
-                                                    <div class="progress-bar bg-success" role="progressbar" aria-valuenow="32" aria-valuemin="0" aria-valuemax="100" style="width: 32%;"></div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="col-md-6">
-                                    <div class="widget-content">
-                                        <div class="widget-content-outer">
-                                            <div class="widget-content-wrapper">
-                                                <div class="widget-content-left">
-                                                    <div class="widget-numbers fsize-3 text-muted">71%</div>
-                                                </div>
-                                                <div class="widget-content-right">
-                                                    <div class="text-muted opacity-6">Server Allocation</div>
-                                                </div>
-                                            </div>
-                                            <div class="widget-progress-wrapper mt-1">
-                                                <div class="progress-bar-sm progress-bar-animated-alt progress">
-                                                    <div class="progress-bar bg-primary" role="progressbar" aria-valuenow="71" aria-valuemin="0" aria-valuemax="100" style="width: 71%;"></div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="col-md-6">
-                                    <div class="widget-content">
-                                        <div class="widget-content-outer">
-                                            <div class="widget-content-wrapper">
-                                                <div class="widget-content-left">
-                                                    <div class="widget-numbers fsize-3 text-muted">41%</div>
-                                                </div>
-                                                <div class="widget-content-right">
-                                                    <div class="text-muted opacity-6">Generated Leads</div>
-                                                </div>
-                                            </div>
-                                            <div class="widget-progress-wrapper mt-1">
-                                                <div class="progress-bar-sm progress-bar-animated-alt progress">
-                                                    <div class="progress-bar bg-warning" role="progressbar" aria-valuenow="41" aria-valuemin="0" aria-valuemax="100" style="width: 41%;"></div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-12 col-lg-12">
+            <div class="mb-3 card">
+                <div class="card-header-tab card-header-tab-animation card-header">
+                    <div class="card-header-title">
+                        <i class="header-icon lnr-apartment icon-gradient bg-love-kiss"> </i>
+                        SR Report
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="tab-content">
+                        <div class="tab-pane fade show active" id="tabs-eg-77">
+                            <div class="main-card mb-3 card">
+                                <div class="card-body">
+                                    <table id="tbl_po" class="mb-0 table">
+                                        <thead>
+                                        <tr>
+                                            <th>SR NO.</th>
+                                            <th>DATE</th>
+                                            <th>DR NUMBER</th>
+                                            <th>RECEIVED</th>
+                                            <th>PLATE NUMBER</th>
+                                        </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for sr in rd['srs'] %}
+                                            <tr>
+                                                <td>{{sr.sr_number}}</td>
+                                                <td>{{sr.created_at.strftime('%Y-%m-%d')}}</td>
+                                                <td>{{sr.reference}}</td>
+                                                <td>{{sr.date_received.strftime('%Y-%m-%d')}}</td>
+                                                <td>{{sr.si_number}}</td>
+                                            </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
                                 </div>
                             </div>
                         </div>
@@ -276,7 +198,6 @@
             </div>
         </div>
     </div>
-    
 </div>
 {% endblock %}
 {% block sidebar %}
@@ -286,6 +207,37 @@
 {% block scripts %}
 <script>
     $(document).ready(function(){
+
+        var color = Chart.helpers.color;
+        var colors = [window.chartColors.red,window.chartColors.blue,window.chartColors.yellow,window.chartColors.green,
+        window.chartColors.orange,window.chartColors.violet,window.chartColors.gray,window.chartColors.black,];
+        var dataset = [];
+        var values = {{ rd['sales_clients'] | tojson }};
+        var ctr = 0;
+        for (ctr; ctr < values.length; ctr++){
+            dataset[ctr] = {
+				label: values[ctr].name,
+				backgroundColor: color(colors[ctr]).alpha(0.5).rgbString(),
+                data: [values[ctr].sales]
+			}
+        }
+		var barChartData = {
+			datasets: dataset
+
+		};
+
+        var ctx = document.getElementById('sales_report_chart').getContext('2d');
+        window.myBar = new Chart(ctx, {
+            type: 'bar',
+            data: barChartData,
+            options: {
+                responsive: true,
+                legend: {
+                    position: 'top',
+                },
+            }
+        });
+
     });
 </script>
 {% endblock %}

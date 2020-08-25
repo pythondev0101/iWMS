@@ -266,15 +266,15 @@
                     var status = $(this).find("td").eq(4).html();
                     var uom_id = $(this).find("td").eq(0).html();
                     if (status == 'YES'){
-                        status = "<td class='text-center'><div class='badge badge-success'>ACTIVE</div></td>";
+                        status = "<td style='width:150px' class='text-center'><div class='badge badge-success'>ACTIVE</div></td>";
                     }else{
-                        status = "<td class='text-center'><div class='badge badge-danger'>INACTIVE</div></td>";
+                        status = "<td style='width:150px' class='text-center'><div class='badge badge-danger'>INACTIVE</div></td>";
                     }
-                    var default_unit = "<td class='text-center'><div class='badge badge-secondary'>NO</div></td>";
+                    var default_unit = "<td style='width:150px' class='text-center'><div class='badge badge-secondary'>NO</div></td>";
                     var unit = $("#unit_id").val();
                     if (!(unit == "")){
                         if (uom_id == unit){
-                            default_unit = "<td class='text-center'><div class='badge badge-primary'>YES</div></td>";
+                            default_unit = "<td style='width:150px' class='text-center'><div class='badge badge-primary'>YES</div></td>";
                         }
                     }
                     var barcode = $("#barcode").val();
@@ -284,18 +284,11 @@
                     $('#tbl_uom_line tr:last').after(
                         `<tr>
                             <td style="display:none;"><input name="uoms[]" type="hidden" value="${uom_id}"></input></td>
-                            <td><input class="chkbox" type="checkbox"></td>
+                            <td style='width:50px'><input class="chkbox" type="checkbox"></td>
                             ${default_unit}
                             ${status}
                             <td class='text-center'>${description}</td>
                             <td class='text-center'>${code}</td>
-                            <td class='text-center'><input name="qty_${uom_id}" type="number" style="width:50px" value="0"></td>
-                            <td class='text-center'><input name="barcode_${uom_id}" type="text" style="width:100px" value='${barcode}'></td>
-                            <td class='text-center'><input name="default_cost_${uom_id}" type="number" style="width:50px" value="${default_cost}"></td>
-                            <td class='text-center'><input name="default_price_${uom_id}" type="number" style="width:50px" value="${default_price}"></td>
-                            <td class='text-center'><input name="length_${uom_id}" type="number" style="width:50px" value=""></td>
-                            <td class='text-center'><input name="width_${uom_id}" type="number" style="width:50px" value=""></td>
-                            <td class='text-center'><input name="height_${uom_id}" type="number" style="width:50px" value=""></td>
                         </tr>
                         `
                         );

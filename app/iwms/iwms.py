@@ -9,7 +9,7 @@ class IwmsModule(CoreModule):
     module_link = 'bp_iwms.dashboard'
     module_short_description = 'Warehouse Management'
     module_long_description = "Warehouse Management system"
-    models = [User,Group,Department,TransactionType,Email,Warehouse,  \
+    models = [User,Group,Department,Warehouse,  \
         Zone,BinLocation,Category,UnitOfMeasure,StockItem,StockItemType,StockReceipt,Putaway,PurchaseOrder,\
             Term,Supplier,CoreLog,Source,ShipVia,Client,InventoryItem,SalesOrder,Picking]
     no_admin_models = [Role]

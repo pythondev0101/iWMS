@@ -240,39 +240,25 @@
                             <th class="text-center">STATUS</th>
                             <th class="text-center">DESCRIPTION</th>
                             <th class="text-center">UNIT</th>
-                            <th class="text-center">QTY</th>
-                            <th class="text-center">BARCODE</th>
-                            <th class="text-center">DEFAULT COST</th>
-                            <th class="text-center">DEFAULT PRICE</th>
-                            <th class="text-center">LENGTH</th>
-                            <th class="text-center">WIDTH</th>
-                            <th class="text-center">HEIGHT</th>
                         </tr>
                         </thead>
                         <tbody>
                             {% for uom in uom_lines %}
                             <tr>
                                 <td style="display:none;"><input name="uoms[]" type="hidden" value="{{uom.uom_id}}"></td>
-                                <td><input class="chkbox" type="checkbox"></td>
+                                <td style='width:50px'><input class="chkbox" type="checkbox"></td>
                                 {% if form.unit_id.data == uom.uom_id %}
-                                <td class='text-center'><div class='badge badge-primary'>YES</div></td>
+                                <td style='width:150px' class='text-center'><div class='badge badge-primary'>YES</div></td>
                                 {% else %}
-                                <td class='text-center'><div class='badge badge-secondary'>NO</div></td>
+                                <td style='width:150px' class='text-center'><div class='badge badge-secondary'>NO</div></td>
                                 {% endif %}
                                 {% if uom.uom.active %}
-                                <td class='text-center'><div class='badge badge-success'>ACTIVE</div></td>
+                                <td style='width:150px' class='text-center'><div class='badge badge-success'>ACTIVE</div></td>
                                 {% else %}
-                                <td class='text-center'><div class='badge badge-danger'>INACTIVE</div></td>
+                                <td style='width:150px' class='text-center'><div class='badge badge-danger'>INACTIVE</div></td>
                                 {% endif %}
                                 <td class='text-center'>{{uom.uom.description}}</td>
                                 <td class='text-center'>{{uom.uom.code}}</td>
-                                <td class='text-center'><input name="qty_{{uom.uom_id}}" type='number' style="width:50px" value="{{uom.qty}}"></td>
-                                <td class='text-center'><input name="barcode_{{uom.uom_id}}" type="text" style="width:100px" value='{{uom.barcode}}'></td>
-                                <td class='text-center'><input name="default_cost_{{uom.uom_id}}" type="number" style="width:50px" value="{{uom.default_cost}}"></td>
-                                <td class='text-center'><input name="default_price_{{uom.uom_id}}" type="number" style="width:50px" value="{{uom.default_price}}"></td>
-                                <td class='text-center'><input name="length_{{uom.uom_id}}" type="number" style="width:50px" value="{{uom.length}}"></td>
-                                <td class='text-center'><input name="width_{{uom.uom_id}}" type="number" style="width:50px" value="{{uom.width}}"></td>
-                                <td class='text-center'><input name="height_{{uom.uom_id}}" type="number" style="width:50px" value="{{uom.height}}"></td>
                             </tr>
                             {% endfor %}
                         </tbody>

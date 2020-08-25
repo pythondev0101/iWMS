@@ -60,7 +60,7 @@ class UserForm(AdminIndexForm):
             [self.fname, self.lname],[self.username,self.email],
             [self.default_warehouse_id,self.other_warehouse_id],[self.department_id,self.group_id]]
 
-    index_headers = ['Username','Warehouse', 'email','User group']
+    index_headers = ['Username','Warehouse', 'email','group','created by','updated by']
     index_title = "Users"
     index_message = "Message"
 

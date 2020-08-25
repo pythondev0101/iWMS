@@ -6,7 +6,7 @@ from datetime import datetime
 
 
 class GroupForm(AdminIndexForm):
-    index_headers = ['Group Name','active']
+    index_headers = ['Group Name','created by','created at','updated by','updated at']
     index_title = "Groups"
     index_message = "User groups"
 
@@ -161,7 +161,7 @@ class EmailForm(AdminIndexForm):
         return [[self.email,self.module_code],[self.description,self.type]]
 
 class DepartmentForm(AdminIndexForm):
-    index_headers = ['Name','Created by','created at']
+    index_headers = ['Name','Created by','created at','updated by','updated at']
     index_title = 'Departments'
     
     name = AdminField(label="Name",validators=[DataRequired()])
@@ -301,7 +301,7 @@ class StockItemCreateForm(FlaskForm):
     qa_lead_time = AdminField(label='qa_lead_time',required=False)
 
 class StockItemView(AdminIndexForm):
-    index_headers = ['SI No.','Name','Description']
+    index_headers = ['SI No.','Name','Description','created by','created at','updated by','updated at']
     index_title = 'Stock Items'
     number = AdminField(label='SI No.')
     name = AdminField(label='Name',required=False)

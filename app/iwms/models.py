@@ -486,6 +486,7 @@ class SalesOrder(Base,Admin):
     delivery_date = db.Column(db.DateTime, default=datetime.utcnow,nullable=True)
     approved_by = db.Column(db.String(255),nullable=True)
     active_picklist= db.Column(db.String(255),nullable=True)
+    total_price = db.Column(db.Numeric(10,2),nullable=True)
     product_line = db.relationship('SalesOrderLine', cascade='all,delete', backref="sales_order")
 
 class SalesOrderLine(db.Model):

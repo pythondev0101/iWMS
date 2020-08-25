@@ -172,6 +172,7 @@ def _create_superuser():
     user.set_password("admin")
     user.is_superuser = 1
     user.role_id = 1
+    user.created_by = "System"
     db.session.add(user)
     db.session.commit()
     print("SuperUser Created!")

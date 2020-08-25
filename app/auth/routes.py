@@ -198,7 +198,8 @@ def user_permission_index():
 @login_required
 def index(**kwargs):
     form = UserForm()
-    fields = [User.id, User.username, Warehouse.name,User.email,Group.name]
+    fields = [User.id, User.username, Warehouse.name,User.email,Group.name,User.created_by,\
+        User.updated_by]
     models = [User,User.default_warehouse,Group]
     return admin_index(*models, fields=fields, url=auth_urls['index'], create_url='bp_auth.user_create', edit_url="bp_auth.user_edit", form=form,kwargs=kwargs)
 
@@ -306,23 +307,27 @@ def user_edit(oid,**kwargs):
             oid=oid, modal_form=True,extra_modal='auth/user_change_password_modal.html',model=User,kwargs=kwargs)
     elif request.method == "POST":
         if form.validate_on_submit():
-            user.username = form.username.data
-            user.fname = form.fname.data
-            user.lname = form.lname.data
-            user.email = form.email.data
-            user.default_warehouse_id = form.default_warehouse_id.data if not form.default_warehouse_id.data == '' else None
-            user.other_warehouse_id = form.other_warehouse_id.data if not form.other_warehouse_id.data == '' else None
-            user.department_id = form.department_id.data if not form.department_id.data == '' else None
-            user.group_id = form.group_id.data if not form.group_id.data == '' else None
-            user.updated_at = datetime.now()
-            user.updated_by = "{} {}".format(current_user.fname,current_user.lname)
-            db.session.commit()
-            flash('User update Successfully!','success')
-            _log_create('User update',"UserID={}".format(oid))
-            return redirect(url_for('bp_iwms.users'))
+            try:
+                user.username = form.username.data
+                user.fname = form.fname.data
+                user.lname = form.lname.data
+                user.email = form.email.data
+                user.default_warehouse_id = form.default_warehouse_id.data if not form.default_warehouse_id.data == '' else None
+                user.other_warehouse_id = form.other_warehouse_id.data if not form.other_warehouse_id.data == '' else None
+                user.department_id = form.department_id.data if not form.department_id.data == '' else None
+                user.group_id = form.group_id.data if not form.group_id.data == '' else None
+                user.updated_at = datetime.now()
+                user.updated_by = "{} {}".format(current_user.fname,current_user.lname)
+                db.session.commit()
+                flash('User update Successfully!','success')
+                _log_create('User update',"UserID={}".format(oid))
+                return redirect(url_for('bp_iwms.users'))
+            except Exception as e:
+                flash(str(e),'error')
+                return redirect(url_for('bp_iwms.users'))
         for key, value in form.errors.items():
-            print(key, value)
-        return "error"
+            flash(str(key) + str(value), 'error')
+        return redirect(url_for('bp_iwms.users'))
 
 
 @bp_auth.route('/user_edit_permission', methods=['POST'])

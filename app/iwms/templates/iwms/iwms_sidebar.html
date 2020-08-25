@@ -24,8 +24,6 @@
     Reports
   </a>
 </li>
-{% endblock %} {% block second_sidebar_navigation %}
-<li class="app-sidebar__heading">Transactions</li>
 <li>
   <a
     href="#"
@@ -63,18 +61,8 @@
     </li>
     {% endif %}
     {% endif %}
-    {% if 'email' in session['permissions'] %}
-    {% if session['permissions']['email']['read'] %}
-    <li>
-      <a
-        href="{{ url_for('bp_iwms.emails') }}"
-        class="{% if context['mm-active'] == 'email' %} mm-active {% endif %}"
-      >
-        <i class="metismenu-icon"> </i>Email Addresses
-      </a>
-    </li>
-    {% endif %}
-    {% endif %}
+
+
     {% if 'department' in session['permissions'] %}
     {% if session['permissions']['department']['read'] %}
     <li>
@@ -88,18 +76,7 @@
     {% endif %}
     {% endif %}
 
-    {% if 'transaction_type' in session['permissions'] %}
-    {% if session['permissions']['transaction_type']['read'] %}
-    <li>
-      <a
-        href="{{ url_for('bp_iwms.transaction_types') }}"
-        class="{% if context['mm-active'] == 'transaction_type' %} mm-active {% endif %}"
-      >
-        <i class="metismenu-icon"> </i>Transaction Type
-      </a>
-    </li>
-    {% endif %}
-    {% endif %}
+
     {% if 'core_log' in session['permissions'] %}
     {% if session['permissions']['core_log']['read'] %}
     <li>
@@ -114,6 +91,8 @@
     {% endif %}
   </ul>
 </li>
+{% endblock %} {% block second_sidebar_navigation %}
+<li class="app-sidebar__heading">Transactions</li>
 <li>
   <a
     href="#"
@@ -456,24 +435,17 @@
     {% endif %}
   </ul>
 </li>
+<li class="app-sidebar__heading">Warehouse Bin Location</li>
 <li>
   <a
-    href="#"
+    href="{{ url_for('bp_iwms.warehouse_bin_location')}}"
     class="{% if context['active']=='warehouse_bin_location' %} mm-active {% endif %}"
   >
     <i
       class="metismenu-icon pe-7s-network icon-gradient bg-premium-dark"
       aria-hidden="true"
     ></i>
-    Warehouse Bin Location
-    <i class="metismenu-state-icon pe-7s-angle-down caret-left"></i>
+    Warehouse Floor Plan
   </a>
-  <ul>
-    <li>
-      <a href="{{ url_for('bp_iwms.warehouse_bin_location') }}">
-        <i class="metismenu-icon"> </i>Warehouse Floor Plan
-      </a>
-    </li>
-  </ul>
 </li>
 {% endblock %}

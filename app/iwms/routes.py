@@ -438,8 +438,43 @@ def reports():
     context['active'] = 'reports'
     context['mm-active'] = ""
 
-    return render_template('iwms/iwms_reports.html',context=context,title="Reports")
+    _top_clients = db.session.query(Client.code,Client.name,func.count(Client.id))\
+        .join(SalesOrder.client).group_by(Client.id).order_by(func.count(Client.id).desc()).all()
 
+    _sales_clients = db.session.query(Client.name,func.sum(SalesOrder.total_price))\
+        .join(SalesOrder.client).group_by(Client.id).all()
+
+    _sales_clients_dict = []
+
+    for x in _sales_clients:
+        _sales_clients_dict.append({
+            'name':x[0],
+            'sales':str(x[1])
+        })
+
+    _pos = PurchaseOrder.query.join(PurchaseOrderProductLine).order_by(PurchaseOrder.po_number.desc()).all()
+
+    _top_items = db.session.query(StockItem.name,StockItem.description,func.count(StockItem.id))\
+        .join(PurchaseOrderProductLine.stock_item).group_by(StockItem.id).order_by(func.count(StockItem.id).desc()).all()
+
+    _srs = StockReceipt.query.join(StockReceiptItemLine).order_by(StockReceipt.sr_number.desc()).all()
+
+    report_data = {
+        'top_clients': _top_clients,
+        'sales_clients': _sales_clients_dict,
+        'pos':_pos,
+        'top_items': _top_items,
+        'srs': _srs
+    }
+    return render_template('iwms/iwms_reports.html',context=context,title="Reports",rd=report_data)
+
+
+@bp_iwms.route('/_sales_clients')
+def _sales_clients():
+
+    res = jsonify(_sales_clients)
+
+    return res
 
 
 @bp_iwms.route('/bin_location')
@@ -475,7 +510,7 @@ def iwms_user_create():
 @bp_iwms.route('/groups')
 @login_required
 def groups():
-    fields = [Group.id,Group.name,Group.active]
+    fields = [Group.id,Group.name,Group.created_by,Group.created_at,Group.updated_by,Group.updated_at]
     context['mm-active'] = 'Groups'
     return admin_index(Group,fields=fields,create_url='bp_iwms.group_create',edit_url='bp_iwms.group_edit' , \
         form=GroupForm(),template="iwms/iwms_index.html",kwargs={'active':'system'})
@@ -487,14 +522,18 @@ def group_create():
         form = GroupForm()
         if request.method == "POST":
             if form.validate_on_submit():
-                group = Group()
-                group.name = form.name.data
-                group.created_by = "{} {}".format(current_user.fname,current_user.lname)
-                db.session.add(group)
-                db.session.commit()
-                flash('New group added successfully!','success')
-                _log_create('New group added',"GroupID={}".format(group.id))
-                return redirect(url_for('bp_iwms.groups'))
+                try:
+                    group = Group()
+                    group.name = form.name.data
+                    group.created_by = "{} {}".format(current_user.fname,current_user.lname)
+                    db.session.add(group)
+                    db.session.commit()
+                    flash('New group added successfully!','success')
+                    _log_create('New group added',"GroupID={}".format(group.id))
+                    return redirect(url_for('bp_iwms.groups'))
+                except Exception as e:
+                    flash(str(e),'error')
+                    return redirect(url_for('bp_iwms.groups'))
             else:
                 for key, value in form.errors.items():
                     flash(str(key) + str(value), 'error')
@@ -512,86 +551,91 @@ def group_edit(oid):
         return admin_edit(form,'bp_iwms.group_edit',oid,model=Group,template='iwms/iwms_edit.html',kwargs={'active':'system'})
     elif request.method == "POST":
         if form.validate_on_submit():
-            group.name = form.name.data
-            group.updated_at = datetime.now()
-            group.updated_by = "{} {}".format(current_user.fname,current_user.lname)
-            db.session.commit()
-            flash('Group update Successfully!','success')
-            _log_create("Group update","GroupID={}".format(group.id))
-            return redirect(url_for('bp_iwms.groups'))
-        else:    
-            for key, value in form.errors.items():
-                flash(str(key) + str(value), 'error')
-            return redirect(url_for('bp_iwms.groups'))
-
-
-@bp_iwms.route('/emails')
-@login_required
-def emails():
-    fields = [EAddress.id,EAddress.module_code,EAddress.description,EAddress.type,EAddress.email]
-    form = EmailForm()
-    context['mm-active'] = 'email'
-    return admin_index(EAddress,fields=fields,form=form,url='', \
-        create_url='bp_iwms.email_create',edit_url='bp_iwms.email_edit' \
-            ,template="iwms/iwms_index.html",kwargs={'active':'system'})
-
-@bp_iwms.route('/email_create',methods=['POST'])
-@login_required
-def email_create():
-    if _check_create('email'):
-        form = EmailForm()
-        if request.method == 'POST':
-            if form.validate_on_submit():
-                email = EAddress()
-                email.email = form.email.data
-                email.module_code = form.module_code.data
-                email.type = form.type.data
-                email.description = form.description.data
-                email.created_by = "{} {}".format(current_user.fname,current_user.lname)
-                db.session.add(email)
+            try:
+                group.name = form.name.data
+                group.updated_at = datetime.now()
+                group.updated_by = "{} {}".format(current_user.fname,current_user.lname)
                 db.session.commit()
-                flash('New Email address added successfully!','success')
-                _log_create('New email address added','EmailAdressID={}'.format(email.id))
-                return redirect(url_for('bp_iwms.emails'))
-            else:
-                for key, value in form.errors.items():
-                    flash(str(key) + str(value), 'error')
-                return redirect(url_for('bp_iwms.emails'))
-    else:
-        return render_template("auth/authorization_error.html")
-
-
-@bp_iwms.route('/email_edit/<int:oid>',methods=['GET','POST'])
-@login_required
-def email_edit(oid):
-    obj = EAddress.query.get_or_404(oid)
-    f = EmailEditForm(obj=obj)
-
-    if request.method == "GET":
-        context['mm-active'] = 'email'
-
-        return admin_edit(f,'bp_iwms.email_edit',oid,model=EAddress,template='iwms/iwms_edit.html',kwargs={'active':'system'})
-    elif request.method == "POST":
-        if f.validate_on_submit():
-            obj.email = f.email.data
-            obj.module_code = f.module_code.data
-            obj.description = f.description.data
-            obj.type = f.type.data
-            obj.updated_at = datetime.now()
-            obj.updated_by = "{} {}".format(current_user.fname,current_user.lname)
-            db.session.commit()
-            flash('Email address update Successfully!','success')
-            _log_create('Email address update','EmailAdressID={}'.format(oid))
-            return redirect(url_for('bp_iwms.emails'))
+                flash('Group update Successfully!','success')
+                _log_create("Group update","GroupID={}".format(group.id))
+                return redirect(url_for('bp_iwms.groups'))
+            except Exception as e:
+                flash(str(e),'error')
+                return redirect(url_for('bp_iwms.groups'))
         else:    
             for key, value in form.errors.items():
                 flash(str(key) + str(value), 'error')
-            return redirect(url_for('bp_iwms.emails'))
+            return redirect(url_for('bp_iwms.groups'))
+
+
+# @bp_iwms.route('/emails')
+# @login_required
+# def emails():
+#     fields = [EAddress.id,EAddress.module_code,EAddress.description,EAddress.type,EAddress.email]
+#     form = EmailForm()
+#     context['mm-active'] = 'email'
+#     return admin_index(EAddress,fields=fields,form=form,url='', \
+#         create_url='bp_iwms.email_create',edit_url='bp_iwms.email_edit' \
+#             ,template="iwms/iwms_index.html",kwargs={'active':'system'})
+
+# @bp_iwms.route('/email_create',methods=['POST'])
+# @login_required
+# def email_create():
+#     if _check_create('email'):
+#         form = EmailForm()
+#         if request.method == 'POST':
+#             if form.validate_on_submit():
+#                 email = EAddress()
+#                 email.email = form.email.data
+#                 email.module_code = form.module_code.data
+#                 email.type = form.type.data
+#                 email.description = form.description.data
+#                 email.created_by = "{} {}".format(current_user.fname,current_user.lname)
+#                 db.session.add(email)
+#                 db.session.commit()
+#                 flash('New Email address added successfully!','success')
+#                 _log_create('New email address added','EmailAdressID={}'.format(email.id))
+#                 return redirect(url_for('bp_iwms.emails'))
+#             else:
+#                 for key, value in form.errors.items():
+#                     flash(str(key) + str(value), 'error')
+#                 return redirect(url_for('bp_iwms.emails'))
+#     else:
+#         return render_template("auth/authorization_error.html")
+
+
+# @bp_iwms.route('/email_edit/<int:oid>',methods=['GET','POST'])
+# @login_required
+# def email_edit(oid):
+#     obj = EAddress.query.get_or_404(oid)
+#     f = EmailEditForm(obj=obj)
+
+#     if request.method == "GET":
+#         context['mm-active'] = 'email'
+
+#         return admin_edit(f,'bp_iwms.email_edit',oid,model=EAddress,template='iwms/iwms_edit.html',kwargs={'active':'system'})
+#     elif request.method == "POST":
+#         if f.validate_on_submit():
+#             obj.email = f.email.data
+#             obj.module_code = f.module_code.data
+#             obj.description = f.description.data
+#             obj.type = f.type.data
+#             obj.updated_at = datetime.now()
+#             obj.updated_by = "{} {}".format(current_user.fname,current_user.lname)
+#             db.session.commit()
+#             flash('Email address update Successfully!','success')
+#             _log_create('Email address update','EmailAdressID={}'.format(oid))
+#             return redirect(url_for('bp_iwms.emails'))
+#         else:    
+#             for key, value in form.errors.items():
+#                 flash(str(key) + str(value), 'error')
+#             return redirect(url_for('bp_iwms.emails'))
 
 @bp_iwms.route('/departments')
 @login_required
 def departments():
-    fields = [Department.id,Department.name,Department.created_by,Department.created_at]
+    fields = [Department.id,Department.name,Department.created_by,Department.created_at,\
+        Department.updated_by,Department.updated_at]
     context['mm-active'] = 'department'
     return admin_index(Department,fields=fields,url='',form=DepartmentForm(), \
         template="iwms/iwms_index.html",kwargs={'active':'system'}, \
@@ -604,14 +648,18 @@ def department_create():
         form = DepartmentForm()
         if request.method == 'POST':
             if form.validate_on_submit():
-                dept = Department()
-                dept.name = form.name.data
-                dept.created_by = "{} {}".format(current_user.fname,current_user.lname)
-                db.session.add(dept)
-                db.session.commit()
-                flash('New department added successfully!','success')
-                _log_create('New department added','DepartmentID={}'.format(dept.id))
-                return redirect(url_for('bp_iwms.departments'))
+                try:
+                    dept = Department()
+                    dept.name = form.name.data
+                    dept.created_by = "{} {}".format(current_user.fname,current_user.lname)
+                    db.session.add(dept)
+                    db.session.commit()
+                    flash('New department added successfully!','success')
+                    _log_create('New department added','DepartmentID={}'.format(dept.id))
+                    return redirect(url_for('bp_iwms.departments'))
+                except Exception as e:
+                    flash(str(e),'error')
+                    return redirect(url_for('bp_iwms.departments'))
             else:
                 for key, value in form.errors.items():
                     flash(str(key) + str(value), 'error')
@@ -624,7 +672,6 @@ def department_create():
 def department_edit(oid):
     obj = Department.query.get_or_404(oid)
     f = DepartmentEditForm(obj=obj)
-
     if request.method == "GET":
         context['mm-active'] = 'department'
 
@@ -632,78 +679,82 @@ def department_edit(oid):
             model=Department,template='iwms/iwms_edit.html',kwargs={'active':'system'})
     elif request.method == "POST":
         if f.validate_on_submit():
-            obj.name = f.name.data
-            obj.updated_by = "{} {}".format(current_user.fname,current_user.lname)
-            obj.updated_at = datetime.now()
-            db.session.commit()
-            flash('Department update Successfully!','success')
-            _log_create('Department update','DepartmentID={}'.format(oid))
-            return redirect(url_for('bp_iwms.departments'))
-        else:    
-            for key, value in form.errors.items():
-                flash(str(key) + str(value), 'error')
-            return redirect(url_for('bp_iwms.departments'))
-
-
-@bp_iwms.route('/transaction_types')
-@login_required
-def transaction_types():
-    fields = [TransactionType.id,TransactionType.code,TransactionType.description,TransactionType.prefix,TransactionType.next_number_series]
-    context['mm-active'] = 'transaction_type'
-    return admin_index(TransactionType,fields=fields,form=TransactionTypeForm(),template='iwms/iwms_index.html', \
-        create_url='bp_iwms.transaction_type_create',edit_url="bp_iwms.transaction_type_edit",kwargs={'active':'system'})
-
-@bp_iwms.route('/transaction_type_create',methods=["POST"])
-@login_required
-def transaction_type_create():
-    if _check_create('transaction_type'):
-        form = TransactionTypeForm()
-        if request.method == 'POST':
-            if form.validate_on_submit():
-                tt = TransactionType()
-                tt.next_number_series = form.next_number_series.data if not form.next_number_series.data == '' else 0
-                tt.prefix = form.prefix.data
-                tt.code = form.code.data
-                tt.description = form.description.data
-                tt.created_by = "{} {}".format(current_user.fname,current_user.lname)
-                db.session.add(tt)
+            try:
+                obj.name = f.name.data
+                obj.updated_by = "{} {}".format(current_user.fname,current_user.lname)
+                obj.updated_at = datetime.now()
                 db.session.commit()
-                flash("New transaction type added successfully!",'success')
-                _log_create("New transaction type added",'TransactionTypeID={}'.format(tt.id))
-                return redirect(url_for('bp_iwms.transaction_types'))
-            else:
-                for key, value in form.errors.items():
-                    flash(str(key) + str(value), 'error')
-                return redirect(url_for('bp_iwms.transaction_types'))
-    else:
-        return render_template('auth/authorization_error.html')
-
-@bp_iwms.route('/transaction_type_edit/<int:oid>',methods=['GET','POST'])
-@login_required
-def transaction_type_edit(oid):
-    obj = TransactionType.query.get_or_404(oid)
-    f = TransactionTypeEditForm(obj=obj)
-
-    if request.method == "GET":
-        context['mm-active'] = 'transaction_type'
-        return admin_edit(f,'bp_iwms.transaction_type_edit',oid, \
-            model=TransactionType,template='iwms/iwms_edit.html',kwargs={'active':'system'})
-    elif request.method == "POST":
-        if f.validate_on_submit():
-            obj.code = f.code.data
-            obj.description = f.description.data
-            obj.prefix = f.prefix.data
-            obj.next_number_series = f.next_number_series.data if not f.next_number_series.data == '' else None            
-            obj.updated_at = datetime.now()
-            obj.updated_by = "{} {}".format(current_user.fname,current_user.lname)
-            db.session.commit()
-            flash('Transaction type update Successfully!','success')
-            _log_create("Transaction type update","TransactionTypeID={}".format(oid))
-            return redirect(url_for('bp_iwms.transaction_types'))
+                flash('Department update Successfully!','success')
+                _log_create('Department update','DepartmentID={}'.format(oid))
+                return redirect(url_for('bp_iwms.departments'))
+            except Exception as e:
+                flash(str(e),'error')
+                return redirect(url_for('bp_iwms.departments'))
         else:    
             for key, value in form.errors.items():
                 flash(str(key) + str(value), 'error')
-            return redirect(url_for('bp_iwms.transaction_types'))
+            return redirect(url_for('bp_iwms.departments'))
+
+
+# @bp_iwms.route('/transaction_types')
+# @login_required
+# def transaction_types():
+#     fields = [TransactionType.id,TransactionType.code,TransactionType.description,TransactionType.prefix,TransactionType.next_number_series]
+#     context['mm-active'] = 'transaction_type'
+#     return admin_index(TransactionType,fields=fields,form=TransactionTypeForm(),template='iwms/iwms_index.html', \
+#         create_url='bp_iwms.transaction_type_create',edit_url="bp_iwms.transaction_type_edit",kwargs={'active':'system'})
+
+# @bp_iwms.route('/transaction_type_create',methods=["POST"])
+# @login_required
+# def transaction_type_create():
+#     if _check_create('transaction_type'):
+#         form = TransactionTypeForm()
+#         if request.method == 'POST':
+#             if form.validate_on_submit():
+#                 tt = TransactionType()
+#                 tt.next_number_series = form.next_number_series.data if not form.next_number_series.data == '' else 0
+#                 tt.prefix = form.prefix.data
+#                 tt.code = form.code.data
+#                 tt.description = form.description.data
+#                 tt.created_by = "{} {}".format(current_user.fname,current_user.lname)
+#                 db.session.add(tt)
+#                 db.session.commit()
+#                 flash("New transaction type added successfully!",'success')
+#                 _log_create("New transaction type added",'TransactionTypeID={}'.format(tt.id))
+#                 return redirect(url_for('bp_iwms.transaction_types'))
+#             else:
+#                 for key, value in form.errors.items():
+#                     flash(str(key) + str(value), 'error')
+#                 return redirect(url_for('bp_iwms.transaction_types'))
+#     else:
+#         return render_template('auth/authorization_error.html')
+
+# @bp_iwms.route('/transaction_type_edit/<int:oid>',methods=['GET','POST'])
+# @login_required
+# def transaction_type_edit(oid):
+#     obj = TransactionType.query.get_or_404(oid)
+#     f = TransactionTypeEditForm(obj=obj)
+
+#     if request.method == "GET":
+#         context['mm-active'] = 'transaction_type'
+#         return admin_edit(f,'bp_iwms.transaction_type_edit',oid, \
+#             model=TransactionType,template='iwms/iwms_edit.html',kwargs={'active':'system'})
+#     elif request.method == "POST":
+#         if f.validate_on_submit():
+#             obj.code = f.code.data
+#             obj.description = f.description.data
+#             obj.prefix = f.prefix.data
+#             obj.next_number_series = f.next_number_series.data if not f.next_number_series.data == '' else None            
+#             obj.updated_at = datetime.now()
+#             obj.updated_by = "{} {}".format(current_user.fname,current_user.lname)
+#             db.session.commit()
+#             flash('Transaction type update Successfully!','success')
+#             _log_create("Transaction type update","TransactionTypeID={}".format(oid))
+#             return redirect(url_for('bp_iwms.transaction_types'))
+#         else:    
+#             for key, value in form.errors.items():
+#                 flash(str(key) + str(value), 'error')
+#             return redirect(url_for('bp_iwms.transaction_types'))
 
 @bp_iwms.route('/logs')
 @login_required
@@ -1168,7 +1219,8 @@ def source_edit(oid):
 @bp_iwms.route('/stock_items')
 @login_required
 def stock_items():
-    fields = [StockItem.id,StockItem.number,StockItem.name,StockItem.description]
+    fields = [StockItem.id,StockItem.number,StockItem.name,StockItem.description,\
+        StockItem.created_by,StockItem.created_at,StockItem.updated_by,StockItem.updated_at]
     context['mm-active'] = 'stock_item'
     # TODO: Kailangan idelete yung context['create_modal'] kasi naiiwan sya
     form = StockItemView()
@@ -1249,17 +1301,17 @@ def stock_item_create():
                 if uom_ids:
                     for u_id in uom_ids:
                         uom = UnitOfMeasure.query.get(u_id)
-                        qty = request.form.get("qty_{}".format(u_id))
-                        barcode = request.form.get("barcode_{}".format(u_id))
-                        _cost = request.form.get("default_cost_{}".format(u_id))
-                        _price = request.form.get("default_price_{}".format(u_id))
-                        default_cost = _cost if not _cost == '' else None
-                        default_price = _price if not _price == '' else None
-                        length = request.form.get("length_{}".format(u_id))
-                        width = request.form.get("width_{}".format(u_id))
-                        height = request.form.get("height_{}".format(u_id))
-                        line = StockItemUomLine(uom=uom,qty=qty,barcode=barcode,default_cost=default_cost,default_price=default_price,\
-                            length=length,width=width,height=height)
+                        # qty = request.form.get("qty_{}".format(u_id))
+                        # barcode = request.form.get("barcode_{}".format(u_id))
+                        # _cost = request.form.get("default_cost_{}".format(u_id))
+                        # _price = request.form.get("default_price_{}".format(u_id))
+                        # default_cost = _cost if not _cost == '' else None
+                        # default_price = _price if not _price == '' else None
+                        # length = request.form.get("length_{}".format(u_id))
+                        # width = request.form.get("width_{}".format(u_id))
+                        # height = request.form.get("height_{}".format(u_id))
+                        line = StockItemUomLine(uom=uom,qty=None,barcode=None,default_cost=None,default_price=None,\
+                            length=None,width=None,height=None)
                         obj.uom_line.append(line)
 
                 db.session.add(obj)
@@ -1345,15 +1397,15 @@ def stock_item_edit(oid):
                     obj.uom_line = []
                     for u_id in uom_ids:
                         uom = UnitOfMeasure.query.get(u_id)
-                        qty = request.form.get("qty_{}".format(u_id))
-                        barcode = request.form.get("barcode_{}".format(u_id))
-                        default_cost = request.form.get("default_cost_{}".format(u_id))
-                        default_price = request.form.get("default_price_{}".format(u_id))
-                        length = request.form.get("length_{}".format(u_id))
-                        width = request.form.get("width_{}".format(u_id))
-                        height = request.form.get("height_{}".format(u_id))
-                        line = StockItemUomLine(uom=uom,qty=qty,barcode=barcode,default_cost=default_cost,default_price=default_price,\
-                            length=length,width=width,height=height)
+                        # qty = request.form.get("qty_{}".format(u_id))
+                        # barcode = request.form.get("barcode_{}".format(u_id))
+                        # default_cost = request.form.get("default_cost_{}".format(u_id))
+                        # default_price = request.form.get("default_price_{}".format(u_id))
+                        # length = request.form.get("length_{}".format(u_id))
+                        # width = request.form.get("width_{}".format(u_id))
+                        # height = request.form.get("height_{}".format(u_id))
+                        line = StockItemUomLine(uom=uom,qty=None,barcode=None,default_cost=None,default_price=None,\
+                            length=None,width=None,height=None)
                         obj.uom_line.append(line)
                         
                 db.session.commit()
@@ -2267,7 +2319,8 @@ def sales_order_create():
                 so.remarks = f.remarks.data
                 so.approved_by = f.approved_by.data
                 so.created_by = "{} {}".format(current_user.fname,current_user.lname)
-
+                
+                _total_price = 0
                 product_list = r.getlist('products[]')
                 if product_list:
                     for product_id in product_list:
@@ -2278,7 +2331,10 @@ def sales_order_create():
                         uom = UnitOfMeasure.query.get(r.get("uom_{}".format(product_id)))
                         line = SalesOrderLine(inventory_item=product,item_bin_location=item_bin_location,\
                             qty=qty,uom=uom,unit_price=unit_price,issued_qty=0)
+                        _total_price = _total_price + float(line.unit_price)
                         so.product_line.append(line)
+
+                so.total_price = _total_price
 
                 db.session.add(so)
                 db.session.commit()
@@ -2303,8 +2359,8 @@ def sales_order_edit(oid):
         _so_items = [x.item_bin_location_id for x in so.product_line]
         items = ItemBinLocations.query.filter(ItemBinLocations.qty_on_hand>0, ~ItemBinLocations.id.in_(_so_items)).all()
         f.client_name.data = so.client.name
-        f.term_id.data = so.client.term.description
-        f.ship_via_id.data = so.client.ship_via.description
+        f.term_id.data = so.client.term.description if not so.client.term == None else ''
+        f.ship_via_id.data = so.client.ship_via.description if not so.client.ship_via == None else ''
         context['active'] = 'sales'
         context['mm-active'] = 'sales_order'
         context['module'] = 'iwms'
@@ -2334,6 +2390,7 @@ def sales_order_edit(oid):
                 so.approved_by = f.approved_by.data
                 so.updated_by = "{} {}".format(current_user.fname,current_user.lname)
 
+                _total_price = 0
                 product_list = r.getlist('products[]')
                 if product_list:
                     so.product_line = []
@@ -2343,10 +2400,13 @@ def sales_order_edit(oid):
                         qty = r.get("qty_{}".format(product_id))
                         unit_price = r.get("price_{}".format(product_id))
                         uom = UnitOfMeasure.query.get(r.get("uom_{}".format(product_id)))
-                        print("TEST",qty,unit_price,uom)
                         line = SalesOrderLine(inventory_item=product,item_bin_location=item_bin_location,\
                             qty=qty,uom=uom,unit_price=unit_price,issued_qty=0)
+
+                        _total_price = _total_price + float(line.unit_price)
                         so.product_line.append(line)
+
+                so.total_price = _total_price
 
                 db.session.commit()
                 flash('Sales Order updated Successfully!','success')
@@ -2450,11 +2510,10 @@ def picking_create():
                                 pi.qty = pi.qty - int(qty)
                                 db.session.commit()
 
-                            print(_remaining, "+", pi.qty)
                             _remaining = _remaining + pi.qty
                         # if bin_item.qty_on_hand <= 0:
                         #     db.session.delete(bin_item)
-                print(_remaining)
+
                 if _remaining == 0:
                     so.status = "CONFIRMED"
                 else:

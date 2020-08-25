@@ -70,7 +70,7 @@ def create_app(config_name):
         from app.admin.admin import AdminModule
         from app.iwms.iwms import IwmsModule
 
-        modules = [AdminModule,IwmsModule]
+        modules = [IwmsModule]
         """--------------END--------------"""
         
         _install_modules(modules)

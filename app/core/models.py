@@ -96,7 +96,7 @@ class CoreLog(db.Model):
     __tablename__ = 'core_log'
     __amname__ = 'core_log'
     __amdescription__ = 'System Log'
-    __amicon__ = ''
+    __amicon__ = 'pe-7s-notebook'
     __amfunctions__ = [{}]
     
     """ COLUMNS """
