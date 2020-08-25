@@ -147,7 +147,55 @@
           }
         });
 
+        layer.on('mouseover','Group',function(evt){
+          var shape = evt.target;
+          var bin_code = shape.name();
+              var csrf_token = "{{ csrf_token() }}";
+              $.ajaxSetup({
+                  beforeSend: function(xhr, settings) {
+                      if (!/^(GET|HEAD|OPTIONS|TRACE)$/i.test(settings.type) && !this.crossDomain) {
+                          xhr.setRequestHeader("X-CSRFToken", csrf_token);
+                      }
+                  }
+              });
+              $.ajax({
+                url: '/iwms/_get_bin_items',
+                type: 'POST',
+                dataType: 'json',
+                data: JSON.stringify({'bin_code':bin_code}),
+                contentType: "application/json; charset=utf-8",
+                success: function(data){
+                  $("#item_modal").addClass('show');
+                  $("#item_modal").css('display','block');
+                  var ctr;
+                  var tbl_string = "";
+                  for(ctr=0; ctr < data.res.length; ctr++){
+                    tbl_string = tbl_string + `
+                      <tr>
+                        <td>${data.res[ctr].name}</td>
+                        <td>${data.res[ctr].qty_on_hand}</td>
+                        <td>${data.res[ctr].lot_no}</td>
+                        <td>${data.res[ctr].expiry_date}</td>
+                      </tr>
+                    `;
+                  }
+                  $('#tbl_items tr:last').after(tbl_string);
+
+                }
+              });
+        });
+
+        layer.on('mouseout','Group',function(evt){
+          $("#item_modal").removeClass('show');
+          $("#item_modal").css('display','none');
+        });
+
         stage.add(layer);
+
+        $("#modal_close").click(function(){
+          $("#item_modal").removeClass('show');
+          $("#item_modal").css('display','none');
+        });
 
         $("#btn_create_new_bin").click(function(){
           var bin_code = prompt("Bin code");
@@ -184,17 +232,39 @@
             });
           }
         });
-
-
-        (function() {
-          var fixed_footer = document.getElementById('chkbox_fixed_footer');
-          setTimeout(function() {
-            fixed_footer.click();
-          }, 100);
-        })();
       });
 
     </script>
 </body>
 </html>
 
+<div class="modal fade" id="item_modal" tabindex="-1" style="display: none;" aria-labelledby="exampleModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+      <div class="modal-content">
+          <div class="modal-header">
+              <h5 class="modal-title" id="exampleModalLabel">Modal title</h5>
+              <button id="modal_close" type="button" class="close" data-dismiss="modal" aria-label="Close">
+                  <span aria-hidden="true">&times;</span>
+              </button>
+          </div>
+          <div class="modal-body">
+            <div class="main-card mb-3 card">
+              <div class="card-body">
+                  <table id="tbl_items" class="mb-0 table">
+                      <thead>
+                      <tr>
+                          <th>ITEM NAME</th>
+                          <th>QTY ON HAND</th>
+                          <th>LOT NO.</th>
+                          <th>EXPIRY DATE</th>
+                      </tr>
+                      </thead>
+                      <tbody>
+                      </tbody>
+                  </table>
+              </div>
+          </div>
+          </div>
+      </div>
+  </div>
+</div>

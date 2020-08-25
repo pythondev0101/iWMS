@@ -213,30 +213,23 @@ def _update_bin_coord():
         bin = BinLocation.query.filter_by(code=_bin_code).first()
         bin.x = _x / 2
         bin.y = _y / 2
-        # if _x == 0:
-        #     bin.x = bin.x + (_x / 2)
-        # else:
-        #     if bin.x == 0:
-        #         bin.x = bin.x + (_x / 2)
-        #     else:
-        #         dx = ((_x - (bin.x * 2)) + _x) / 2
-        #         bin.x = dx
-
-        # if _y == 0:
-        #     bin.y = bin.y + (_y / 2)
-        # else:
-        #     if bin.y == 0:
-        #         bin.y = bin.y + (_y / 2)
-        #     else:
-        #         if bin.y > _y:
-        #             dy = ((_y - (bin.y * 2)) + _y) / 2
-        #         else:
-        #             dy = (((bin.y * 2) - _y) + _y) / 2
-
-        #         bin.y = dy
-
         db.session.commit()
         return jsonify({'Result':True})
+
+@bp_iwms.route('/_get_bin_items',methods=['POST'])
+def _get_bin_items():
+    if request.method == 'POST':
+        _bin_code = request.json['bin_code']
+        bin = BinLocation.query.filter_by(code=_bin_code).first()
+        items = []
+        for x in bin.item_bin_locations:
+            items.append({
+                'name': x.inventory_item.stock_item.name,
+                'qty_on_hand': x.qty_on_hand,
+                'lot_no': x.lot_no,
+                'expiry_date': x.expiry_date,
+            })
+        return jsonify(res=items)
 
 @bp_iwms.route('/_create_bin',methods=['POST'])
 def _create_bin():
@@ -469,14 +462,6 @@ def reports():
     return render_template('iwms/iwms_reports.html',context=context,title="Reports",rd=report_data)
 
 
-@bp_iwms.route('/_sales_clients')
-def _sales_clients():
-
-    res = jsonify(_sales_clients)
-
-    return res
-
-
 @bp_iwms.route('/bin_location')
 @login_required
 def warehouse_bin_location():
@@ -485,7 +470,7 @@ def warehouse_bin_location():
     context['module'] = 'iwms'
     context['model'] = 'warehouse_bin_location'
     bins = BinLocation.query.all()
-    return render_template('iwms/iwms_warehouse_bin_location.html',context=context,bins=bins)
+    return render_template('iwms/iwms_warehouse_bin_location.html',context=context,bins=bins,title="Warehouse Floor Plan")
 
 @bp_iwms.route('/users')
 @login_required
