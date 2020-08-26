@@ -703,14 +703,6 @@
          });
 
         $('#btn_select_client').click(function(){
-            // Clearing SR line and PO line table
-            //table_sr_line.clear().draw();
-            $("#tbl_so_line tr").each(function() {
-                if ($(this).find("input").eq(0).val()){
-                    $(this).remove();
-                }
-            });
-
             var client = $("#tbl_client_modal tr.selected td:nth-child(3)").html();
             var term = $("#tbl_client_modal tr.selected td:nth-child(4)").html();
             var ship_via = $("#tbl_client_modal tr.selected td:nth-child(5)").html();
@@ -942,6 +934,7 @@
             var bin_location = $("#bin_location").val();
             var quantity = $("#quantity").val();
             var timestamp = + new Date();
+            var picker = "{{current_user.username}}";
 
                 var row = $("#tbl_so_line_modal tr.selected");
                 $('#tbl_pwy_item_line tr:last').after(
@@ -956,7 +949,7 @@
                         <td class='text-center'><input name="uom_${stock_id}" type="text" value="${base_uom}" style="width:50px" readonly></td>
                         <td class='text-center'><input name="qty_${stock_id}" type="text" value="${quantity}" style="width:50px" readonly></td>
                         <td class='text-center'><input name="timestamp_${stock_id}" type="text" value="${timestamp}" style="width:110px" readonly></td>
-                        <td class='text-center'></td>
+                        <td class='text-center'>${picker}</td>
                     </tr>
                     `
                     );

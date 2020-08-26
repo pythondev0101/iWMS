@@ -373,9 +373,9 @@ def dashboard():
     _qty_to_be_received = StockReceipt.query.filter_by(status="LOGGED").join(StockReceiptItemLine)\
         .with_entities(func.sum(StockReceiptItemLine.received_qty)).all()
     _all_items = InventoryItem.query.count()
-    _to_be_purchased = PurchaseOrder.query.filter(PurchaseOrder.status.in_(["LOGGED","PENDING"])).count()
-    _to_be_receipted = StockReceipt.query.filter_by(status="LOGGED").count()
-    _to_be_stored = Putaway.query.filter_by(status="LOGGED").count()
+    _to_be_purchased = PurchaseOrder.query.count()
+    _to_be_receipted = StockReceipt.query.count()
+    _to_be_stored = Putaway.query.count()
 
     _po_logged = PurchaseOrder.query.filter_by(status="LOGGED").count()
     _po_pending = PurchaseOrder.query.filter_by(status="PENDING").count()
@@ -404,9 +404,20 @@ def dashboard():
         'stored': str(_qty_on_hand[0][0]),
     }
 
+    _to_be_pick_qty = SalesOrder.query.filter(SalesOrder.status.in_(["LOGGED","ON HOLD"])).join(SalesOrderLine)\
+        .with_entities(func.sum(SalesOrderLine.qty)).all()
+    _picked_qty = SalesOrder.query.join(SalesOrderLine)\
+        .with_entities(func.sum(SalesOrderLine.issued_qty)).all()
+
+    _pck_data = {
+        'to_be_pick_qty': str(_to_be_pick_qty[0][0]),
+        'picked_qty': str(_picked_qty[0][0]),
+    }
+
     _total_orders = SalesOrder.query.count()
     _items_to_be_confirmed = SalesOrderLine.query.count()
-
+    _items_confirmed = SalesOrderLine.query.join(SalesOrder).filter(SalesOrder.status.in_(["CONFIRMED"]))\
+        .count()
 
     dashboard_data = {
         'qty_on_hand': str(_qty_on_hand[0][0]),
@@ -419,7 +430,9 @@ def dashboard():
         'sr_data': _sr_data,
         'pwy_data': _pwy_data,
         'total_orders': _total_orders,
-        'items_to_be_confirmed': _items_to_be_confirmed
+        'items_to_be_confirmed': _items_to_be_confirmed,
+        'pck_data': _pck_data,
+        'items_confirmed': _items_confirmed
     }
 
     return render_template('iwms/iwms_dashboard.html',context=context,dd=dashboard_data,title="Dashboard")
@@ -553,69 +566,6 @@ def group_edit(oid):
             return redirect(url_for('bp_iwms.groups'))
 
 
-# @bp_iwms.route('/emails')
-# @login_required
-# def emails():
-#     fields = [EAddress.id,EAddress.module_code,EAddress.description,EAddress.type,EAddress.email]
-#     form = EmailForm()
-#     context['mm-active'] = 'email'
-#     return admin_index(EAddress,fields=fields,form=form,url='', \
-#         create_url='bp_iwms.email_create',edit_url='bp_iwms.email_edit' \
-#             ,template="iwms/iwms_index.html",kwargs={'active':'system'})
-
-# @bp_iwms.route('/email_create',methods=['POST'])
-# @login_required
-# def email_create():
-#     if _check_create('email'):
-#         form = EmailForm()
-#         if request.method == 'POST':
-#             if form.validate_on_submit():
-#                 email = EAddress()
-#                 email.email = form.email.data
-#                 email.module_code = form.module_code.data
-#                 email.type = form.type.data
-#                 email.description = form.description.data
-#                 email.created_by = "{} {}".format(current_user.fname,current_user.lname)
-#                 db.session.add(email)
-#                 db.session.commit()
-#                 flash('New Email address added successfully!','success')
-#                 _log_create('New email address added','EmailAdressID={}'.format(email.id))
-#                 return redirect(url_for('bp_iwms.emails'))
-#             else:
-#                 for key, value in form.errors.items():
-#                     flash(str(key) + str(value), 'error')
-#                 return redirect(url_for('bp_iwms.emails'))
-#     else:
-#         return render_template("auth/authorization_error.html")
-
-
-# @bp_iwms.route('/email_edit/<int:oid>',methods=['GET','POST'])
-# @login_required
-# def email_edit(oid):
-#     obj = EAddress.query.get_or_404(oid)
-#     f = EmailEditForm(obj=obj)
-
-#     if request.method == "GET":
-#         context['mm-active'] = 'email'
-
-#         return admin_edit(f,'bp_iwms.email_edit',oid,model=EAddress,template='iwms/iwms_edit.html',kwargs={'active':'system'})
-#     elif request.method == "POST":
-#         if f.validate_on_submit():
-#             obj.email = f.email.data
-#             obj.module_code = f.module_code.data
-#             obj.description = f.description.data
-#             obj.type = f.type.data
-#             obj.updated_at = datetime.now()
-#             obj.updated_by = "{} {}".format(current_user.fname,current_user.lname)
-#             db.session.commit()
-#             flash('Email address update Successfully!','success')
-#             _log_create('Email address update','EmailAdressID={}'.format(oid))
-#             return redirect(url_for('bp_iwms.emails'))
-#         else:    
-#             for key, value in form.errors.items():
-#                 flash(str(key) + str(value), 'error')
-#             return redirect(url_for('bp_iwms.emails'))
-
 @bp_iwms.route('/departments')
 @login_required
 def departments():
@@ -681,66 +631,6 @@ def department_edit(oid):
             return redirect(url_for('bp_iwms.departments'))
 
 
-# @bp_iwms.route('/transaction_types')
-# @login_required
-# def transaction_types():
-#     fields = [TransactionType.id,TransactionType.code,TransactionType.description,TransactionType.prefix,TransactionType.next_number_series]
-#     context['mm-active'] = 'transaction_type'
-#     return admin_index(TransactionType,fields=fields,form=TransactionTypeForm(),template='iwms/iwms_index.html', \
-#         create_url='bp_iwms.transaction_type_create',edit_url="bp_iwms.transaction_type_edit",kwargs={'active':'system'})
-
-# @bp_iwms.route('/transaction_type_create',methods=["POST"])
-# @login_required
-# def transaction_type_create():
-#     if _check_create('transaction_type'):
-#         form = TransactionTypeForm()
-#         if request.method == 'POST':
-#             if form.validate_on_submit():
-#                 tt = TransactionType()
-#                 tt.next_number_series = form.next_number_series.data if not form.next_number_series.data == '' else 0
-#                 tt.prefix = form.prefix.data
-#                 tt.code = form.code.data
-#                 tt.description = form.description.data
-#                 tt.created_by = "{} {}".format(current_user.fname,current_user.lname)
-#                 db.session.add(tt)
-#                 db.session.commit()
-#                 flash("New transaction type added successfully!",'success')
-#                 _log_create("New transaction type added",'TransactionTypeID={}'.format(tt.id))
-#                 return redirect(url_for('bp_iwms.transaction_types'))
-#             else:
-#                 for key, value in form.errors.items():
-#                     flash(str(key) + str(value), 'error')
-#                 return redirect(url_for('bp_iwms.transaction_types'))
-#     else:
-#         return render_template('auth/authorization_error.html')
-
-# @bp_iwms.route('/transaction_type_edit/<int:oid>',methods=['GET','POST'])
-# @login_required
-# def transaction_type_edit(oid):
-#     obj = TransactionType.query.get_or_404(oid)
-#     f = TransactionTypeEditForm(obj=obj)
-
-#     if request.method == "GET":
-#         context['mm-active'] = 'transaction_type'
-#         return admin_edit(f,'bp_iwms.transaction_type_edit',oid, \
-#             model=TransactionType,template='iwms/iwms_edit.html',kwargs={'active':'system'})
-#     elif request.method == "POST":
-#         if f.validate_on_submit():
-#             obj.code = f.code.data
-#             obj.description = f.description.data
-#             obj.prefix = f.prefix.data
-#             obj.next_number_series = f.next_number_series.data if not f.next_number_series.data == '' else None            
-#             obj.updated_at = datetime.now()
-#             obj.updated_by = "{} {}".format(current_user.fname,current_user.lname)
-#             db.session.commit()
-#             flash('Transaction type update Successfully!','success')
-#             _log_create("Transaction type update","TransactionTypeID={}".format(oid))
-#             return redirect(url_for('bp_iwms.transaction_types'))
-#         else:    
-#             for key, value in form.errors.items():
-#                 flash(str(key) + str(value), 'error')
-#             return redirect(url_for('bp_iwms.transaction_types'))
-
 @bp_iwms.route('/logs')
 @login_required
 def logs():
@@ -777,6 +667,8 @@ def warehouse_create():
                     wh.created_by = "{} {}".format(current_user.fname,current_user.lname)
                     db.session.add(wh)
                     db.session.commit()
+                    _log_create('New warehouse added','WarehouseID={}'.format(wh.id))
+                    
                     flash("New warehouse added successfully!",'success')
                     return redirect(url_for('bp_iwms.warehouses'))
                 except Exception as e:
@@ -809,6 +701,7 @@ def warehouse_edit(oid):
                 obj.updated_at = datetime.now()
                 obj.updated_by = "{} {}".format(current_user.fname,current_user.lname)
                 db.session.commit()
+                _log_create('Warehouse update','WarehouseID={}'.format(oid))
                 flash('Warehouse update Successfully!','success')
                 return redirect(url_for('bp_iwms.warehouses'))
             except Exception as e:
@@ -841,6 +734,7 @@ def zone_create():
                     obj.created_by = "{} {}".format(current_user.fname,current_user.lname)
                     db.session.add(obj)
                     db.session.commit()
+                    _log_create('New zone added','ZoneID={}'.format(obj.id))
                     flash("New zone added successfully!",'success')
                     return redirect(url_for('bp_iwms.zones'))
                 except Exception as e:
@@ -870,6 +764,7 @@ def zone_edit(oid):
                 obj.updated_at = datetime.now()
                 obj.updated_by = "{} {}".format(current_user.fname,current_user.lname)
                 db.session.commit()
+                _log_create('Zone update','ZoneID={}'.format(obj.id))
                 flash('Zone update Successfully!','success')
                 return redirect(url_for('bp_iwms.zones'))
             except Exception as e:
@@ -915,6 +810,7 @@ def bin_location_create():
                     obj.created_by = "{} {}".format(current_user.fname,current_user.lname)
                     db.session.add(obj)
                     db.session.commit()
+                    _log_create('New bin location added','BinLocationID={}'.format(obj.id))
                     flash("New Bin Location added successfully!",'success')
                     return redirect(url_for('bp_iwms.bin_locations'))
                 except Exception as e:
@@ -952,6 +848,7 @@ def bin_location_edit(oid):
                 obj.updated_by = "{} {}".format(current_user.fname,current_user.lname)
                 obj.updated_at = datetime.now()
                 db.session.commit()
+                _log_create('BinLocation update','BinLocationID={}'.format(obj.id))
                 flash('Bin Location update Successfully!','success')
                 return redirect(url_for('bp_iwms.bin_locations'))
             except Exception as e:
@@ -985,6 +882,7 @@ def category_create():
                 obj.created_by = "{} {}".format(current_user.fname,current_user.lname)
                 db.session.add(obj)
                 db.session.commit()
+                _log_create('New category added','CategoryID={}'.format(obj.id))
                 flash("New Category added successfully!",'success')
                 return redirect(url_for('bp_iwms.categories'))
             except Exception as e:
@@ -1012,6 +910,7 @@ def category_edit(oid):
                 obj.updated_by = "{} {}".format(current_user.fname,current_user.lname)
                 obj.updated_at = datetime.now()
                 db.session.commit()
+                _log_create('Category update','CategoryID={}'.format(obj.id))
                 flash('Category update Successfully!','success')
                 return redirect(url_for('bp_iwms.categories'))
             except Exception as e:
@@ -1046,6 +945,7 @@ def unit_of_measure_create():
                 obj.created_by = "{} {}".format(current_user.fname,current_user.lname)
                 db.session.add(obj)
                 db.session.commit()
+                _log_create('New unit of measure added','UOMID={}'.format(obj.id))
                 flash("New Unit of measure added successfully!",'success')
                 return redirect(url_for('bp_iwms.unit_of_measures'))
             except Exception as e:
@@ -1076,6 +976,7 @@ def unit_of_measure_edit(oid):
                 obj.updated_by = "{} {}".format(current_user.fname,current_user.lname)
                 obj.updated_at = datetime.now()
                 db.session.commit()
+                _log_create('Unit of measure update','UOMID={}'.format(obj.id))
                 flash('Unit of measure update Successfully!','success')
                 return redirect(url_for('bp_iwms.unit_of_measures'))
             except Exception as e:
@@ -1085,60 +986,6 @@ def unit_of_measure_edit(oid):
             for key, value in form.errors.items():
                 flash(str(key) + str(value), 'error')
             return redirect(url_for('bp_iwms.unit_of_measures'))
-
-# @bp_iwms.route('/reasons')
-# @login_required
-# def reasons():
-#     fields = [Reason.id,Reason.code,Reason.type,Reason.description]
-#     context['mm-active'] = 'reason'
-#     return admin_index(Reason,fields=fields,form=ReasonForm(), \
-#         template='iwms/iwms_index.html', edit_url='bp_iwms.reason_edit',\
-#             create_url="bp_iwms.reason_create",kwargs={'active':'inventory'})
-
-# @bp_iwms.route('/reason_create',methods=['POST'])
-# @login_required
-# def reason_create():
-#     f = ReasonForm()
-#     if request.method == "POST":
-#         if f.validate_on_submit():
-#             obj = Reason()
-#             obj.code = f.code.data
-#             obj.description = f.description.data
-#             obj.type = f.type.data
-#             obj.created_by = "{} {}".format(current_user.fname,current_user.lname)
-#             db.session.add(obj)
-#             db.session.commit()
-#             flash("New reason added successfully!",'success')
-#             return redirect(url_for('bp_iwms.reasons'))
-#         else:
-#             for key, value in f.errors.items():
-#                 flash(str(key) + str(value), 'error')
-#             return redirect(url_for('bp_iwms.reasons'))
-
-# @bp_iwms.route('/reason_edit/<int:oid>',methods=['GET','POST'])
-# @login_required
-# def reason_edit(oid):
-#     obj = Reason.query.get_or_404(oid)
-#     f = ReasonEditForm(obj=obj)
-#     if request.method == "GET":
-#         context['mm-active'] = 'reason'
-
-#         return admin_edit(f,'bp_iwms.reason_edit',oid, \
-#             model=Reason,template='iwms/iwms_edit.html',kwargs={'active':'inventory'})
-#     elif request.method == "POST":
-#         if f.validate_on_submit():
-#             obj.code = f.code.data
-#             obj.description = f.description.data
-#             obj.type = f.type.data
-#             obj.updated_by = "{} {}".format(current_user.fname,current_user.lname)
-#             obj.updated_at = datetime.now()
-#             db.session.commit()
-#             flash('Reason update Successfully!','success')
-#             return redirect(url_for('bp_iwms.reasons'))
-#         else:
-#             for key, value in form.errors.items():
-#                 flash(str(key) + str(value), 'error')
-#             return redirect(url_for('bp_iwms.reasons'))
 
 
 @bp_iwms.route('/sources')
@@ -1163,6 +1010,7 @@ def source_create():
                 obj.created_by = "{} {}".format(current_user.fname,current_user.lname)
                 db.session.add(obj)
                 db.session.commit()
+                _log_create('New source added','SourceID={}'.format(obj.id))
                 flash("New source added successfully!",'success')
                 return redirect(url_for('bp_iwms.sources'))
             except Exception as e:
@@ -1190,6 +1038,7 @@ def source_edit(oid):
                 obj.updated_by = "{} {}".format(current_user.fname,current_user.lname)
                 obj.updated_at = datetime.now()
                 db.session.commit()
+                _log_create('Source update','SourceID={}'.format(obj.id))
                 flash('Source update Successfully!','success')
                 return redirect(url_for('bp_iwms.sources'))
             except Exception as e:
@@ -1301,6 +1150,7 @@ def stock_item_create():
 
                 db.session.add(obj)
                 db.session.commit()
+                _log_create('New stock item added','SIID={}'.format(obj.id))
                 flash('New Stock Item added Successfully!','success')
                 return redirect(url_for('bp_iwms.stock_items'))
             except Exception as e:
@@ -1394,6 +1244,7 @@ def stock_item_edit(oid):
                         obj.uom_line.append(line)
                         
                 db.session.commit()
+                _log_create('Stock item update','SIID={}'.format(obj.id))
                 flash('Stock Item updated Successfully!','success')
                 return redirect(url_for('bp_iwms.stock_items'))
             except Exception as e:
@@ -1500,6 +1351,7 @@ def stock_receipt_create():
 
                 db.session.add(obj)
                 db.session.commit()
+                _log_create('New stock receipt added','SRID={}'.format(obj.id))
                 flash('New Stock Receipt added Successfully!','success')
                 return redirect(url_for('bp_iwms.stock_receipts'))
             except Exception as e:
@@ -1614,6 +1466,7 @@ def putaway_create():
 
                 db.session.add(obj)
                 db.session.commit()
+                _log_create('New putaway added','PWYID={}'.format(obj.id))
                 flash('New Putaway added Successfully!','success')
                 return redirect(url_for('bp_iwms.putaways'))
             except Exception as e:
@@ -1690,6 +1543,7 @@ def purchase_order_create():
                         po.product_line.append(line)
                 db.session.add(po)
                 db.session.commit()
+                _log_create('New purchase order added','POID={}'.format(po.id))
 
                 if request.form['btn_submit'] == 'Save and Print':
                     file_name = po_generated_number + '.pdf'
@@ -1771,7 +1625,8 @@ def purchase_order_edit(oid):
                     po.product_line.append(line)
 
             db.session.commit()
-
+            _log_create('Purchase order update','POID={}'.format(po.id))
+            
             if request.form['btn_submit'] == 'Save and Print':
                 file_name = po.po_number + '.pdf'
                 file_path = current_app.config['PDF_FOLDER'] + po.po_number + '.pdf'
@@ -1817,7 +1672,7 @@ def purchase_order_view(oid):
 @bp_iwms.route('/suppliers')
 @login_required
 def suppliers():
-    fields = [Supplier.id,Supplier.code,Supplier.name,Supplier.status]
+    fields = [Supplier.id,Supplier.code,Supplier.name,Supplier.created_by,Supplier.created_at,Supplier.updated_by,Supplier.updated_at]
     context['mm-active'] = 'supplier'
     form = SupplierForm()
     sup_generated_number = ""
@@ -1851,6 +1706,7 @@ def supplier_create():
                 obj.created_by = "{} {}".format(current_user.fname,current_user.lname)
                 db.session.add(obj)
                 db.session.commit()
+                _log_create('New supplier added','SUPID={}'.format(obj.id))
                 flash("New supplier added successfully!",'success')
                 return redirect(url_for('bp_iwms.suppliers'))
             except Exception as e:
@@ -1884,6 +1740,7 @@ def supplier_edit(oid):
                 obj.updated_by = "{} {}".format(current_user.fname,current_user.lname)
                 obj.updated_at = datetime.now()
                 db.session.commit()
+                _log_create('Supplier update','SUPID={}'.format(obj.id))
                 flash('Supplier update Successfully!','success')
                 return redirect(url_for('bp_iwms.suppliers'))
             except Exception as e:
@@ -1917,6 +1774,7 @@ def type_create():
                 obj.created_by = "{} {}".format(current_user.fname,current_user.lname)
                 db.session.add(obj)
                 db.session.commit()
+                _log_create('New type added','TypeID={}'.format(obj.id))
                 flash("New type added successfully!",'success')
                 return redirect(url_for('bp_iwms.stock_item_types'))
             except Exception as e:
@@ -1943,6 +1801,7 @@ def type_edit(oid):
                 obj.updated_by = "{} {}".format(current_user.fname,current_user.lname)
                 obj.updated_at = datetime.now()
                 db.session.commit()
+                _log_create('Type update','TypeID={}'.format(obj.id))
                 flash('Type update Successfully!','success')
                 return redirect(url_for('bp_iwms.stock_item_types'))
             except Exception as e:
@@ -1957,7 +1816,7 @@ def type_edit(oid):
 @bp_iwms.route('/terms')
 @login_required
 def terms():
-    fields = [Term.id,Term.code,Term.description,Term.days]
+    fields = [Term.id,Term.code,Term.description,Term.days,Term.created_by,Term.created_at,Term.updated_by,Term.updated_at]
     context['mm-active'] = 'term'
     return admin_index(Term,fields=fields,form=TermForm(), \
         template='iwms/iwms_index.html', edit_url='bp_iwms.term_edit',\
@@ -1977,6 +1836,7 @@ def term_create():
                 obj.created_by = "{} {}".format(current_user.fname,current_user.lname)
                 db.session.add(obj)
                 db.session.commit()
+                _log_create('New term added','TermID={}'.format(obj.id))
                 flash("New term added successfully!",'success')
                 return redirect(url_for('bp_iwms.terms'))
             except Exception as e:
@@ -2005,6 +1865,7 @@ def term_edit(oid):
                 obj.updated_by = "{} {}".format(current_user.fname,current_user.lname)
                 obj.updated_at = datetime.now()
                 db.session.commit()
+                _log_create('Term update','TermID={}'.format(obj.id))
                 flash('Term update Successfully!','success')
                 return redirect(url_for('bp_iwms.terms'))
             except Exception as e:
@@ -2019,7 +1880,7 @@ def term_edit(oid):
 @bp_iwms.route('/ship_via')
 @login_required
 def ship_via():
-    fields = [ShipVia.id,ShipVia.description,ShipVia.created_by,ShipVia.created_at]
+    fields = [ShipVia.id,ShipVia.description,ShipVia.created_by,ShipVia.created_at,ShipVia.updated_by,ShipVia.updated_at]
     context['mm-active'] = 'ship_via'
     return admin_index(ShipVia,fields=fields,form=SalesViaForm(), \
         template='iwms/iwms_index.html', edit_url='bp_iwms.sales_via_edit',\
@@ -2037,7 +1898,8 @@ def sales_via_create():
                 obj.created_by = "{} {}".format(current_user.fname,current_user.lname)
                 db.session.add(obj)
                 db.session.commit()
-                flash("New sales via added successfully!",'success')
+                _log_create('New ship via added','ShipViaID={}'.format(obj.id))
+                flash("New ship via added successfully!",'success')
                 return redirect(url_for('bp_iwms.ship_via'))
             except Exception as e:
                 flash(str(e),'error')
@@ -2063,7 +1925,8 @@ def sales_via_edit(oid):
                 obj.updated_by = "{} {}".format(current_user.fname,current_user.lname)
                 obj.updated_at = datetime.now()
                 db.session.commit()
-                flash('Sales via update Successfully!','success')
+                _log_create('Ship via update','ShipViaID={}'.format(obj.id))
+                flash('Ship via update Successfully!','success')
                 return redirect(url_for('bp_iwms.ship_via'))
             except Exception as e:
                 flash(str(e),'error')
@@ -2094,6 +1957,7 @@ def client_group_create():
             obj.created_by = "{} {}".format(current_user.fname,current_user.lname)
             db.session.add(obj)
             db.session.commit()
+            _log_create('New client group added','ClientGroupID={}'.format(obj.id))
             flash("New client group added successfully!",'success')
             return redirect(url_for('bp_iwms.client_groups'))
         else:
@@ -2116,6 +1980,7 @@ def client_group_edit(oid):
             obj.updated_by = "{} {}".format(current_user.fname,current_user.lname)
             obj.updated_at = datetime.now()
             db.session.commit()
+            _log_create('Client group update','ClientGroupID={}'.format(obj.id))
             flash('Client group update Successfully!','success')
             return redirect(url_for('bp_iwms.client_groups'))
         else:
@@ -2126,7 +1991,7 @@ def client_group_edit(oid):
 @bp_iwms.route('/clients')
 @login_required
 def clients():
-    fields = [Client.id,Client.code,Client.name,Client.updated_by,Client.updated_at]
+    fields = [Client.id,Client.code,Client.name,Client.created_by,Client.created_at,Client.updated_by,Client.updated_at]
     form = ClientForm()
     cli_generated_number = ""
     cli = db.session.query(Client).order_by(Client.id.desc()).first()
@@ -2157,6 +2022,7 @@ def client_create():
                 obj.created_by = "{} {}".format(current_user.fname,current_user.lname)
                 db.session.add(obj)
                 db.session.commit()
+                _log_create('New client added','ClientID={}'.format(obj.id))
                 flash("New Client added successfully!",'success')
                 return redirect(url_for('bp_iwms.clients'))
             except Exception as e:
@@ -2186,6 +2052,7 @@ def client_edit(oid):
                 obj.updated_by = "{} {}".format(current_user.fname,current_user.lname)
                 obj.updated_at = datetime.now()
                 db.session.commit()
+                _log_create('Client update','ClientID={}'.format(obj.id))
                 flash('Client update Successfully!','success')
                 return redirect(url_for('bp_iwms.clients'))
             except Exception as e:
@@ -2317,6 +2184,8 @@ def sales_order_create():
     elif request.method == "POST":
         if f.validate_on_submit():
             try:
+                if f.client_name.data == '':
+                    raise Exception('No Customer included')
                 r = request.form
                 so = SalesOrder()
                 so.number = so_generated_number
@@ -2355,7 +2224,8 @@ def sales_order_create():
 
                 db.session.add(so)
                 db.session.commit()
-                flash('New Purchase Order added Successfully!','success')
+                _log_create('New sales order added','SOID={}'.format(so.id))
+                flash('New Sales Order added Successfully!','success')
                 return redirect(url_for('bp_iwms.sales_orders'))
             except Exception as e:
                 flash(str(e),'error')
@@ -2375,7 +2245,7 @@ def sales_order_edit(oid):
         clients = Client.query.all()
         _so_items = [x.item_bin_location_id for x in so.product_line]
         items = ItemBinLocations.query.filter(ItemBinLocations.qty_on_hand>0, ~ItemBinLocations.id.in_(_so_items)).all()
-        f.client_name.data = so.client.name
+        f.client_name.data = so.client.name if not so.client == None else ''
         f.term_id.data = so.client.term.description if not so.client.term == None else ''
         f.ship_via_id.data = so.client.ship_via.description if not so.client.ship_via == None else ''
         context['active'] = 'sales'
@@ -2389,6 +2259,9 @@ def sales_order_edit(oid):
     elif request.method == "POST":
         if f.validate_on_submit():
             try:
+                if f.client_name.data == '':
+                    raise Exception('No Customer included')
+
                 r = request.form
                 client = Client.query.filter_by(name=f.client_name.data).first()
                 so.client = client
@@ -2426,6 +2299,7 @@ def sales_order_edit(oid):
                 so.total_price = _total_price
 
                 db.session.commit()
+                _log_create('Sales order update','SOID={}'.format(so.id))
                 flash('Sales Order updated Successfully!','success')
                 return redirect(url_for('bp_iwms.sales_orders'))
             except Exception as e:
@@ -2447,9 +2321,9 @@ def sales_order_view(oid):
         clients = Client.query.all()
         _so_items = [x.item_bin_location_id for x in so.product_line]
         items = ItemBinLocations.query.filter(ItemBinLocations.qty_on_hand>0, ~ItemBinLocations.id.in_(_so_items)).all()
-        f.client_name.data = so.client.name
-        f.term_id.data = so.client.term.description
-        f.ship_via_id.data = so.client.ship_via.description
+        f.client_name.data = so.client.name if not so.client == None else ''
+        f.term_id.data = so.client.term.description if not so.client.term == None else ''
+        f.ship_via_id.data = so.client.ship_via.description if not so.client.ship_via == None else ''
         context['active'] = 'sales'
         context['mm-active'] = 'sales_order'
         context['module'] = 'iwms'
@@ -2527,9 +2401,8 @@ def picking_create():
                                 pi.qty = pi.qty - int(qty)
                                 db.session.commit()
 
-                            _remaining = _remaining + pi.qty
-                        # if bin_item.qty_on_hand <= 0:
-                        #     db.session.delete(bin_item)
+                for pi in so.product_line:
+                    _remaining = _remaining + pi.qty               
 
                 if _remaining == 0:
                     so.status = "CONFIRMED"
@@ -2538,6 +2411,7 @@ def picking_create():
 
                 db.session.add(obj)
                 db.session.commit()
+                _log_create('New picking added','PCKID={}'.format(obj.id))
                 flash('New Picking added Successfully!','success')
                 return redirect(url_for('bp_iwms.pickings'))
             except Exception as e:

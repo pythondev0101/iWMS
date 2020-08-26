@@ -24,7 +24,6 @@
                 <div class="widget-content-wrapper text-white">
                     <div class="widget-content-left">
                         <div class="widget-heading">Purchase Order</div>
-                        <div class="widget-subheading">To be purchased</div>
                     </div>
                     <div class="widget-content-right">
                         <div class="widget-numbers text-white"><span>{{dd['to_be_purchased']}}</span></div>
@@ -37,7 +36,6 @@
                 <div class="widget-content-wrapper text-white">
                     <div class="widget-content-left">
                         <div class="widget-heading">Stock Receipt</div>
-                        <div class="widget-subheading">To be receipted</div>
                     </div>
                     <div class="widget-content-right">
                         <div class="widget-numbers text-white"><span>{{dd['to_be_receipted']}}</span></div>
@@ -50,7 +48,6 @@
                 <div class="widget-content-wrapper text-white">
                     <div class="widget-content-left">
                         <div class="widget-heading">Putaway</div>
-                        <div class="widget-subheading">To be stored</div>
                     </div>
                     <div class="widget-content-right">
                         <div class="widget-numbers text-white"><span>{{dd['to_be_stored']}}</span></div>
@@ -187,7 +184,7 @@
                 <div class="widget-content">
                     <div class="widget-content-wrapper">
                         <div class="widget-content-right ml-0 mr-3">
-                            <div class="widget-numbers text-danger">0</div>
+                            <div class="widget-numbers text-danger">{{dd['items_confirmed']}}</div>
                         </div>
                         <div class="widget-content-left">
                             <div class="widget-heading">Items</div>
@@ -375,7 +372,51 @@
 
         var pwyChart = new Chart.PolarArea(pwy_chart_area, pwy_config);
         
-        
+
+        // PICKING
+
+        var pck_chart_area = $("#pck-chart");
+        var to_be_pick_qty = "{{dd['pck_data']['to_be_pick_qty']}}";
+        var picked_qty = "{{dd['pck_data']['picked_qty']}}"
+
+        var pck_config = {
+			data: {
+				datasets: [{
+					data: [
+                    to_be_pick_qty,
+                    picked_qty,
+					],
+                    backgroundColor: [
+                        color(chartColors.red).alpha(0.5).rgbString(),
+                        color(chartColors.green).alpha(0.5).rgbString(),
+					],
+					label: 'My dataset' // for legend
+				}],
+				labels: [
+					'To be Pick Qty',
+					'Picked Qty',
+				]
+			},
+			options: {
+				responsive: true,
+				legend: {
+					position: 'right',
+                },
+				scale: {
+					ticks: {
+						beginAtZero: true
+					},
+					reverse: false
+				},
+				animation: {
+					animateRotate: false,
+					animateScale: true
+				}
+			}
+		};
+
+        var pckChart = new Chart.PolarArea(pck_chart_area, pck_config);
+
     });
 </script>
 {% endblock %}

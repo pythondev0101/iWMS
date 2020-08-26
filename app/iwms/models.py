@@ -466,7 +466,7 @@ class SalesOrder(Base,Admin):
     __tablename__ = 'iwms_sales_order'
     __amname__ = 'sales_order'
     __amdescription__ = 'Sales Order'
-    __amicon__ = 'pe-7s-wallet'
+    __amicon__ = 'pe-7s-cart'
 
     """ COLUMNS """
     number = db.Column(db.String(255),nullable=False)
@@ -513,7 +513,7 @@ class Picking(Base,Admin):
     __tablename__ = 'iwms_picking'
     __amname__ = 'picking'
     __amdescription__ = 'Picking'
-    __amicon__ = 'pe-7s-wallet'
+    __amicon__ = 'pe-7s-upload'
 
     """ COLUMNS """
     number = db.Column(db.String(255),nullable=False)

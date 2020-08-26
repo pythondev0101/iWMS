@@ -452,7 +452,7 @@ class InventoryItemEditForm(FlaskForm):
 
 
 class SupplierForm(AdminIndexForm):
-    index_headers = ['code','name','status']
+    index_headers = ['code','name','created by','created at','updated by','updated at']
     index_title = 'Suppliers'
     
     code = AdminField(label='Code',validators=[DataRequired()],readonly=True)
@@ -489,7 +489,7 @@ class TypeForm(AdminIndexForm):
         return [[self.name]]
 
 class TermForm(AdminIndexForm):
-    index_headers = ['code','description','days']
+    index_headers = ['code','description','days','created by','created at','updated by', 'updated at']
     index_title = 'Terms'
     
     code = AdminField(label='Code',validators=[DataRequired()])
@@ -500,7 +500,7 @@ class TermForm(AdminIndexForm):
         return [[self.code,self.description],[self.days]]
 
 class SalesViaForm(AdminIndexForm):
-    index_headers = ['description','created by','created at']
+    index_headers = ['description','created by','created at','updated by', 'updated at']
     index_title = 'Ship Via'
     
     description = AdminField(label='Description',validators=[DataRequired()])
@@ -528,7 +528,7 @@ class ClienGroupEditForm(AdminEditForm):
 
 class ClientForm(AdminIndexForm):
     from .models import Term,ShipVia
-    index_headers = ['code','name','updated by','updated at']
+    index_headers = ['code','name','created by','created at','updated by','updated at']
     index_title = 'Clients'
     
     name = AdminField(label='Name',required=False)
