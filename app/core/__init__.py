@@ -159,17 +159,17 @@ def _create_superuser():
     from app.auth.models import User
     from app import db
     user = User()
+    user.fname = input("Enter First name: ")
+    user.lname = input("Enter Last name: ")
+    user.username = input("Enter Username: ")
+    user.email = input("Enter Email: ")
+    user.set_password(input("Enter password: "))
     # FOR DEVELOPMENT ONLY
-    # user.fname = input("Enter First name: ")
-    # user.lname = input("Enter Last name: ")
-    # user.username = input("Enter Username: ")
-    # user.email = input("Enter Email: ")
-    # user.set_password(input("Enter password: "))
-    user.fname = "Admin"
-    user.lname = "Administrator"
-    user.username = "admin"
-    user.email = "admin@admin.com"
-    user.set_password("admin")
+    # user.fname = "Admin"
+    # user.lname = "Administrator"
+    # user.username = "admin"
+    # user.email = "admin@admin.com"
+    # user.set_password("admin")
     user.is_superuser = 1
     user.role_id = 1
     user.created_by = "System"
