@@ -44,7 +44,10 @@
         {% block header %}
         {% include 'admin/admin_header.html' %}
         {% endblock %}
- 
+        <!-- ADMIN OPTIONS -->
+        {% block options %}
+        {% include 'admin/admin_options.html' %}
+        {% endblock %}
         <div class="app-main">
 
         {% block sidebar %}
@@ -63,7 +66,8 @@
                   <div class="app-footer">
                       <div class="app-footer__inner">
                         <div class="app-footer-left">
-                          <button id="btn_create_new_bin" type="button" class="btn btn-primary"><i class="fa fa-plus"></i>&nbsp;Create new bin</button>
+                          <button style="margin-right: 10px;" id="btn_mode" type="button" class="btn btn-primary">View Mode</button>
+                          <button id="btn_create_new_bin" type="button" class="btn btn-success"><i class="fa fa-plus"></i>&nbsp;Create new bin</button>
                       </div>
                       </div>
                   </div>
@@ -73,6 +77,13 @@
     </div>
 <script type="text/javascript" src="{{ url_for('static', filename='js/lib/main.js') }}"></script>
     <script>
+      (function() {
+        var fixed_footer = document.getElementById('chkbox_fixed_footer');
+        setTimeout(function() {
+          fixed_footer.click();
+        }, 100);
+      })();
+
       $( document ).ready(function() {
 
         var width = 3000;
@@ -147,47 +158,53 @@
           }
         });
 
-        layer.on('mouseover','Group',function(evt){
+        layer.on('click','Group',function(evt){
           var shape = evt.target;
           var bin_code = shape.name();
-              var csrf_token = "{{ csrf_token() }}";
-              $.ajaxSetup({
-                  beforeSend: function(xhr, settings) {
-                      if (!/^(GET|HEAD|OPTIONS|TRACE)$/i.test(settings.type) && !this.crossDomain) {
-                          xhr.setRequestHeader("X-CSRFToken", csrf_token);
-                      }
-                  }
-              });
-              $.ajax({
-                url: '/iwms/_get_bin_items',
-                type: 'POST',
-                dataType: 'json',
-                data: JSON.stringify({'bin_code':bin_code}),
-                contentType: "application/json; charset=utf-8",
-                success: function(data){
-                  $("#item_modal").addClass('show');
-                  $("#item_modal").css('display','block');
-                  var ctr;
-                  var tbl_string = "";
-                  for(ctr=0; ctr < data.res.length; ctr++){
-                    tbl_string = tbl_string + `
-                      <tr>
-                        <td>${data.res[ctr].name}</td>
-                        <td>${data.res[ctr].qty_on_hand}</td>
-                        <td>${data.res[ctr].lot_no}</td>
-                        <td>${data.res[ctr].expiry_date}</td>
-                      </tr>
-                    `;
-                  }
-                  $('#tbl_items tr:last').after(tbl_string);
+          var minibox = stage.findOne('#mbx_' + bin_code);
+          var group = stage.findOne('#grp_'+ bin_code);
+          if ($("#btn_mode").text() == "View Mode"){
 
-                }
-              });
-        });
+            $("#tbl_items tr").each(function() {
+              if($(this).find("td").eq(0).html()){
+                $(this).remove();
+              }
+            });
 
-        layer.on('mouseout','Group',function(evt){
-          $("#item_modal").removeClass('show');
-          $("#item_modal").css('display','none');
+                var csrf_token = "{{ csrf_token() }}";
+                $.ajaxSetup({
+                    beforeSend: function(xhr, settings) {
+                        if (!/^(GET|HEAD|OPTIONS|TRACE)$/i.test(settings.type) && !this.crossDomain) {
+                            xhr.setRequestHeader("X-CSRFToken", csrf_token);
+                        }
+                    }
+                });
+                $.ajax({
+                  url: '/iwms/_get_bin_items',
+                  type: 'POST',
+                  dataType: 'json',
+                  data: JSON.stringify({'bin_code':bin_code}),
+                  contentType: "application/json; charset=utf-8",
+                  success: function(data){
+                    $("#item_modal").addClass('show');
+                    $("#item_modal").css('display','block');
+                    var ctr;
+                    var tbl_string = "";
+                    for(ctr=0; ctr < data.res.length; ctr++){
+                      tbl_string = tbl_string + `
+                        <tr>
+                          <td>${data.res[ctr].name}</td>
+                          <td>${data.res[ctr].qty_on_hand}</td>
+                          <td>${data.res[ctr].lot_no}</td>
+                          <td>${data.res[ctr].expiry_date}</td>
+                        </tr>
+                      `;
+                    }
+                    $('#tbl_items tr:last').after(tbl_string);
+
+                  }
+                });
+          }
         });
 
         stage.add(layer);
@@ -232,8 +249,18 @@
             });
           }
         });
+
+        $("#btn_mode").toggle(
+          function() {
+            $(this).text("Drag Mode");
+          }, function() {
+            $(this).text("View Mode");
+          }
+        );
+
       });
 
+     
     </script>
 </body>
 </html>
