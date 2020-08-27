@@ -44,7 +44,7 @@ class DevelopmentConfig(Config):
     Development configurations
     """
 
-    SQLALCHEMY_DATABASE_URI = _get_database()
+    SQLALCHEMY_DATABASE_URI = _get_database('localhost')
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     DEBUG = True
     # SQLALCHEMY_ECHO = True
@@ -53,7 +53,7 @@ class ProductionConfig(Config):
     """
     Production configurations
     """
-    SQLALCHEMY_DATABASE_URI = _get_database()
+    SQLALCHEMY_DATABASE_URI = _get_database('pythonanywhere')
     DEBUG = False
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     
