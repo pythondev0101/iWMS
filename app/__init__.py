@@ -26,6 +26,11 @@ context = {'system_modules': system_modules, 'module': '', 'active': '', 'errors
         'create_modal': {}, 'header_color': "header_color15", 'sidebar_color': "sidebar_color15",
         'app_name':"iWMS"}
 
+from flask import render_template
+
+def internal_server_error(e):
+    return render_template('admin/internal_server_error.html'), 500
+
 def create_app(config_name):
     """
     Return the app at crenecreate nito ang application
@@ -35,7 +40,7 @@ def create_app(config_name):
     """
     app = Flask(__name__, instance_relative_config=False)
     app.config.from_object(app_config[config_name])
-    # app.config.from_pyfile('config.py')
+    app.register_error_handler(500, internal_server_error)
 
     db.init_app(app)
     migrate.init_app(app, db)
