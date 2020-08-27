@@ -65,7 +65,6 @@ target/
 
 migrations/
 instance/
-.env
 
 flask_venv/
 app/static/pdfs

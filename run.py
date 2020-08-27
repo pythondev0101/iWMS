@@ -1,7 +1,10 @@
 import os
 from app import create_app,db
+from dotenv import load_dotenv
+
 # import subprocess
 
+load_dotenv()
 config_name = os.getenv('FLASK_ENV')
 app = create_app(config_name)
 
