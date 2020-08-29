@@ -639,7 +639,7 @@ def backup():
         _backup,_db = backup()
         return send_from_directory(directory=_backup,filename=_db,as_attachment=True)
     except Exception as e:
-        flash(str(e),'error')
+        flash(str(e) + "|" + _backup + _db ,'error')
         return redirect(url_for('bp_iwms.logs'))
 
 
