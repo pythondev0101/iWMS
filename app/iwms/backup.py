@@ -76,7 +76,7 @@ def backup():
         dbfile.close()
     else:
         db = DB_NAME
-        dumpcmd = "mysqldump -h franciscoroyarvin.mysql.pythonanywhere-services.com -u franciscoroyarvi -p databasepassword franciscoroyarvi$db_iwms > " + pipes.quote(TODAYBACKUPPATH) + "/" + db + ".sql"
+        dumpcmd = "mysqldump -h franciscoroyarvin.mysql.pythonanywhere-services.com -u franciscoroyarvi -p databasepassword 'franciscoroyarvi$db_iwms' > " + pipes.quote(TODAYBACKUPPATH) + "/" + db + ".sql"
         # dumpcmd = "mysqldump -h " + DB_HOST + " -u " + DB_USER + " -p" + DB_USER_PASSWORD + " " + db + " > " + pipes.quote(TODAYBACKUPPATH) + "/" + db + ".sql"
         os.system(dumpcmd)
         # gzipcmd = "gzip " + pipes.quote(TODAYBACKUPPATH) + "/" + db + ".sql"
