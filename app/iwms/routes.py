@@ -631,6 +631,18 @@ def department_edit(oid):
             return redirect(url_for('bp_iwms.departments'))
 
 
+@bp_iwms.route("/backup")
+@login_required
+def backup():
+    from .backup import backup
+    try:
+        _backup,_db = backup()
+        return send_from_directory(directory=_backup,filename=_db,as_attachment=True)
+    except Exception as e:
+        flash(str(e),'error')
+        return redirect(url_for('bp_iwms.logs'))
+
+
 @bp_iwms.route('/logs')
 @login_required
 def logs():
@@ -638,8 +650,8 @@ def logs():
     fields = [CoreLog.id,User.fname,CoreLog.date,CoreLog.description,CoreLog.data]
     models = [CoreLog,User]
     context['mm-active'] = 'logs'
-    return admin_index(*models,fields=fields,template='iwms/iwms_index.html',create_modal=False,view_modal=False,kwargs={
-        'index_title':'System Logs','index_headers':['User','Date','Description','Data'],'index_message':'List of items',
+    return admin_index(*models,fields=fields,template='iwms/iwms_index.html',action="iwms/iwms_system_actions.html",create_modal=False,view_modal=False,kwargs={
+        'index_title':'System Logs and backup','index_headers':['User','Date','Description','Data'],'index_message':'List of items',
         'active':'system'})
 
 @bp_iwms.route('/warehouses')
