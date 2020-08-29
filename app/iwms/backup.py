@@ -30,7 +30,7 @@ def backup():
     load_dotenv()
     DB_HOST = os.environ.get('DATABASE_HOST')
     DB_USER = os.environ.get('DATABASE_USER')
-    DB_USER_PASSWORD = os.environ.get('PA_PASSWORD')
+    DB_USER_PASSWORD = "databasepassword"
     DB_NAME = os.environ.get('DATABASE_NAME')
     BACKUP_PATH = basedir
 
