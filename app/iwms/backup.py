@@ -28,10 +28,10 @@ def backup():
     # To take multiple databases backup, create any file like /backup/dbnames.txt and put databases names one on each line and assigned to DB_NAME variable.
 
     load_dotenv()
-    DB_HOST = os.environ.get('DATABASE_HOST')
-    DB_USER = os.environ.get('DATABASE_USER')
+    DB_HOST = "franciscoroyarvin.mysql.pythonanywhere-services.com"
+    DB_USER = "franciscoroyarvi"
     DB_USER_PASSWORD = "databasepassword"
-    DB_NAME = os.environ.get('DATABASE_NAME')
+    DB_NAME = "franciscoroyarvi$db_iwms"
     BACKUP_PATH = basedir
 
     # Getting current DateTime to create the separate backup folder like "20180817-123433".
