@@ -1,0 +1,7 @@
+{% extends 'admin/admin_actions.html' %}
+
+{% block dropdown_buttons %}
+    <a href="{{ url_for('bp_iwms.backup') }}" type="button" class="dropdown-item">
+        Backup database
+    </a>
+{% endblock %}
