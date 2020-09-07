@@ -161,6 +161,16 @@ def _makePOPDF(vendor,line_items):
 
 """----------------------APIs-------------------------"""
 
+@bp_iwms.route("/_create_label",methods=['POST'])
+def _create_label():
+    import os
+    basedir = os.path.abspath(os.path.dirname(__file__))
+    basedir = basedir + "/pallet_tag/barcodetxtfile.txt"
+    with open(basedir, 'w+') as the_file:
+        the_file.write('Hello\n')
+    res = jsonify({'result':True})
+    return res
+
 @bp_iwms.route("/_get_suppliers",methods=['POST'])
 def _get_suppliers():
     if request.method == 'POST':
@@ -2097,6 +2107,68 @@ def inventory_items():
             create_modal=True,view_modal="iwms/inventory_item/iwms_inventory_item_view_modal.html",create_url=False,kwargs={'active':'inventory',
             'models': mmodels
             })
+
+
+@bp_iwms.route('/stock_transfers')
+@login_required
+def stock_transfers():
+    fields = [InventoryItem.id,InventoryItem.default_cost,InventoryItem.default_price,StockItem.name,StockItemType.name,Category.description]
+    query1 = db.session.query(InventoryItem,StockItem,StockItemType,Category)
+    models = query1.outerjoin(StockItem, InventoryItem.stock_item_id == StockItem.id).outerjoin(StockItemType, InventoryItem.stock_item_type_id == StockItemType.id).\
+        outerjoin(Category, InventoryItem.category_id  == Category.id).\
+            with_entities(InventoryItem.id,StockItem.name,InventoryItem.default_cost,InventoryItem.default_price,StockItemType.name,Category.description).all()    
+    # Dahil hindi ko masyadong kabisado ang ORM, ito muna
+    mmodels = [list(ii) for ii in models]
+
+    for ii in mmodels:
+        _ibl = ItemBinLocations.query.with_entities(func.sum(ItemBinLocations.qty_on_hand)).filter_by(inventory_item_id=ii[0]).all()
+        ii.append(_ibl[0][0])
+        
+    context['mm-active'] = 'stock_transfer'
+    return admin_index(InventoryItem,fields=fields,form=StockTransferForm(), \
+        template='iwms/stock_transfer/iwms_stock_transfer_index.html',edit_url="bp_iwms.stock_transfer_edit",\
+            create_modal=True,view_modal="iwms/stock_transfer/iwms_stock_transfer_view_modal.html",create_url=False,kwargs={'active':'inventory',
+            'models': mmodels
+            })
+
+
+@bp_iwms.route('/stock_transfer_edit/<int:oid>',methods=['GET'])
+@login_required
+def stock_transfer_edit(oid):
+    ii = InventoryItem.query.get_or_404(oid)
+    f = InventoryItemEditForm(obj=ii)
+    if request.method == "GET":
+        # Hardcoded html ang irerender natin hindi yung builtin ng admin
+        context['active'] = 'inventory'
+        context['mm-active'] = 'inventory_item'
+        context['module'] = 'iwms'
+        context['model'] = 'inventory_item'
+        categories = Category.query.all()
+        types = StockItemType.query.all()
+
+        stocks = ItemBinLocations.query.filter_by(inventory_item_id=oid).all()
+        bin_locations = BinLocation.query.all()
+
+        return render_template('iwms/stock_transfer/iwms_stock_transfer_edit.html', oid=oid,context=context,form=f,stocks=stocks,\
+            title="Transfer stock",number=ii.stock_item.number,name=ii.stock_item.name,categories=categories,types=types,bin_locations=bin_locations)
+
+
+@bp_iwms.route('/_transfer_location',methods=['POST'])
+@login_required
+def _transfer_location():
+    if request.method == 'POST':
+        _item_bin_location_id = request.json['item_bin_location_id']
+        _new_bin_location_id = request.json['new_bin_location_id']
+        item_bin_location = ItemBinLocations.query.get_or_404(_item_bin_location_id)
+
+        item_bin_location.bin_location_id = _new_bin_location_id
+        db.session.commit()
+
+        resp = jsonify({'result':True})
+        resp.headers.add('Access-Control-Allow-Origin', '*')
+        resp.status_code = 200
+        return resp
+
 
 @bp_iwms.route('/_get_ii_view_modal_data',methods=["POST"])
 @cross_origin()

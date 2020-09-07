@@ -572,6 +572,28 @@ class InventoryItemForm(AdminIndexForm):
             [self.stock_item_type_id,self.category_id]
             ]
 
+
+class StockTransferForm(AdminIndexForm):
+    from .models import StockItemType, Category
+    index_headers = ['name','Cost','Price','Product type','Product Category','Quantity on hand']
+    index_title = 'Stock Transfers'
+
+    number = AdminField(label='Item No.')
+    name = AdminField(label='Item Name')
+    cost = AdminField(label='Default Cost')
+    price = AdminField(label='Default Price')
+    stock_item_type_id = AdminField(label='Product Type',model=StockItemType)
+    category_id = AdminField(label='Category',model=Category)
+
+
+    def create_fields(self):
+        return [
+            [self.number,self.name],
+            [self.price,self.cost],
+            [self.stock_item_type_id,self.category_id]
+            ]
+
+
 class SalesViaEditForm(AdminEditForm):
     description = AdminField(label='Description',validators=[DataRequired()])
     edit_title = 'Edit sales via'

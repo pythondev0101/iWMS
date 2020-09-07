@@ -257,18 +257,6 @@
     {% endif %}
     {% endif %}
 
-    {% if 'internal_transfer' in session['permissions'] %}
-    {% if session['permissions']['internal_transfer']['read'] %}
-    <li>
-      <a
-        href="{{ url_for('bp_iwms.putaways') }}"
-        class="{% if context['mm-active'] == 'internal_transfer' %} mm-active {% endif %}"
-      >
-        <i class="metismenu-icon"> </i>Internal Transfer
-      </a>
-    </li>
-    {% endif %}
-    {% endif %}
     
     {% if 'transfer_order' in session['permissions'] %}
     {% if session['permissions']['transfer_order']['read'] %}
@@ -309,6 +297,21 @@
     {% endif %}
     {% endif %}
 
+
+    {% if 'stock_transfer' in session['permissions'] %}
+    {% if session['permissions']['stock_transfer']['read'] %}
+    <li>
+      <a
+        href="{{ url_for('bp_iwms.stock_transfers') }}"
+        class="{% if context['mm-active'] == 'stock_transfer' %} mm-active {% endif %}"
+      >
+        <i class="metismenu-icon"> </i>Stock Transfer
+      </a>
+    </li>
+    {% endif %}
+    {% endif %}
+
+    
     {% if 'stock_issuance' in session['permissions'] %}
     {% if session['permissions']['stock_issuance']['read'] %}
     <li>

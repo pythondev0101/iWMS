@@ -10,6 +10,8 @@ from flask_login import LoginManager
 from flask_wtf.csrf import CSRFProtect
 from flask_cors import CORS
 from flask_mail import Mail
+from flask_qrcode import QRcode
+
 # LOCAL IMPORTS
 from config import app_config
 
@@ -48,6 +50,7 @@ def create_app(config_name):
     CORS(app)
     csrf.init_app(app)
     mail.init_app(app)
+    QRcode(app)
 
     login_manager.login_view = 'bp_auth.login'
     login_manager.login_message = "You must be logged in to access this page."

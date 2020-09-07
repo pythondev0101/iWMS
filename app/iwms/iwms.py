@@ -11,6 +11,6 @@ class IwmsModule(CoreModule):
     module_long_description = "Warehouse Management system"
     models = [User,Group,Department,Warehouse,  \
         Zone,BinLocation,Category,UnitOfMeasure,StockItem,StockItemType,StockReceipt,Putaway,PurchaseOrder,\
-            Term,Supplier,CoreLog,Source,ShipVia,Client,InventoryItem,SalesOrder,Picking]
+            Term,Supplier,CoreLog,Source,ShipVia,Client,InventoryItem,SalesOrder,Picking,StockTransfer]
     no_admin_models = [Role]
     version = '1.0'

@@ -539,3 +539,10 @@ class PickingItemLine(db.Model):
     uom = db.Column(db.String(255),nullable=True, default="")
     qty = db.Column(db.Integer,nullable=True,default=None)
     timestamp = db.Column(db.String(255),nullable=True)
+
+
+class StockTransfer(Base,Admin):
+    __tablename__ = 'iwms_stock_transfer'
+    __amname__ = 'stock_transfer'
+    __amdescription__ = 'Stock Transfer'
+    __amicon__ = 'pe-7s-upload'
