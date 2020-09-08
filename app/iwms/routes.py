@@ -166,8 +166,25 @@ def _create_label():
     import os
     basedir = os.path.abspath(os.path.dirname(__file__))
     basedir = basedir + "/pallet_tag/barcodetxtfile.txt"
+
+    _lot_no = request.json['lot_no']
+    _expiry_date = request.json['expiry_date']
+    _label = request.json['label']
+    _quantity = request.json['quantity']
+    _sr_number = request.json['sr_number']
+    _po_number = request.json['po_number']
+    _stock_id = request.json['stock_id']
+    _supplier = request.json['supplier']
+
+    stock_item = StockItem.query.get_or_404(_stock_id)
+    _description = stock_item.description
+    # SR ,PO ,LOTNUM,EXPIRY DAT,Description ,QTY,Supplier ,SR ,number_of_label
+
+
     with open(basedir, 'w+') as the_file:
-        the_file.write('Hello\n')
+        txt = "{},{},{},{},{},{},{},{},{}".format(_sr_number,_po_number,\
+            _lot_no,_expiry_date,_description,_quantity,_supplier,_sr_number,_label)
+        the_file.write(txt)
     res = jsonify({'result':True})
     return res
 

@@ -457,6 +457,11 @@
                 $("#net_weight").val("");
                 $("#expiry_date").val("{{form.date_received.data.strftime('%Y-%m-%d')}}");
 
+                
+                var sr_number = "{{sr_generated_number}}";
+                var po_number = $("#po_number").val();
+                var supplier = $("#supplier").val();
+
                 var label = prompt("How many label?", "1");
                 var csrf_token = "{{ csrf_token() }}";
                 $.ajaxSetup({
@@ -466,12 +471,15 @@
                         }
                     }
                 });
-    
                 $.ajax({
                     url: '/iwms/_create_label',
                     type: 'POST',
                     dataType: 'json',
-                    data: JSON.stringify({'label':label}),
+                    data: JSON.stringify({
+                        'label':label,'lot_no':lot_no,'expiry_date':expiry_date,
+                        'quantity': e_qty, 'sr_number': sr_number, 'po_number': po_number,
+                        'stock_id': stock_id,'supplier':supplier
+                    }),
                     contentType: "application/json; charset=utf-8",
                     success: function(data){
                         alert(data.result);
