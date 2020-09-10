@@ -26,7 +26,7 @@ from app.core.models import CoreLog
 from app.auth.models import User
 import pdfkit
 from flask_mail import Message
-from sqlalchemy import and_, func
+from sqlalchemy import and_, func, desc
 from flask_cors import cross_origin
 
 
@@ -197,7 +197,7 @@ def _create_label():
     res = jsonify({'result':True})
     return res
 
-@bp_iwms.route("/_get_suppliers",mawethods=['POST'])
+@bp_iwms.route("/_get_suppliers",methods=['POST'])
 def _get_suppliers():
     if request.method == 'POST':
         sup_id = request.json['sup_id']
@@ -501,13 +501,27 @@ def reports():
 
     _srs = StockReceipt.query.join(StockReceiptItemLine).order_by(StockReceipt.sr_number.desc()).all()
 
+    _item_expiration = ItemBinLocations.query.order_by(desc(ItemBinLocations.expiry_date)).all()
+
+    _item_expiration_list = []
+    if _item_expiration:
+        for item in _item_expiration:
+            status = ''
+            if item.expiry_date < datetime.now():
+                status = 'EXPIRED'
+            else:
+                status = 'GOOD'
+            _item_expiration_list.append([item,status])
+
     report_data = {
         'top_clients': _top_clients,
         'sales_clients': _sales_clients_dict,
         'pos':_pos,
         'top_items': _top_items,
-        'srs': _srs
+        'srs': _srs,
+        'item_expiration': _item_expiration_list
     }
+
     return render_template('iwms/iwms_reports.html',context=context,title="Reports",rd=report_data)
 
 

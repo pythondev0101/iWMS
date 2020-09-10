@@ -168,7 +168,7 @@
                         <div class="tab-pane fade show active" id="tabs-eg-77">
                             <div class="main-card mb-3 card">
                                 <div class="card-body">
-                                    <table id="tbl_po" class="mb-0 table">
+                                    <table class="mb-0 table">
                                         <thead>
                                         <tr>
                                             <th>SR NO.</th>
@@ -186,6 +186,56 @@
                                                 <td>{{sr.reference}}</td>
                                                 <td>{{sr.date_received.strftime('%Y-%m-%d')}}</td>
                                                 <td>{{sr.si_number}}</td>
+                                            </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-12 col-lg-12">
+            <div class="mb-3 card">
+                <div class="card-header-tab card-header-tab-animation card-header">
+                    <div class="card-header-title">
+                        <i class="header-icon lnr-apartment icon-gradient bg-love-kiss"> </i>
+                        ITEM EXPIRATION REPORT
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="tab-content">
+                        <div class="tab-pane fade show active" id="tabs-eg-77">
+                            <div class="main-card mb-3 card">
+                                <div class="card-body">
+                                    <table class="mb-0 table">
+                                        <thead>
+                                        <tr>
+                                            <th>ITEM NO.</th>
+                                            <th>ITEM NAME</th>
+                                            <th>BIN LOCATION</th>
+                                            <th>EXPIRATION DATE</th>
+                                            <th>STATUS</th>
+                                        </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for item in rd['item_expiration'] %}
+                                            <tr>
+                                                <td>{{item[0].inventory_item.stock_item.number}}</td>
+                                                <td>{{item[0].inventory_item.stock_item.name}}</td>
+                                                <td>{{item[0].bin_location.code}}</td>
+                                                <td>{{item[0].expiry_date.strftime('%Y-%m-%d')}}</td>
+                                                <td>{% if item[1] == 'EXPIRED' %}
+                                                    <div class="mb-2 mr-2 badge badge-pill badge-danger">EXPIRED</div>
+                                                    {% elif item[1] == 'GOOD' %}
+                                                    <div class="mb-2 mr-2 badge badge-pill badge-success">GOOD</div>
+                                                    {% endif %}
+                                                </td>
                                             </tr>
                                             {% endfor %}
                                         </tbody>
