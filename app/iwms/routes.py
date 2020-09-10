@@ -180,15 +180,24 @@ def _create_label():
     _description = stock_item.description
     # SR ,PO ,LOTNUM,EXPIRY DAT,Description ,QTY,Supplier ,SR ,number_of_label
 
-
     with open(basedir, 'w+') as the_file:
         txt = "{},{},{},{},{},{},{},{},{}".format(_sr_number,_po_number,\
             _lot_no,_expiry_date,_description,_quantity,_supplier,_sr_number,_label)
         the_file.write(txt)
+    
+    """ Call .bat to generate pallet tag """
+    import subprocess
+
+    filepath= r"D:\iWMS\app\iwms\pallet_tag\printPalletTag.bat"
+    p = subprocess.Popen(filepath, shell=True, stdout = subprocess.PIPE)
+
+    stdout, stderr = p.communicate()
+    print(p.returncode) # is 0 if success
+
     res = jsonify({'result':True})
     return res
 
-@bp_iwms.route("/_get_suppliers",methods=['POST'])
+@bp_iwms.route("/_get_suppliers",mawethods=['POST'])
 def _get_suppliers():
     if request.method == 'POST':
         sup_id = request.json['sup_id']
