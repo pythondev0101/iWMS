@@ -451,4 +451,17 @@
     Warehouse Floor Plan
   </a>
 </li>
+
+<li>
+  <a
+    href="{{context['cold_storage_url']}}"
+    class="{% if context['active']=='cold_storage' %} mm-active {% endif %}"
+  >
+    <i
+      class="metismenu-icon pe-7s-safe icon-gradient bg-premium-dark"
+      aria-hidden="true"
+    ></i>
+    Cold Storage Temp
+  </a>
+</li>
 {% endblock %}

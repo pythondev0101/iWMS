@@ -29,6 +29,7 @@ from flask_mail import Message
 from sqlalchemy import and_, func, desc
 from flask_cors import cross_origin
 
+context['cold_storage_url'] = current_app.config['COLD_STORAGE_URL']
 
 """----------------------INTERNAL FUNCTIONS-------------------------"""
 
@@ -298,6 +299,19 @@ def _get_po_line():
         res.status_code = 200
         return res
 
+def _check_fast_slow(item_id):
+    _item_count = InventoryItem.query.count()
+    _item_count = _item_count * 0.5
+    _top_items = db.session.query(InventoryItem.id)\
+        .join(SalesOrderLine.inventory_item).group_by(InventoryItem.id).order_by(func.count(InventoryItem.id).desc()).limit(_item_count).all()
+
+    for x in _top_items:
+        if x[0] == item_id:
+            return True
+
+    return False
+
+
 @bp_iwms.route('/_get_sr_line',methods=["POST"])
 def _get_sr_line():
     if request.method == "POST":
@@ -316,13 +330,20 @@ def _get_sr_line():
                 else:
                     _ibl = [[0]]
 
+                fast_slow = ""
+                if _check_fast_slow(line.stock_item.inventory_stock_item[0].id):
+                    fast_slow = "FAST"
+                else:
+                    fast_slow = "SLOW"
+
                 sr_line.append({
                     'id':line.stock_item.id,'name':line.stock_item.name,
                     'uom':line.uom,'number':line.stock_item.number,
                     'lot_no':line.lot_no,'expiry_date': _expiry_date,
                     'received_qty':line.received_qty,
                     'prev_stored': str(_ibl[0][0]) if not _ibl[0][0] == None else 0,
-                    'is_putaway': line.is_putaway
+                    'is_putaway': line.is_putaway,
+                    'fast_slow': fast_slow
                     })
         res = jsonify(items=sr_line)
         res.status_code = 200

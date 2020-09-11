@@ -683,6 +683,12 @@
                 contentType: "application/json; charset=utf-8",
                 success: function(data){
                     for (i=0; i < data.items.length; ++i){
+                        var fast_slow = "";
+                        if(data.items[i].fast_slow == 'FAST'){
+                            fast_slow = '<div class="mb-2 mr-2 badge badge-success">FAST</div>';
+                        }else{
+                            fast_slow = '<div class="mb-2 mr-2 badge badge-danger">SLOW</div>'
+                        }
                         var row = table_sr_line.row.add([
                         data.items[i].id,
                         data.items[i].number,
@@ -691,7 +697,8 @@
                         data.items[i].expiry_date,
                         data.items[i].uom,
                         data.items[i].received_qty,
-                        data.items[i].prev_stored
+                        data.items[i].prev_stored,
+                        fast_slow
                         ]);
                         table_sr_line.row(row).column(0).nodes().to$().addClass('myHiddenColumn');
                         if (data.items[i].is_putaway){
