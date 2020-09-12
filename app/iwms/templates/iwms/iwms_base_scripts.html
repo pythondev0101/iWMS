@@ -463,27 +463,29 @@
                 var supplier = $("#supplier").val();
 
                 var label = prompt("How many label?", "1");
-                var csrf_token = "{{ csrf_token() }}";
-                $.ajaxSetup({
-                    beforeSend: function(xhr, settings) {
-                        if (!/^(GET|HEAD|OPTIONS|TRACE)$/i.test(settings.type) && !this.crossDomain) {
-                            xhr.setRequestHeader("X-CSRFToken", csrf_token);
+                if (!(label == null)){
+                    var csrf_token = "{{ csrf_token() }}";
+                    $.ajaxSetup({
+                        beforeSend: function(xhr, settings) {
+                            if (!/^(GET|HEAD|OPTIONS|TRACE)$/i.test(settings.type) && !this.crossDomain) {
+                                xhr.setRequestHeader("X-CSRFToken", csrf_token);
+                            }
                         }
-                    }
-                });
-                $.ajax({
-                    url: '/iwms/_create_label',
-                    type: 'POST',
-                    dataType: 'json',
-                    data: JSON.stringify({
-                        'label':label,'lot_no':lot_no,'expiry_date':expiry_date,
-                        'quantity': e_qty, 'sr_number': sr_number, 'po_number': po_number,
-                        'stock_id': stock_id,'supplier':supplier
-                    }),
-                    contentType: "application/json; charset=utf-8",
-                    success: function(data){
-                    }
-                });
+                    });
+                    $.ajax({
+                        url: '/iwms/_create_label',
+                        type: 'POST',
+                        dataType: 'json',
+                        data: JSON.stringify({
+                            'label':label,'lot_no':lot_no,'expiry_date':expiry_date,
+                            'quantity': e_qty, 'sr_number': sr_number, 'po_number': po_number,
+                            'stock_id': stock_id,'supplier':supplier
+                        }),
+                        contentType: "application/json; charset=utf-8",
+                        success: function(data){
+                        }
+                    });
+                }
         });
 
         $('#btn_select_po').click(function(){
