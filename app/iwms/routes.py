@@ -550,8 +550,18 @@ def reports():
 
     _pos = PurchaseOrder.query.join(PurchaseOrderProductLine).order_by(PurchaseOrder.po_number.desc()).all()
 
+    _sos = SalesOrder.query.join(SalesOrderLine).order_by(SalesOrder.number.desc()).all()
+
     _top_items = db.session.query(StockItem.name,StockItem.description,func.count(StockItem.id))\
         .join(PurchaseOrderProductLine.stock_item).group_by(StockItem.id).order_by(func.count(StockItem.id).desc()).all()
+
+    _top_sale_items = db.session.query(StockItem.name,StockItem.description,func.count(InventoryItem.id))\
+        .join(InventoryItem, StockItem.id == InventoryItem.stock_item_id)\
+        .join(SalesOrderLine, InventoryItem.id == SalesOrderLine.inventory_item_id).group_by(InventoryItem.id).order_by(func.count(InventoryItem.id).desc()).all()
+
+    _low_sale_items = db.session.query(StockItem.name,StockItem.description,func.count(InventoryItem.id))\
+        .join(InventoryItem, StockItem.id == InventoryItem.stock_item_id)\
+        .join(SalesOrderLine, InventoryItem.id == SalesOrderLine.inventory_item_id).group_by(InventoryItem.id).order_by(func.count(InventoryItem.id)).all()
 
     _srs = StockReceipt.query.join(StockReceiptItemLine).order_by(StockReceipt.sr_number.desc()).all()
 
@@ -575,7 +585,10 @@ def reports():
         'top_clients': _top_clients,
         'sales_clients': _sales_clients_dict,
         'pos':_pos,
+        'sos': _sos,
         'top_items': _top_items,
+        'top_so_items': _top_sale_items,
+        'low_so_items': _low_sale_items,
         'srs': _srs,
         'item_expiration': _item_expiration_list
     }
@@ -2428,8 +2441,12 @@ def sales_order_edit(oid):
         _so_items = [x.item_bin_location_id for x in so.product_line]
         items = ItemBinLocations.query.filter(ItemBinLocations.qty_on_hand>0, ~ItemBinLocations.id.in_(_so_items)).all()
         f.client_name.data = so.client.name if not so.client == None else ''
-        f.term_id.data = so.client.term.description if not so.client.term == None else ''
-        f.ship_via_id.data = so.client.ship_via.description if not so.client.ship_via == None else ''
+        if so.client is None:
+            f.term_id.data = ''
+            f.ship_via_id.data = ''
+        else:
+            f.term_id.data = so.client.term.description if not so.client.term == None else ''
+            f.ship_via_id.data = so.client.ship_via.description if not so.client.ship_via == None else ''
         context['active'] = 'sales'
         context['mm-active'] = 'sales_order'
         context['module'] = 'iwms'
@@ -2504,8 +2521,12 @@ def sales_order_view(oid):
         _so_items = [x.item_bin_location_id for x in so.product_line]
         items = ItemBinLocations.query.filter(ItemBinLocations.qty_on_hand>0, ~ItemBinLocations.id.in_(_so_items)).all()
         f.client_name.data = so.client.name if not so.client == None else ''
-        f.term_id.data = so.client.term.description if not so.client.term == None else ''
-        f.ship_via_id.data = so.client.ship_via.description if not so.client.ship_via == None else ''
+        if so.client is None:
+            f.term_id.data = ''
+            f.ship_via_id.data = ''
+        else:
+            f.term_id.data = so.client.term.description if not so.client.term == None else ''
+            f.ship_via_id.data = so.client.ship_via.description if not so.client.ship_via == None else ''
         context['active'] = 'sales'
         context['mm-active'] = 'sales_order'
         context['module'] = 'iwms'

@@ -69,6 +69,154 @@
             </div>
         </div>
     </div>
+
+    <div class="row">
+        <div class="col-md-12 col-lg-12">
+            <div class="mb-3 card">
+                <div class="card-header-tab card-header-tab-animation card-header">
+                    <div class="card-header-title">
+                        <i class="header-icon lnr-apartment icon-gradient bg-love-kiss"> </i>
+                        Sales Order Report
+                    </div>
+                    <ul class="nav">
+                        <li class="nav-item"><a data-toggle="tab" href="#tabs-eg-77" class="nav-link show active">Top</a></li>
+                        <li class="nav-item"><a data-toggle="tab" href="#tabs-eg-78" class="nav-link">Low</a></li>
+                    </ul>
+                </div>
+                <div class="card-body">
+                    <div class="tab-content">
+                        <div class="tab-pane fade show active" id="tabs-eg-77">
+                            <div class="main-card mb-3 card">
+                                <div class="card-body">
+                                    <table id="tbl_so_1" class="mb-0 table">
+                                        <thead>
+                                        <tr>
+                                            <th>SO NO.</th>
+                                            <th>DATE</th>
+                                            <th>CUSTOMER</th>
+                                            <th>DESCRIPTION</th>
+                                            <th>QTY</th>
+                                            <th>PRICE</th>
+                                            <th>STATUS</th>
+                                        </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for so in rd['sos'] %}
+                                            <tr>
+                                                <td>{{so.number}}</td>
+                                                <td>{{so.ordered_date.strftime('%Y-%m-%d')}}</td>
+                                                <td>{{so.client.name}}</td>
+                                                <td></td><td></td><td></td>
+                                                <td>{{so.status}}</td>
+                                            </tr>
+                                                {% for product in so.product_line %}
+                                                <tr>
+                                                    <td></td><td></td><td></td>
+                                                    <td>{{product.inventory_item.stock_item.name}}</td>
+                                                    <td>{{product.issued_qty}}</td>
+                                                    <td>{{product.unit_price}}</td>
+                                                    <td></td>
+                                                </tr>
+                                                {% endfor %}
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                            <h6 class="text-muted text-uppercase font-size-md opacity-5 font-weight-normal">Top Items</h6>
+                            <div class="scroll-area-sm">
+                                <div class="scrollbar-container ps ps--active-y">
+                                    <ul class="rm-list-borders rm-list-borders-scroll list-group list-group-flush">
+                                        {% for item in rd['top_so_items'] %}
+                                        <li class="list-group-item">
+                                            <div class="widget-content p-0">
+                                                <div class="widget-content-wrapper">
+                                                    <div class="widget-content-left">
+                                                        <div class="widget-heading">{{item[1]}}</div>
+                                                        <div class="widget-subheading">{{item[0]}}</div>
+                                                    </div>
+                                                    <div class="widget-content-right">
+                                                        <div class="font-size-xlg text-muted">
+                                                            <small class="opacity-5 pr-1">Sales Order:</small>
+                                                            <span>{{item[2]}}</span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </li>
+                                        {% endfor %}
+                                    </ul>
+                                <div class="ps__rail-x" style="left: 0px; bottom: 0px;"><div class="ps__thumb-x" tabindex="0" style="left: 0px; width: 0px;"></div></div><div class="ps__rail-y" style="top: 0px; height: 200px; right: 0px;"><div class="ps__thumb-y" tabindex="0" style="top: 0px; height: 139px;"></div></div></div>
+                            </div>
+                        </div>
+                        <div class="tab-pane fade show" id="tabs-eg-78">
+                            <div class="main-card mb-3 card">
+                                <div class="card-body">
+                                    <table id="tbl_so_2" class="mb-0 table">
+                                        <thead>
+                                        <tr>
+                                            <th>SO NO.</th>
+                                            <th>DATE</th>
+                                            <th>CUSTOMER</th>
+                                            <th>DESCRIPTION</th>
+                                            <th>QTY</th>
+                                            <th>PRICE</th>
+                                            <th>STATUS</th>
+                                        </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for so in rd['sos'] %}
+                                            <tr>
+                                                <td>{{so.number}}</td>
+                                                <td>{{so.ordered_date.strftime('%Y-%m-%d')}}</td>
+                                                <td>{{so.client.name}}</td>
+                                                <td></td><td></td><td></td>
+                                                <td>{{so.status}}</td>
+                                            </tr>
+                                                {% for product in so.product_line %}
+                                                <tr>
+                                                    <td></td><td></td><td></td>
+                                                    <td>{{product.inventory_item.stock_item.name}}</td>
+                                                    <td>{{product.issued_qty}}</td>
+                                                    <td>{{product.unit_price}}</td>
+                                                </tr>
+                                                {% endfor %}
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                            <h6 class="text-muted text-uppercase font-size-md opacity-5 font-weight-normal">Low Items</h6>
+                            <div class="scroll-area-sm">
+                                <div class="scrollbar-container ps ps--active-y">
+                                    <ul class="rm-list-borders rm-list-borders-scroll list-group list-group-flush">
+                                        {% for item in rd['low_so_items'] %}
+                                        <li class="list-group-item">
+                                            <div class="widget-content p-0">
+                                                <div class="widget-content-wrapper">
+                                                    <div class="widget-content-left">
+                                                        <div class="widget-heading">{{item[1]}}</div>
+                                                        <div class="widget-subheading">{{item[0]}}</div>
+                                                    </div>
+                                                    <div class="widget-content-right">
+                                                        <div class="font-size-xlg text-muted">
+                                                            <small class="opacity-5 pr-1">Sales Order:</small>
+                                                            <span>{{item[2]}}</span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </li>
+                                        {% endfor %}
+                                    </ul>
+                                <div class="ps__rail-x" style="left: 0px; bottom: 0px;"><div class="ps__thumb-x" tabindex="0" style="left: 0px; width: 0px;"></div></div><div class="ps__rail-y" style="top: 0px; height: 200px; right: 0px;"><div class="ps__thumb-y" tabindex="0" style="top: 0px; height: 139px;"></div></div></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
     
     <div class="row">
         <div class="col-md-12 col-lg-12">
