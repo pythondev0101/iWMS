@@ -532,6 +532,10 @@ def reports():
                 status = 'EXPIRED'
             else:
                 status = 'GOOD'
+                
+                if (item.expiry_date - datetime.now()).days < 30:
+                    status = "NEARLY EXPIRED"
+
             _item_expiration_list.append([item,status])
 
     report_data = {
