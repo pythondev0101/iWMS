@@ -587,7 +587,36 @@
             if (!($("#item_name").val() == '')){
                 $('#btn_add_sr_line').prop('disabled', false);
             }
-            
+
+            var fast_slow = $("#tbl_sr_line_modal tr.selected td:nth-child(9)").find('div').html();
+            var warehouse = $("#warehouse").val();
+            var csrf_token = "{{ csrf_token() }}";
+            $.ajaxSetup({
+                beforeSend: function(xhr, settings) {
+                    if (!/^(GET|HEAD|OPTIONS|TRACE)$/i.test(settings.type) && !this.crossDomain) {
+                        xhr.setRequestHeader("X-CSRFToken", csrf_token);
+                    }
+                }
+            });
+            $.ajax({
+                url: '/iwms/_get_bin_locations',
+                type: 'POST',
+                dataType: 'json',
+                data: JSON.stringify({'fast_slow':fast_slow,'warehouse':warehouse}),
+                contentType: "application/json; charset=utf-8",
+                success: function(data){
+                    if(data.bins.length>0){
+                        $("#bin_location").empty();
+                        var option = $('<option></option>').attr("value", "").text("Choose...");
+                        $("#bin_location").append(option);
+                        var i = 0;
+                        for (i; i < data.bins.length; ++i){
+                            var option = $('<option></option>').attr("value", data.bins[i].id).text(data.bins[i].code);
+                            $("#bin_location").append(option);
+                        }
+                    }
+                }
+            });
         });
 
         $("#btn_add_sr_line").click(function(){

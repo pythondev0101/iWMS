@@ -75,7 +75,7 @@ def install():
     from app import db
     from .models import CoreCity,CoreProvince
     from app.auth.models import Role, RolePermission
-    from app.iwms.models import UnitOfMeasure, Source
+    from app.iwms.models import UnitOfMeasure, Source, Warehouse, BinLocation
     from app.auth.models import User
 
     print("Installing...")
@@ -83,9 +83,11 @@ def install():
     if platform.system() == "Windows":
         provinces_path = basedir + "\\app" + "\\core" + "\\csv" + "\\provinces.csv"
         cities_path = basedir + "\\app" + "\\core" + "\\csv" + "\\cities.csv"
+        bin_locations_path = basedir + "\\app" + "\\core" + "\\csv" + "\\iwms_bin_location.csv"
     elif platform.system() == "Linux":
         provinces_path = basedir + "/app/core/csv/provinces.csv"
         cities_path = basedir + "/app/core/csv/cities.csv"
+        bin_locations_path = basedir + "/app/core/csv/iwms_bin_location.csv"
     else:
         raise Exception
 
@@ -146,7 +148,37 @@ def install():
         s.created_by = "System"
         db.session.add(s)
         db.session.commit()
-        print("Sources inserted!")        
+        print("Sources inserted!")
+    
+    if not Warehouse.query.count() > 0:
+        print("Inserting warehouses...")
+        fg = Warehouse()
+        fg.code,fg.name, fg.main_warehouse, fg.created_by = 'FG','FINISH GOODS', 1,'System'
+        cs = Warehouse()
+        cs.code, cs.name, cs.main_warehouse, cs.created_by = 'CS','COLD STORAGE', 1,'System'
+        db.session.add(fg)
+        db.session.add(cs)
+        db.session.commit()
+
+    print("Inserting bin locations to database...")
+    if not BinLocation.query.count() > 0:
+        with open(bin_locations_path) as f:
+            csv_file = csv.reader(f)
+            for id,row in enumerate(csv_file):
+                if not id == 0:
+                    bl = BinLocation()
+                    bl.code = row[0]
+                    bl.description = row[1]
+                    bl.warehouse_id = row[2]
+                    bl.zone_id = None
+                    bl.x = row[4]
+                    bl.y = row[5]
+                    bl.created_by = "System"
+                    db.session.add(bl)
+            db.session.commit()
+        print("Bin locations done!")
+    else:
+        print("Bin locations exists!")
 
     if not User.query.count() > 0:
         print("Creating a SuperUser/owner...")

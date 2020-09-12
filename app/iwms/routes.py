@@ -311,6 +311,39 @@ def _check_fast_slow(item_id):
 
     return False
 
+@bp_iwms.route('/_get_bin_locations',methods=['POST'])
+def _get_bin_locations():
+    if request.method == 'POST':
+        _fast_slow = request.json['fast_slow']
+        _warehouse_name = request.json['warehouse']
+        _bin_list = []
+        _warehouse = Warehouse.query.filter_by(name=_warehouse_name).first()
+        _cold_storage = Warehouse.query.filter_by(name="COLD STORAGE").first()
+        if _fast_slow == 'FAST':
+            
+            if _warehouse_name == 'COLD STORAGE':
+                _bins = BinLocation.query.filter_by(warehouse_id=_warehouse.id).order_by(BinLocation.code).limit(50).all()
+            else:
+                _bins = BinLocation.query.filter(BinLocation.warehouse_id != _cold_storage.id).order_by(BinLocation.code).limit(50).all()
+
+            for x in _bins:
+                _bin_list.append({
+                    'id': x.id,
+                    'code': x.code,
+                })
+        else:
+            if _warehouse_name == 'COLD STORAGE':
+                _bins = BinLocation.query.filter_by(warehouse_id=_warehouse.id).order_by(BinLocation.code.desc()).limit(50).all()
+            else:
+                _bins = BinLocation.query.filter(BinLocation.warehouse_id != _cold_storage.id).order_by(BinLocation.code.desc()).limit(50).all()
+            
+            for x in _bins:
+                _bin_list.append({
+                    'id': x.id,
+                    'code': x.code,
+                })
+        return jsonify(bins=_bin_list)
+
 
 @bp_iwms.route('/_get_sr_line',methods=["POST"])
 def _get_sr_line():
