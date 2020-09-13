@@ -343,7 +343,7 @@ def _get_bin_locations():
                     'code': x.code,
                 })
         else:
-            _bins = BinLocation.query.filter(BinLocation.warehouse_id != _cold_storage.id).order_by(BinLocation.code.desc()).limit(50).all()
+            _bins = BinLocation.query.filter(BinLocation.warehouse_id != _cold_storage.id).order_by(BinLocation.code).all()
             for x in _bins:
                 _bin_list.append({
                     'id': x.id,
