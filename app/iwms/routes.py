@@ -349,7 +349,7 @@ def _get_bin_locations():
                     'id': x.id,
                     'code': x.code,
                 })
-                
+
         return jsonify(bins=_bin_list)
 
 
@@ -372,7 +372,7 @@ def _get_sr_line():
                     _ibl = [[0]]
 
                 fast_slow = ""
-                if line.stock_item.inventory_stock_item is not None:
+                if not line.stock_item.inventory_stock_item == []:
                     if _check_fast_slow(line.stock_item.inventory_stock_item[0].id):
                         fast_slow = "FAST"
                     else:
