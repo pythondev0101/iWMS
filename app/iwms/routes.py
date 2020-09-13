@@ -331,7 +331,7 @@ def _get_bin_locations():
                     'id': x.id,
                     'code': x.code,
                 })
-        else:
+        elif _fast_slow == 'SLOW':
             if _warehouse_name == 'COLD STORAGE':
                 _bins = BinLocation.query.filter_by(warehouse_id=_warehouse.id).order_by(BinLocation.code.desc()).limit(50).all()
             else:
@@ -342,6 +342,14 @@ def _get_bin_locations():
                     'id': x.id,
                     'code': x.code,
                 })
+        else:
+            _bins = BinLocation.query.filter(BinLocation.warehouse_id != _cold_storage.id).order_by(BinLocation.code.desc()).limit(50).all()
+            for x in _bins:
+                _bin_list.append({
+                    'id': x.id,
+                    'code': x.code,
+                })
+                
         return jsonify(bins=_bin_list)
 
 
@@ -364,10 +372,11 @@ def _get_sr_line():
                     _ibl = [[0]]
 
                 fast_slow = ""
-                if _check_fast_slow(line.stock_item.inventory_stock_item[0].id):
-                    fast_slow = "FAST"
-                else:
-                    fast_slow = "SLOW"
+                if line.stock_item.inventory_stock_item is not None:
+                    if _check_fast_slow(line.stock_item.inventory_stock_item[0].id):
+                        fast_slow = "FAST"
+                    else:
+                        fast_slow = "SLOW"
 
                 sr_line.append({
                     'id':line.stock_item.id,'name':line.stock_item.name,

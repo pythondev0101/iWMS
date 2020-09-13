@@ -718,8 +718,10 @@
                         var fast_slow = "";
                         if(data.items[i].fast_slow == 'FAST'){
                             fast_slow = '<div class="mb-2 mr-2 badge badge-success">FAST</div>';
-                        }else{
+                        }else if(data.items[i].fast_slow == 'SLOW'){
                             fast_slow = '<div class="mb-2 mr-2 badge badge-danger">SLOW</div>'
+                        }else{
+                            fast_slow = '<div></div>'
                         }
                         var row = table_sr_line.row.add([
                         data.items[i].id,
