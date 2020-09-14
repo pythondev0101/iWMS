@@ -409,10 +409,10 @@
     $(document).ready(function(){
 
         var color = Chart.helpers.color;
-        var colors = [window.chartColors.red,window.chartColors.blue,window.chartColors.yellow,window.chartColors.green,
-        window.chartColors.orange,window.chartColors.violet,window.chartColors.gray,window.chartColors.pink,
-        window.chartColors.maroon,window.chartColors.brown,window.chartColors.indigo, window.chartColors.aqua,
-        window.chartColors.coral,window.chartColors.teal, window.chartColors.mustard, window.chartColors.navy
+        var colors = ['rgba(255, 99, 132, 0.5)',"rgb(191, 63, 63,0.5)","rgb(63, 127, 191,0.5)",
+        "rgb(189, 81, 135,0.5)","rgb(81, 189, 135,0.5)","rgb(81, 189, 189,0.5)","rgb(189, 135, 81,0.5)",
+        "rgb(146, 185, 39,0.5)","rgb(78, 39, 185,0.5)","rgb(185, 39, 146,0.5)","rgb(185, 151, 39,0.5)","rgb(33, 205, 3,0.5)",
+        'rgb(183, 31, 53,0.5)',"rgb(13, 206, 80,0.5)","rgb(85, 150, 74,0.5)","rgb(150, 74, 123,0.5)"
         ];
         var dataset = [];
         var values = {{ rd['sales_clients'] | tojson }};
@@ -420,7 +420,7 @@
         for (ctr; ctr < values.length; ctr++){
             dataset[ctr] = {
 				label: values[ctr].name,
-				backgroundColor: color(colors[ctr]).alpha(0.5).rgbString(),
+				backgroundColor: colors[ctr],
                 data: [values[ctr].sales]
 			}
         }
