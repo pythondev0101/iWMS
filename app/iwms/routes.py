@@ -499,7 +499,7 @@ def dashboard():
     }
 
     _pwy_data = {
-        'to_be_stored_qty': str(_qty_to_be_received),
+        'to_be_stored_qty': str(_qty_to_be_received[0][0]),
         'stored': str(_qty_on_hand[0][0]),
     }
 
