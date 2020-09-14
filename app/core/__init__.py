@@ -76,7 +76,7 @@ def install():
     from .models import CoreCity,CoreProvince
     from app.auth.models import Role, RolePermission
     from app.iwms.models import UnitOfMeasure, Source, Warehouse, BinLocation, Supplier,\
-        StockItemType, Category, Zone
+        StockItemType, Category, Zone, StockItem
     from app.auth.models import User
 
     print("Installing...")
@@ -90,6 +90,7 @@ def install():
         uom_path = basedir + "\\app" + "\\core" + "\\csv" + "\\iwms_unit_of_measure.csv"
         categories_path = basedir + "\\app" + "\\core" + "\\csv" + "\\iwms_category.csv"
         zones_path = basedir + "\\app" + "\\core" + "\\csv" + "\\iwms_zone.csv"
+        stock_items_path = basedir + "\\app" + "\\core" + "\\csv" + "\\iwms_stock_item.csv"
 
     elif platform.system() == "Linux":
         provinces_path = basedir + "/app/core/csv/provinces.csv"
@@ -100,6 +101,7 @@ def install():
         uom_path = basedir + "/app/core/csv/iwms_unit_of_measure.csv"
         categories_path = basedir + "/app/core/csv/iwms_category.csv"
         zones_path = basedir + "/app/core/csv/iwms_zone.csv"
+        stock_items_path = basedir + "/app/core/csv/iwms_stock_item.csv"
 
     else:
         raise Exception
@@ -263,6 +265,28 @@ def install():
     else:
         print("Categories exists!")
 
+    print("Inserting stock items...")
+    if not StockItem.query.count() > 0:
+        with open(stock_items_path) as f:
+            csv_file = csv.reader(f)
+            for id,row in enumerate(csv_file):
+                if not id == 0:
+                    si = StockItem()
+                    si.number, si.stock_item_type_id = row[0], row[1]
+                    si.category_id, si.brand = row[2], row[3]
+                    si.name, si.description = row[4], row[5]
+                    si.packaging, si.description_plu = row[6], row[7]
+                    si.barcode, si.qty_plu = row[8], row[9]
+                    si.length, si.width, si.height = row[10], row[11], row[12]
+                    si.unit_id, si.default_cost, si.default_price = row[13], row[14], row[15]
+                    si.weight, si.cbm = row[16], row[17]
+                    si.has_serial, si.monitor_expiration = 0, 0
+                    si.created_by = "System"
+                    db.session.add(si)
+            db.session.commit()
+        print("Stock items done!")
+    else:
+        print("Stock items exists!")
 
     if not User.query.count() > 0:
         print("Creating a SuperUser/owner...")
