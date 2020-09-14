@@ -2421,7 +2421,8 @@ def sales_order_create():
                         uom = UnitOfMeasure.query.get(r.get("uom_{}".format(product_id)))
                         line = SalesOrderLine(inventory_item=product,item_bin_location=item_bin_location,\
                             qty=qty,uom=uom,unit_price=unit_price,issued_qty=0)
-                        _total_price = _total_price + float(line.unit_price)
+                        _subtotal = int(qty) * float(line.unit_price)
+                        _total_price += _subtotal
                         so.product_line.append(line)
 
                 so.total_price = _total_price
