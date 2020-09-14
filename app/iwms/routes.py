@@ -2280,9 +2280,15 @@ def _transfer_location():
         _item_bin_location_id = request.json['item_bin_location_id']
         _new_bin_location_id = request.json['new_bin_location_id']
         item_bin_location = ItemBinLocations.query.get_or_404(_item_bin_location_id)
+        _old_location = item_bin_location.bin_location.code
 
         item_bin_location.bin_location_id = _new_bin_location_id
         db.session.commit()
+
+        msg = Message('Transfer Location', sender = current_app.config['MAIL_USERNAME'], recipients = ["iwarehouseonline2020@gmail.com"])
+        msg.body = "Your stock items - ({}) was transferred to better bin location from {} to {}."\
+            .format(item_bin_location.inventory_item.stock_item.name,_old_location,item_bin_location.bin_location.code)
+        mail.send(msg)
 
         resp = jsonify({'result':True})
         resp.headers.add('Access-Control-Allow-Origin', '*')
