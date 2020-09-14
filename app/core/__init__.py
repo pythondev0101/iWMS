@@ -343,20 +343,20 @@ def install():
     else:
         print("Clients exists!")
 
-    print("Inserting item uom lines...")
-    if not StockItemUomLine.query.count() > 0:
-        with open(item_uom_line_path) as f:
-            csv_file = csv.reader(f)
-            for id,row in enumerate(csv_file):
-                if not id == 0:
-                    s = StockItemUomLine()
-                    s.stock_item_id, s.uom_id = row[0], row[1]
-                    s.created_by = "System"
-                    db.session.add(s)
-            db.session.commit()
-        print("Item uom lines done!")
-    else:
-        print("Item uom lines exists!")
+    # print("Inserting item uom lines...")
+    # if not StockItemUomLine.query.count() > 0:
+    #     with open(item_uom_line_path) as f:
+    #         csv_file = csv.reader(f)
+    #         for id,row in enumerate(csv_file):
+    #             if not id == 0:
+    #                 s = StockItemUomLine()
+    #                 s.stock_item_id, s.uom_id = row[0], row[1]
+    #                 s.created_by = "System"
+    #                 db.session.add(s)
+    #         db.session.commit()
+    #     print("Item uom lines done!")
+    # else:
+    #     print("Item uom lines exists!")
 
     if not User.query.count() > 0:
         print("Creating a SuperUser/owner...")
