@@ -95,7 +95,7 @@ def install():
         ship_vias_path = basedir + "\\app" + "\\core" + "\\csv" + "\\iwms_ship_via.csv"
         clients_path = basedir + "\\app" + "\\core" + "\\csv" + "\\iwms_client.csv"
         item_uom_line_path = basedir + "\\app" + "\\core" + "\\csv" + "\\iwms_stock_item_uom_line.csv"
-        suppliers_path = basedir + "\\app" + "\\core" + "\\csv" + "\\iwms_suppliers.csv"
+        item_suppliers_path = basedir + "\\app" + "\\core" + "\\csv" + "\\iwms_suppliers.csv"
 
     elif platform.system() == "Linux":
         provinces_path = basedir + "/app/core/csv/provinces.csv"
@@ -111,7 +111,7 @@ def install():
         ship_vias_path = basedir + "/app/core/csv/iwms_ship_via.csv"
         clients_path = basedir + "/app/core/csv/iwms_client.csv"
         item_uom_line_path = basedir + "/app/core/csv/iwms_stock_item_uom_line.csv"
-        suppliers_path = basedir + "/app/core/csv/iwms_suppliers.csv"
+        item_suppliers_path = basedir + "/app/core/csv/iwms_suppliers.csv"
     else:
         raise Exception
 
