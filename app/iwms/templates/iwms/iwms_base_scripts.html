@@ -813,7 +813,7 @@
                                 }
                             }
                         });
-
+                    var _trim_item_available_qty = $.trim(item_available_qty);
                     $('#tbl_so_line tr:last').after(
                         `<tr>
                             <td style="display:none;"><input name="products[]" type="hidden" value="${item_id}"></td>
@@ -823,7 +823,7 @@
                             <td class='text-center'>${item_no}</td>
                             <td class='text-center'>${item_name}</td>
                             <td class='text-center'>${item_uom}</td>
-                            <td class='text-center'><input class="input_qty" name="qty_${item_id}" type="number" style="width:100px" value="0"></td>
+                            <td class='text-center'><input class="input_qty" max="${_trim_item_available_qty}" name="qty_${item_id}" type="number" style="width:100px" value="0"></td>
                             <td class='text-center'>${item_available_qty}</td>
                             <td class='text-center'><input class="input_price" name="price_${item_id}" type="number" value="${item_price}" style="width:100px"></td>
                             <td class='text-center'><input class="input_subtotal" name="subtotal_${item_id}" type="number" value="0.00" style="width:100px" readonly></td>
@@ -922,7 +922,10 @@
             $("#bin_location").val($("#tbl_so_line_modal tr.selected td:nth-child(4)").html());
             if (!($("#item_name").val() == '')){
                 $('#btn_add_so_line').prop('disabled', false);
-            }
+            }  
+            
+            var _unit_qty = $("#tbl_so_line_modal tr.selected td:nth-child(8)").html();
+            $("#quantity").attr('max',_unit_qty);
         });
 
 

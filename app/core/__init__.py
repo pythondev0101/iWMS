@@ -76,7 +76,7 @@ def install():
     from .models import CoreCity,CoreProvince
     from app.auth.models import Role, RolePermission
     from app.iwms.models import UnitOfMeasure, Source, Warehouse, BinLocation, Supplier,\
-        StockItemType, Category, Zone, StockItem
+        StockItemType, Category, Zone, StockItem, Client, Term, ShipVia, StockItemUomLine
     from app.auth.models import User
 
     print("Installing...")
@@ -91,6 +91,11 @@ def install():
         categories_path = basedir + "\\app" + "\\core" + "\\csv" + "\\iwms_category.csv"
         zones_path = basedir + "\\app" + "\\core" + "\\csv" + "\\iwms_zone.csv"
         stock_items_path = basedir + "\\app" + "\\core" + "\\csv" + "\\iwms_stock_item.csv"
+        terms_path = basedir + "\\app" + "\\core" + "\\csv" + "\\iwms_term.csv"
+        ship_vias_path = basedir + "\\app" + "\\core" + "\\csv" + "\\iwms_ship_via.csv"
+        clients_path = basedir + "\\app" + "\\core" + "\\csv" + "\\iwms_client.csv"
+        item_uom_line_path = basedir + "\\app" + "\\core" + "\\csv" + "\\iwms_stock_item_uom_line.csv"
+        suppliers_path = basedir + "\\app" + "\\core" + "\\csv" + "\\iwms_suppliers.csv"
 
     elif platform.system() == "Linux":
         provinces_path = basedir + "/app/core/csv/provinces.csv"
@@ -102,7 +107,11 @@ def install():
         categories_path = basedir + "/app/core/csv/iwms_category.csv"
         zones_path = basedir + "/app/core/csv/iwms_zone.csv"
         stock_items_path = basedir + "/app/core/csv/iwms_stock_item.csv"
-
+        terms_path = basedir + "/app/core/csv/iwms_term.csv"
+        ship_vias_path = basedir + "/app/core/csv/iwms_ship_via.csv"
+        clients_path = basedir + "/app/core/csv/iwms_client.csv"
+        item_uom_line_path = basedir + "/app/core/csv/iwms_stock_item_uom_line.csv"
+        suppliers_path = basedir + "/app/core/csv/iwms_suppliers.csv"
     else:
         raise Exception
 
@@ -287,6 +296,67 @@ def install():
         print("Stock items done!")
     else:
         print("Stock items exists!")
+
+    print("Inserting terms...")
+    if not Term.query.count() > 0:
+        with open(terms_path) as f:
+            csv_file = csv.reader(f)
+            for id,row in enumerate(csv_file):
+                if not id == 0:
+                    t = Term()
+                    t.code, t.description, t.days = row[0], row[1], row[2]
+                    t.created_by = "System"
+                    db.session.add(t)
+            db.session.commit()
+        print("Terms done!")
+    else:
+        print("Terms exists!")
+    
+    print("Inserting ship vias...")
+    if not ShipVia.query.count() > 0:
+        with open(ship_vias_path) as f:
+            csv_file = csv.reader(f)
+            for id,row in enumerate(csv_file):
+                if not id == 0:
+                    sv = ShipVia()
+                    sv.description = row[0]
+                    sv.created_by = "System"
+                    db.session.add(sv)
+            db.session.commit()
+        print("Ship vias done!")
+    else:
+        print("Ship vias exists!")
+
+    print("Inserting clients...")
+    if not Client.query.count() > 0:
+        with open(clients_path) as f:
+            csv_file = csv.reader(f)
+            for id,row in enumerate(csv_file):
+                if not id == 0:
+                    c = Client()
+                    c.code, c.name = row[0], row[1]
+                    c.term_id, c.ship_via_id = row[2], row[3]
+                    c.created_by = "System"
+                    db.session.add(c)
+            db.session.commit()
+        print("Clients done!")
+    else:
+        print("Clients exists!")
+
+    print("Inserting item uom lines...")
+    if not StockItemUomLine.query.count() > 0:
+        with open(item_uom_line_path) as f:
+            csv_file = csv.reader(f)
+            for id,row in enumerate(csv_file):
+                if not id == 0:
+                    s = StockItemUomLine()
+                    s.stock_item_id, s.uom_id = row[0], row[1]
+                    s.created_by = "System"
+                    db.session.add(s)
+            db.session.commit()
+        print("Item uom lines done!")
+    else:
+        print("Item uom lines exists!")
 
     if not User.query.count() > 0:
         print("Creating a SuperUser/owner...")
