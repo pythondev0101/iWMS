@@ -23,6 +23,7 @@
                                             <th>UNIT</th>
                                             <th>RCVD QTY</th>
                                             <th>PREV STORED</th>
+                                            <th>FAST/SLOW</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -44,12 +45,12 @@
                                         <div class="position-relative form-group" style="margin-bottom: 0px;">
                                             <label for="bin_location" class="">Bin Location</label>
                                             <select name="bin_location" id="bin_location" class="form-control" style="height: 20%;" required>
-                                                <option value="">Choose...</option>
+                                                <!-- <option value="">Choose...</option>
                                                 {% for bin in bin_locations %}
                                                 <option value="{{ bin.id }}">
                                                     {{bin.code}}
                                                 </option>
-                                                {% endfor %}
+                                                {% endfor %} -->
                                             </select>
                                         </div>
                                     </div>

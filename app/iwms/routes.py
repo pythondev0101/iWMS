@@ -26,9 +26,10 @@ from app.core.models import CoreLog
 from app.auth.models import User
 import pdfkit
 from flask_mail import Message
-from sqlalchemy import and_, func
+from sqlalchemy import and_, func, desc
 from flask_cors import cross_origin
 
+context['cold_storage_url'] = current_app.config['COLD_STORAGE_URL']
 
 """----------------------INTERNAL FUNCTIONS-------------------------"""
 
@@ -161,6 +162,42 @@ def _makePOPDF(vendor,line_items):
 
 """----------------------APIs-------------------------"""
 
+@bp_iwms.route("/_create_label",methods=['POST'])
+def _create_label():
+    import os
+    basedir = os.path.abspath(os.path.dirname(__file__))
+    basedir = basedir + "/pallet_tag/barcodetxtfile.txt"
+
+    _lot_no = request.json['lot_no']
+    _expiry_date = request.json['expiry_date']
+    _label = request.json['label']
+    _quantity = request.json['quantity']
+    _sr_number = request.json['sr_number']
+    _po_number = request.json['po_number']
+    _stock_id = request.json['stock_id']
+    _supplier = request.json['supplier']
+
+    stock_item = StockItem.query.get_or_404(_stock_id)
+    _description = stock_item.description
+    # SR ,PO ,LOTNUM,EXPIRY DAT,Description ,QTY,Supplier ,SR ,number_of_label
+
+    with open(basedir, 'w+') as the_file:
+        txt = "{},{},{},{},{},{},{},{},{}".format(_sr_number,_po_number,\
+            _lot_no,_expiry_date,_description,_quantity,_supplier,_sr_number,_label)
+        the_file.write(txt)
+    
+    """ Call .bat to generate pallet tag """
+    import subprocess
+
+    filepath= r"D:\iWMS\app\iwms\pallet_tag\printPalletTag.bat"
+    p = subprocess.Popen(filepath, shell=True, stdout = subprocess.PIPE)
+
+    stdout, stderr = p.communicate()
+    print(p.returncode) # is 0 if success
+
+    res = jsonify({'result':True})
+    return res
+
 @bp_iwms.route("/_get_suppliers",methods=['POST'])
 def _get_suppliers():
     if request.method == 'POST':
@@ -262,6 +299,60 @@ def _get_po_line():
         res.status_code = 200
         return res
 
+def _check_fast_slow(item_id):
+    _item_count = InventoryItem.query.count()
+    _item_count = _item_count * 0.5
+    _top_items = db.session.query(InventoryItem.id)\
+        .join(SalesOrderLine.inventory_item).group_by(InventoryItem.id).order_by(func.count(InventoryItem.id).desc()).limit(_item_count).all()
+
+    for x in _top_items:
+        if x[0] == item_id:
+            return True
+
+    return False
+
+@bp_iwms.route('/_get_bin_locations',methods=['POST'])
+def _get_bin_locations():
+    if request.method == 'POST':
+        _fast_slow = request.json['fast_slow']
+        _warehouse_name = request.json['warehouse']
+        _bin_list = []
+        _warehouse = Warehouse.query.filter_by(name=_warehouse_name).first()
+        _cold_storage = Warehouse.query.filter_by(name="COLD STORAGE").first()
+        if _fast_slow == 'FAST':
+            
+            if _warehouse_name == 'COLD STORAGE':
+                _bins = BinLocation.query.filter_by(warehouse_id=_warehouse.id).order_by(BinLocation.code).limit(50).all()
+            else:
+                _bins = BinLocation.query.filter(BinLocation.warehouse_id != _cold_storage.id).order_by(BinLocation.code).limit(50).all()
+
+            for x in _bins:
+                _bin_list.append({
+                    'id': x.id,
+                    'code': x.code,
+                })
+        elif _fast_slow == 'SLOW':
+            if _warehouse_name == 'COLD STORAGE':
+                _bins = BinLocation.query.filter_by(warehouse_id=_warehouse.id).order_by(BinLocation.code.desc()).limit(50).all()
+            else:
+                _bins = BinLocation.query.filter(BinLocation.warehouse_id != _cold_storage.id).order_by(BinLocation.code.desc()).limit(50).all()
+            
+            for x in _bins:
+                _bin_list.append({
+                    'id': x.id,
+                    'code': x.code,
+                })
+        else:
+            _bins = BinLocation.query.filter(BinLocation.warehouse_id != _cold_storage.id).order_by(BinLocation.code).all()
+            for x in _bins:
+                _bin_list.append({
+                    'id': x.id,
+                    'code': x.code,
+                })
+
+        return jsonify(bins=_bin_list)
+
+
 @bp_iwms.route('/_get_sr_line',methods=["POST"])
 def _get_sr_line():
     if request.method == "POST":
@@ -280,13 +371,21 @@ def _get_sr_line():
                 else:
                     _ibl = [[0]]
 
+                fast_slow = ""
+                if not line.stock_item.inventory_stock_item == []:
+                    if _check_fast_slow(line.stock_item.inventory_stock_item[0].id):
+                        fast_slow = "FAST"
+                    else:
+                        fast_slow = "SLOW"
+
                 sr_line.append({
                     'id':line.stock_item.id,'name':line.stock_item.name,
                     'uom':line.uom,'number':line.stock_item.number,
                     'lot_no':line.lot_no,'expiry_date': _expiry_date,
                     'received_qty':line.received_qty,
                     'prev_stored': str(_ibl[0][0]) if not _ibl[0][0] == None else 0,
-                    'is_putaway': line.is_putaway
+                    'is_putaway': line.is_putaway,
+                    'fast_slow': fast_slow
                     })
         res = jsonify(items=sr_line)
         res.status_code = 200
@@ -400,7 +499,7 @@ def dashboard():
     }
 
     _pwy_data = {
-        'to_be_stored_qty': str(_qty_to_be_received),
+        'to_be_stored_qty': str(_qty_to_be_received[0][0]),
         'stored': str(_qty_on_hand[0][0]),
     }
 
@@ -460,18 +559,49 @@ def reports():
 
     _pos = PurchaseOrder.query.join(PurchaseOrderProductLine).order_by(PurchaseOrder.po_number.desc()).all()
 
+    _sos = SalesOrder.query.join(SalesOrderLine).order_by(SalesOrder.number.desc()).all()
+
     _top_items = db.session.query(StockItem.name,StockItem.description,func.count(StockItem.id))\
         .join(PurchaseOrderProductLine.stock_item).group_by(StockItem.id).order_by(func.count(StockItem.id).desc()).all()
 
+    _top_sale_items = db.session.query(StockItem.name,StockItem.description,func.count(InventoryItem.id))\
+        .join(InventoryItem, StockItem.id == InventoryItem.stock_item_id)\
+        .join(SalesOrderLine, InventoryItem.id == SalesOrderLine.inventory_item_id).group_by(InventoryItem.id).order_by(func.count(InventoryItem.id).desc()).all()
+
+    _low_sale_items = db.session.query(StockItem.name,StockItem.description,func.count(InventoryItem.id))\
+        .join(InventoryItem, StockItem.id == InventoryItem.stock_item_id)\
+        .join(SalesOrderLine, InventoryItem.id == SalesOrderLine.inventory_item_id).group_by(InventoryItem.id).order_by(func.count(InventoryItem.id)).all()
+
     _srs = StockReceipt.query.join(StockReceiptItemLine).order_by(StockReceipt.sr_number.desc()).all()
+
+    _item_expiration = ItemBinLocations.query.order_by(desc(ItemBinLocations.expiry_date)).all()
+
+    _item_expiration_list = []
+    if _item_expiration:
+        for item in _item_expiration:
+            status = ''
+            if item.expiry_date < datetime.now():
+                status = 'EXPIRED'
+            else:
+                status = 'GOOD'
+                
+                if (item.expiry_date - datetime.now()).days < 30:
+                    status = "NEARLY EXPIRED"
+
+            _item_expiration_list.append([item,status])
 
     report_data = {
         'top_clients': _top_clients,
         'sales_clients': _sales_clients_dict,
         'pos':_pos,
+        'sos': _sos,
         'top_items': _top_items,
-        'srs': _srs
+        'top_so_items': _top_sale_items,
+        'low_so_items': _low_sale_items,
+        'srs': _srs,
+        'item_expiration': _item_expiration_list
     }
+
     return render_template('iwms/iwms_reports.html',context=context,title="Reports",rd=report_data)
 
 
@@ -1470,9 +1600,16 @@ def putaway_create():
                     if srp.is_putaway == False:
                         _remaining = True
 
+                _po_remaining = False
+
+                for pol in sr.purchase_order.product_line:
+                    if pol.remaining_qty > 0 :
+                        _po_remaining = True
+
                 if _remaining == False:
                     sr.status = "COMPLETED"
-                    sr.purchase_order.status = "COMPLETED"
+                    if _po_remaining == False:
+                        sr.purchase_order.status = "COMPLETED"
                 else:
                     sr.status = "PENDING"
 
@@ -1595,6 +1732,8 @@ def purchase_order_create():
 @bp_iwms.route('/purchase_order_edit/<int:oid>',methods=['GET','POST'])
 @login_required
 def purchase_order_edit(oid):
+    import platform
+
     po = PurchaseOrder.query.get_or_404(oid)
     f = PurchaseOrderCreateForm(obj=po)
     if request.method == "GET":
@@ -1614,48 +1753,62 @@ def purchase_order_edit(oid):
             context=context,form=f,title="Edit purchase order",warehouses=warehouses,suppliers=suppliers)
     elif request.method == "POST":
         if f.validate_on_submit():
-            po.supplier_id = f.supplier_id.data if not f.supplier_id.data == '' else None
-            po.warehouse_id = f.warehouse_id.data if not f.warehouse_id.data == '' else None
-            po.ship_to = f.ship_to.data
-            po.address = f.address.data
-            po.remarks = f.remarks.data
-            po.ordered_date = f.ordered_date.data if not f.ordered_date.data == '' else None
-            po.delivery_date = f.delivery_date.data if not f.delivery_date.data == '' else None
-            po.approved_by = f.approved_by.data
-            po.updated_by = "{} {}".format(current_user.fname,current_user.lname)
+            try:
+                po.supplier_id = f.supplier_id.data if not f.supplier_id.data == '' else None
+                po.warehouse_id = f.warehouse_id.data if not f.warehouse_id.data == '' else None
+                po.ship_to = f.ship_to.data
+                po.address = f.address.data
+                po.remarks = f.remarks.data
+                po.ordered_date = f.ordered_date.data if not f.ordered_date.data == '' else None
+                po.delivery_date = f.delivery_date.data if not f.delivery_date.data == '' else None
+                po.approved_by = f.approved_by.data
+                po.updated_by = "{} {}".format(current_user.fname,current_user.lname)
 
-            product_list = request.form.getlist('products[]')
-            if product_list:
-                po.product_line = []
-                for product_id in product_list:
-                    product = StockItem.query.get(product_id)
-                    qty = request.form.get("qty_{}".format(product_id))
-                    cost = request.form.get("cost_{}".format(product_id))
-                    amount = request.form.get("amount_{}".format(product_id))
-                    uom = UnitOfMeasure.query.get(request.form.get("uom_{}".format(product_id)))
-                    line = PurchaseOrderProductLine(stock_item=product,qty=qty,unit_cost=cost,amount=amount,uom=uom,remaining_qty=qty)
-                    po.product_line.append(line)
+                product_list = request.form.getlist('products[]')
+                if product_list:
+                    po.product_line = []
+                    for product_id in product_list:
+                        product = StockItem.query.get(product_id)
+                        qty = request.form.get("qty_{}".format(product_id))
+                        cost = request.form.get("cost_{}".format(product_id))
+                        amount = request.form.get("amount_{}".format(product_id))
+                        uom = UnitOfMeasure.query.get(request.form.get("uom_{}".format(product_id)))
+                        line = PurchaseOrderProductLine(stock_item=product,qty=qty,unit_cost=cost,amount=amount,uom=uom,remaining_qty=qty)
+                        po.product_line.append(line)
 
-            db.session.commit()
-            _log_create('Purchase order update','POID={}'.format(po.id))
-            
-            if request.form['btn_submit'] == 'Save and Print':
-                file_name = po.po_number + '.pdf'
-                file_path = current_app.config['PDF_FOLDER'] + po.po_number + '.pdf'
-                """ CONVERT HTML STRING TO PDF THEN RETURN PDF TO BROWSER TO PRINT
-                """
-                if platform.system() == "Windows":
-                    path_wkhtmltopdf = r'C:\Program Files\wkhtmltopdf\bin\wkhtmltopdf.exe' # CHANGE THIS to the location of wkhtmltopdf
-                    config = pdfkit.configuration(wkhtmltopdf=path_wkhtmltopdf)
-                    pdfkit.from_string(_makePOPDF(po.supplier,po.product_line),file_path,configuration=config)
-                else:
-                    pdfkit.from_string(_makePOPDF(po.supplier,po.product_line),file_path)
+                db.session.commit()
+                _log_create('Purchase order update','POID={}'.format(po.id))
+                
+                if request.form['btn_submit'] == 'Save and Print':
+                    file_name = po.po_number + '.pdf'
+                    file_path = current_app.config['PDF_FOLDER'] + po.po_number + '.pdf'
+                    """ CONVERT HTML STRING TO PDF THEN RETURN PDF TO BROWSER TO PRINT
+                    """
+                    if platform.system() == "Windows":
+                        path_wkhtmltopdf = r'C:\Program Files\wkhtmltopdf\bin\wkhtmltopdf.exe' # CHANGE THIS to the location of wkhtmltopdf
+                        config = pdfkit.configuration(wkhtmltopdf=path_wkhtmltopdf)
+                        pdfkit.from_string(_makePOPDF(po.supplier,po.product_line),file_path,configuration=config)
+                    else:
+                        pdfkit.from_string(_makePOPDF(po.supplier,po.product_line),file_path)
                     
-                flash('Purchase Order updated Successfully!','success')
-                return send_from_directory(directory=current_app.config['PDF_FOLDER'],filename=file_name,as_attachment=True)
+                    """ SEND EMAIL TO SUPPLIER'S EMAIL ADDRESS AND ATTACHED THE SAVED PDF IN /STATIC/PDFS FOLDER
+                    """
 
-            flash('Purchase Order updated Successfully!','success')
-            return redirect(url_for('bp_iwms.purchase_orders'))
+                    msg = Message('Purchase Order', sender = current_app.config['MAIL_USERNAME'], recipients = [po.supplier.email_address])
+                    msg.body = "Here attached purchase order quotation"
+
+                    with open(file_path,'rb') as pdf_file:
+                        msg.attach(filename=file_path,disposition="attachment",content_type="application/pdf",data=pdf_file.read())
+                    mail.send(msg)
+                                
+                    flash('Purchase Order updated Successfully!','success')
+                    return send_from_directory(directory=current_app.config['PDF_FOLDER'],filename=file_name,as_attachment=True)
+
+                flash('Purchase Order updated Successfully!','success')
+                return redirect(url_for('bp_iwms.purchase_orders'))
+            except Exception as e:
+                flash(str(e),'error')
+                return redirect(url_for('bp_iwms.purchase_orders'))            
         else:
             for key, value in f.errors.items():
                 flash(str(key) + str(value), 'error')
@@ -2098,6 +2251,74 @@ def inventory_items():
             'models': mmodels
             })
 
+
+@bp_iwms.route('/stock_transfers')
+@login_required
+def stock_transfers():
+    fields = [InventoryItem.id,InventoryItem.default_cost,InventoryItem.default_price,StockItem.name,StockItemType.name,Category.description]
+    query1 = db.session.query(InventoryItem,StockItem,StockItemType,Category)
+    models = query1.outerjoin(StockItem, InventoryItem.stock_item_id == StockItem.id).outerjoin(StockItemType, InventoryItem.stock_item_type_id == StockItemType.id).\
+        outerjoin(Category, InventoryItem.category_id  == Category.id).\
+            with_entities(InventoryItem.id,StockItem.name,InventoryItem.default_cost,InventoryItem.default_price,StockItemType.name,Category.description).all()    
+    # Dahil hindi ko masyadong kabisado ang ORM, ito muna
+    mmodels = [list(ii) for ii in models]
+
+    for ii in mmodels:
+        _ibl = ItemBinLocations.query.with_entities(func.sum(ItemBinLocations.qty_on_hand)).filter_by(inventory_item_id=ii[0]).all()
+        ii.append(_ibl[0][0])
+        
+    context['mm-active'] = 'stock_transfer'
+    return admin_index(InventoryItem,fields=fields,form=StockTransferForm(), \
+        template='iwms/stock_transfer/iwms_stock_transfer_index.html',edit_url="bp_iwms.stock_transfer_edit",\
+            create_modal=True,view_modal="iwms/stock_transfer/iwms_stock_transfer_view_modal.html",create_url=False,kwargs={'active':'inventory',
+            'models': mmodels
+            })
+
+
+@bp_iwms.route('/stock_transfer_edit/<int:oid>',methods=['GET'])
+@login_required
+def stock_transfer_edit(oid):
+    ii = InventoryItem.query.get_or_404(oid)
+    f = InventoryItemEditForm(obj=ii)
+    if request.method == "GET":
+        # Hardcoded html ang irerender natin hindi yung builtin ng admin
+        context['active'] = 'inventory'
+        context['mm-active'] = 'inventory_item'
+        context['module'] = 'iwms'
+        context['model'] = 'inventory_item'
+        categories = Category.query.all()
+        types = StockItemType.query.all()
+
+        stocks = ItemBinLocations.query.filter_by(inventory_item_id=oid).all()
+        bin_locations = BinLocation.query.all()
+
+        return render_template('iwms/stock_transfer/iwms_stock_transfer_edit.html', oid=oid,context=context,form=f,stocks=stocks,\
+            title="Transfer stock",number=ii.stock_item.number,name=ii.stock_item.name,categories=categories,types=types,bin_locations=bin_locations)
+
+
+@bp_iwms.route('/_transfer_location',methods=['POST'])
+@login_required
+def _transfer_location():
+    if request.method == 'POST':
+        _item_bin_location_id = request.json['item_bin_location_id']
+        _new_bin_location_id = request.json['new_bin_location_id']
+        item_bin_location = ItemBinLocations.query.get_or_404(_item_bin_location_id)
+        _old_location = item_bin_location.bin_location.code
+
+        item_bin_location.bin_location_id = _new_bin_location_id
+        db.session.commit()
+
+        msg = Message('Transfer Location', sender = current_app.config['MAIL_USERNAME'], recipients = ["iwarehouseonline2020@gmail.com"])
+        msg.body = "Your stock items - ({}) was transferred to better bin location from {} to {}."\
+            .format(item_bin_location.inventory_item.stock_item.name,_old_location,item_bin_location.bin_location.code)
+        mail.send(msg)
+
+        resp = jsonify({'result':True})
+        resp.headers.add('Access-Control-Allow-Origin', '*')
+        resp.status_code = 200
+        return resp
+
+
 @bp_iwms.route('/_get_ii_view_modal_data',methods=["POST"])
 @cross_origin()
 def get_ii_view_modal_data():
@@ -2229,7 +2450,8 @@ def sales_order_create():
                         uom = UnitOfMeasure.query.get(r.get("uom_{}".format(product_id)))
                         line = SalesOrderLine(inventory_item=product,item_bin_location=item_bin_location,\
                             qty=qty,uom=uom,unit_price=unit_price,issued_qty=0)
-                        _total_price = _total_price + float(line.unit_price)
+                        _subtotal = int(qty) * float(line.unit_price)
+                        _total_price += _subtotal
                         so.product_line.append(line)
 
                 so.total_price = _total_price
@@ -2258,8 +2480,12 @@ def sales_order_edit(oid):
         _so_items = [x.item_bin_location_id for x in so.product_line]
         items = ItemBinLocations.query.filter(ItemBinLocations.qty_on_hand>0, ~ItemBinLocations.id.in_(_so_items)).all()
         f.client_name.data = so.client.name if not so.client == None else ''
-        f.term_id.data = so.client.term.description if not so.client.term == None else ''
-        f.ship_via_id.data = so.client.ship_via.description if not so.client.ship_via == None else ''
+        if so.client is None:
+            f.term_id.data = ''
+            f.ship_via_id.data = ''
+        else:
+            f.term_id.data = so.client.term.description if not so.client.term == None else ''
+            f.ship_via_id.data = so.client.ship_via.description if not so.client.ship_via == None else ''
         context['active'] = 'sales'
         context['mm-active'] = 'sales_order'
         context['module'] = 'iwms'
@@ -2334,8 +2560,12 @@ def sales_order_view(oid):
         _so_items = [x.item_bin_location_id for x in so.product_line]
         items = ItemBinLocations.query.filter(ItemBinLocations.qty_on_hand>0, ~ItemBinLocations.id.in_(_so_items)).all()
         f.client_name.data = so.client.name if not so.client == None else ''
-        f.term_id.data = so.client.term.description if not so.client.term == None else ''
-        f.ship_via_id.data = so.client.ship_via.description if not so.client.ship_via == None else ''
+        if so.client is None:
+            f.term_id.data = ''
+            f.ship_via_id.data = ''
+        else:
+            f.term_id.data = so.client.term.description if not so.client.term == None else ''
+            f.ship_via_id.data = so.client.ship_via.description if not so.client.ship_via == None else ''
         context['active'] = 'sales'
         context['mm-active'] = 'sales_order'
         context['module'] = 'iwms'

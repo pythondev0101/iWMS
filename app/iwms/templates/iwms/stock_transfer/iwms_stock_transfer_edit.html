@@ -1,0 +1,244 @@
+{% extends "iwms/iwms_base_scripts.html" %}
+
+{% block content %}
+<div class="app-main__inner">
+    <div class="app-page-title">
+        <div class="page-title-wrapper">
+            <div class="page-title-heading">
+                <div class="page-title-icon">
+                    <i class="pe-7s-download text-success">
+                    </i>
+                </div>
+                <div>{{name}}
+                    <div class="page-title-subheading">
+                      {{number}}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <ul class="body-tabs body-tabs-layout tabs-animated body-tabs-animated nav">
+        <li class="nav-item">
+            <a role="tab" class="nav-link show active" id="tab-0" data-toggle="tab" href="#tab-content-0" aria-selected="true">
+                <span>General Information</span>
+            </a>
+        </li>
+        <li class="nav-item">
+            <a role="tab" class="nav-link show" id="tab-1" data-toggle="tab" href="#tab-content-1" aria-selected="false">
+                <span>Stock on Hand</span>
+            </a>
+        </li>
+    </ul>
+    <form action="{{ url_for('bp_iwms.stock_transfer_edit',oid=oid) }}" id="edit_form" class="needs-validation" method="POST" novalidate>
+    {{ form.csrf_token }}
+    <div class="tab-content">
+        <div class="tab-pane tabs-animation fade active show" id="tab-content-0" role="tabpanel">
+            <div class="main-card mb-3 card">
+                <div class="card-body">
+                    <div class="form-row">
+                        <div class="col-md-6">
+                            <div class="position-relative form-group">
+                                <label for="default_price" class="">Default Price</label>
+                                <input readonly type="number" class="form-control" id="default_price" name="default_price" 
+                                placeholder="Php" step="0.01" min="0" value="{{form.default_price.data}}">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="position-relative form-group">
+                                <label for="default_cost" class="">Default Cost</label>
+                                <input readonly type="number" class="form-control" id="default_cost" name="default_cost" 
+                                placeholder="Php" step="0.01" min="0" value="{{form.default_cost.data}}">
+                            </div>
+                        </div>
+                    </div>
+                        <div class="form-row">
+                            <div class="col-md-6">
+                                <div class="position-relative form-group">
+                                    <label for="type" class="">Type</label>
+                                    <select disabled name="stock_item_type_id" id="stock_item_type_id" class="form-control">
+                                        <option value="">Choose...</option>
+                                        {% for type in types %}
+                                        <option value="{{ type.id }}" {% if form.stock_item_type_id.data == type.id %}selected{% endif %}>
+                                            {{ type.name }}
+                                        </option>
+                                        {% endfor %}
+                                    </select>
+                                    <div class="valid-feedback">
+                                        Looks good!
+                                    </div>
+                                    <div class="invalid-feedback">
+                                        Please provide a valid
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="position-relative form-group">
+                                    <label for="category_id" class="">Category</label>
+                                    <select disabled name="category_id" id="category_id" class="form-control">
+                                        <option value="">Choose...</option>
+                                        {% for category in categories %}
+                                        <option value="{{ category.id }}" {% if form.category_id.data == category.id %}selected{% endif %}>
+                                            {{ category.description }}
+                                        </option>
+                                        {% endfor %}
+                                    </select>
+                                    <div class="valid-feedback">
+                                        Looks good!
+                                    </div>
+                                    <div class="invalid-feedback">
+                                        Please provide a valid
+                                    </div>
+                                </div>
+                            </div>
+                        </div> 
+                </div>
+            </div>
+        </div>
+                <!-- !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! -->
+        <!-- !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! -->
+        <!-- !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! -->
+        <div class="tab-pane tabs-animation fade" id="tab-content-1" role="tabpanel">
+            <div class="col-lg-14">
+            <div class="main-card mb-3 card">
+                <div class="table-responsive">
+                    <table id="tbl_uom_line" class="mb-0 table table-bordered">
+                        <thead>
+                        <tr>
+                            <th class="text-center">BIN LOCATION</th>
+                            <th class="text-center">EXPIRY DATE</th>
+                            <th class="text-center">LOT NO.</th>
+                            <th class="text-center">ON HAND</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                            {% for oh in stocks %}
+                            <tr>
+                                <td class="text-center">
+                                        <select id="{{oh.id}}" class="form-control">
+                                            {% for bin_location in bin_locations %}
+                                            <option value="{{ bin_location.id }}" {% if oh.bin_location.code == bin_location.code %}selected{% endif %}>
+                                                {{ bin_location.description }}
+                                            </option>
+                                            {% endfor %}
+                                        </select>
+                                </td>
+                                <td class="text-center">
+                                    {{oh.expiry_date}}
+                                </td>
+                                <td class="text-center">
+                                    {{oh.lot_no}}
+                                </td>
+                                <td class="text-center">
+                                    {{oh.qty_on_hand}}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            </div>
+        </div>
+        <script>
+            // Example starter JavaScript for disabling form submissions if there are invalid fields
+            (function() {
+            'use strict';
+            window.addEventListener('load', function() {
+            // Fetch all the forms we want to apply custom Bootstrap validation styles to
+            var forms = document.getElementsByClassName('needs-validation');
+            // Loop over them and prevent submission
+            var validation = Array.prototype.filter.call(forms, function(form) {
+            form.addEventListener('submit', function(event) {
+            if (form.checkValidity() === false) {
+                event.preventDefault();
+                event.stopPropagation();
+            }
+            form.classList.add('was-validated');
+            }, false);
+            });
+            }, false);
+            })();
+        </script>
+    </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    $(document).ready(function(){
+        var csrf_token = "{{ csrf_token() }}";
+        $('select').on('change', function() {
+            var confirm = window.confirm("Confirm?");
+            if(confirm == true){
+                var item_location_id = $(this).attr('id');
+                var new_bin_location_id = $(this).val();
+                $.ajaxSetup({
+                    beforeSend: function(xhr, settings) {
+                        if (!/^(GET|HEAD|OPTIONS|TRACE)$/i.test(settings.type) && !this.crossDomain) {
+                            xhr.setRequestHeader("X-CSRFToken", csrf_token);
+                        }
+                    }
+                });
+                $.ajax({
+                    url: "/iwms/_transfer_location",
+                    type: "POST",
+                    dataType: "json",
+                    data: JSON.stringify({'item_bin_location_id': item_location_id,'new_bin_location_id':new_bin_location_id}),
+                    contentType: "application/json; charset=utf-8",
+                    success: function(data) {
+                        if(data.result == true){
+                            $("#toast-container").show(0).delay(2000).hide(0);
+                        }
+                    }
+                });
+            }else{
+                
+            }
+          });
+    });
+</script>
+{% endblock %}
+
+{% block inner_footer %}
+<div class="app-footer-right">
+    <button type="button" class="btn btn-secondary" onclick="history.back(-1)" 
+    style="margin-right: 10px;">Back</button>
+</div>
+{% endblock %}
+
+{% block toast %}
+<div id="toast-container" class="toast-top-center" style="display: none;">
+<div class="toast toast-success" aria-live="polite">
+    <div class="toast-progress" style="width: 0%;"></div>
+    <div class="toast-title">Success!</div>
+    <div class="toast-message">Stock transferred successfully!</div>
+</div>
+</div>
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+{% if messages %}
+<div id="toast-container" class="toast-top-center">
+    {% for category, message in messages %}
+        {% if category == 'success' %}
+        <div class="toast toast-success" aria-live="polite">
+            <div class="toast-progress" style="width: 0%;"></div>
+            <button type="button" class="toast-close-button" role="button" onclick="close_toast()">×</button>
+            <div class="toast-title">Success!</div>
+            <div class="toast-message">{{ message }}</div>
+        </div>
+        {% elif category == 'error' %}
+        <div class="toast toast-error" aria-live="polite">
+            <div class="toast-progress" style="width: 0%;"></div>
+            <button type="button" class="toast-close-button" role="button" onclick="close_toast()">×</button>
+            <div class="toast-title">Error!</div>
+            <div class="toast-message">{{ message }}</div>
+        </div>
+        {% endif %}
+    {% endfor %}
+</div>
+{% endif %}
+{% endwith %}
+{% endblock %}
+
+

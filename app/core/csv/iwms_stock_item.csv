@@ -1,0 +1,21 @@
+number,stock_item_type_id,category_id,brand,name,description,packaging,description_plu,barcode,qty_plu,length,width,height,unit_id,default_cost,default_price,weight,cbm
+SI00000001,1,1,Fern-C,Sodium Ascorbate,Sodium Ascorbate FERN-C 568.18mg 35 + 5 Capsules,bx,Sodium Ascorbate FERN-C 568.18mg 35 + 5 Capsules,4806519309032,1,1,1,1,2,189.9,253.75,1,1
+SI00000002,1,1,Fern-C,Sodium Ascorbate,Sodium Ascorbate FERN-C 568.18mg 60 Capsules,bx,Sodium Ascorbate FERN-C 568.18mg 60 Capsules,4806519306134,1,2,2,2,2,378.6,428.5,2,8
+SI00000003,2,1,Fern-C Kidz,Sodium Ascorbate,Sodium ascorbate 109.68mg (equivalent to ascorbic acid 97.5mg) elemental Zinc 5mg Syrup 120ml,bx,Sodium ascorbate 109.68mg (equivalent to ascorbic acid 97.5mg) elemental Zinc 5mg Syrup 120ml,4806519300034,1,2,2,4,2,114.68,129.5,0.12,16
+SI00000004,2,1,FERN-C Kidz,Kiddimin,Multivitamins + Taurine + Lysine + Chlorella Syrup 120mL,bx,Multivitamins + Taurine + Lysine + Chlorella Syrup 120mL,4806519308924,1,2,2,4,2,117.95,159.98,0.12,16
+SI00000005,2,1,FERN-C Kidz,Sodium Ascorbate plus Zinc,Sodium ascorbate 109.68mg (equivalent to ascorbic acid 97.5mg) elemental Zinc 5mg Syrup 60mL,bx,Sodium ascorbate 109.68mg (equivalent to ascorbic acid 97.5mg) elemental Zinc 5mg Syrup 60mL,4806519306754,1,2,2,4,2,54.34,67.25,0.06,16
+SI00000006,2,3,Lola Remedios,Lola Remedios,Lola Remedios Ready-To-Drink 12 x 15ml sachets,bx,Lola Remedios Ready-To-Drink 12 x 15ml sachets,8995227502241,1,4.5,2.8,2.5,2,109,120,0.18,31.5
+SI00000007,2,4,Calpol,Paracetamol Calpol,Paracetamol Calpol 100 mg/mL Suspension,bot,Paracetamol Calpol 100 mg/mL Suspension,4800318000176,1,2,1,4,3,89.6,90.5,0.1,8
+SI00000008,3,5,Biogenic,Isopropyl Alcohol,Isopropyl Alcohol Biogenic 70% Solution 330ml Spray Bottle,bot,Isopropyl Alcohol Biogenic 70% Solution 330ml Spray Bottle,4800131591004,1,2,2,10,3,67.9,80.8,0.33,40
+SI00000009,4,6,Johnson and Johnson,Johnsons Baby Powder,Johnsons Baby Powder 200g,bot,Johnsons Baby Powder 200g,8850007011149,1,2.25,2,6,3,45.9,56.9,0.2,27
+SI00000010,3,5,Band-Aid,Isopropyl Alcohol,Isopropyl Alcohol Biogenic 60% Solution 150ml  Bottle,bot,Isopropyl Alcohol Biogenic 60% Solution 150ml  Bottle,4801010160007,1,2.5,1,6,3,14.7,20.68,0.15,15
+SI00000011,5,7,SM Bonus,Paper Towel,Paper Towel Interfold 175 Sheets 200x200mm,pk,Paper Towel Interfold 175 Sheets 200x200mm,4802222034063,1,8,4,4,4,25.25,40.89,0.18,128
+SI00000012,3,6,Axe,Axe Deodorant Bodyspray,Axe Deodorant Bodyspray Dark Temptation 150ml,bot,Axe Deodorant Bodyspray Dark Temptation 150ml,4800888141125,1,2,2,6,3,78.5,95.98,0.15,24
+SI00000013,3,5,GreenCross,Ethyl Alcohol,Ethyl Alcohol GreenCross 70% Solution 3785mL,bot,Ethyl Alcohol GreenCross 70% Solution 3785mL,4800047820465,1,6,6,12,3,358.9,470.8,3.8,432
+SI00000014,3,5,GreenCross,Isopropyl Alcohol,Isopropyl Alcohol GreenCross 70% Solution 1000ml Pump Bottle,bot,Isopropyl Alcohol GreenCross 70% Solution 1000ml Pump Bottle,4800047820434,1,4,4.2,10,3,189.7,205.1,1,168
+SI00000015,6,8,Hunt,Hunt Pork & Beans,Hunt Pork & Beans 230g (8.110z),cn,Hunt Pork & Beans 230g (8.110z),4800022100018,1,3,3,3,5,25.5,28.9,0.23,27
+SI00000016,6,8,Hunt,Hunt Pork & Beans,Hunt Pork & Beans 175g (6.17oz),cn,Hunt Pork & Beans 175g (6.17oz),4800022100070,1,2,2,3.2,5,18.9,20.9,0.175,12.8
+SI00000017,6,8,Century Tuna,Century Tuna,Century Tuna Flakes in Oil Easy Open 155g (5.5oz),cn,Century Tuna Flakes in Oil Easy Open 155g (5.5oz),4848510040,1,2,2,3.3,5,15.5,21.45,0.155,13.2
+SI00000018,7,8,Nestle,All Purpose Cream,Nestle All Purpose Cream 250ml,pouch,Nestle All Purpose Cream 250ml,4800361061322,1,2.25,1.5,5.25,6,35.89,40.9,0.25,17.71875
+SI00000019,7,8,Netle,All Purpose Cream,Nestle All Purpose Cream 300ml,cn,Nestle All Purpose Cream 300ml,4800361061123,1,3,3,3,5,35.89,40.9,0.3,27
+SI00000020,4,8,Nescafe,Nescafe Classic,Nescafe Classic 200g,pouch,Nescafe Classic 200g,4800361393669,1,5,0.2,10,6,56.9,67,0.2,10

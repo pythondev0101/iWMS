@@ -39,6 +39,8 @@ class Config(object):
     MAIL_USE_TLS = False
     MAIL_USE_SSL = True
 
+    COLD_STORAGE_URL  = os.environ.get('COLD_STORAGE_URL')
+
 class DevelopmentConfig(Config):
     """
     Development configurations

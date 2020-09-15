@@ -456,6 +456,36 @@
                 $("#lot_no").val("");
                 $("#net_weight").val("");
                 $("#expiry_date").val("{{form.date_received.data.strftime('%Y-%m-%d')}}");
+
+                
+                var sr_number = "{{sr_generated_number}}";
+                var po_number = $("#po_number").val();
+                var supplier = $("#supplier").val();
+
+                var label = prompt("How many label?", "1");
+                if (!(label == null)){
+                    var csrf_token = "{{ csrf_token() }}";
+                    $.ajaxSetup({
+                        beforeSend: function(xhr, settings) {
+                            if (!/^(GET|HEAD|OPTIONS|TRACE)$/i.test(settings.type) && !this.crossDomain) {
+                                xhr.setRequestHeader("X-CSRFToken", csrf_token);
+                            }
+                        }
+                    });
+                    $.ajax({
+                        url: '/iwms/_create_label',
+                        type: 'POST',
+                        dataType: 'json',
+                        data: JSON.stringify({
+                            'label':label,'lot_no':lot_no,'expiry_date':expiry_date,
+                            'quantity': e_qty, 'sr_number': sr_number, 'po_number': po_number,
+                            'stock_id': stock_id,'supplier':supplier
+                        }),
+                        contentType: "application/json; charset=utf-8",
+                        success: function(data){
+                        }
+                    });
+                }
         });
 
         $('#btn_select_po').click(function(){
@@ -559,6 +589,36 @@
             if (!($("#item_name").val() == '')){
                 $('#btn_add_sr_line').prop('disabled', false);
             }
+
+            var fast_slow = $("#tbl_sr_line_modal tr.selected td:nth-child(9)").find('div').html();
+            var warehouse = $("#warehouse").val();
+            var csrf_token = "{{ csrf_token() }}";
+            $.ajaxSetup({
+                beforeSend: function(xhr, settings) {
+                    if (!/^(GET|HEAD|OPTIONS|TRACE)$/i.test(settings.type) && !this.crossDomain) {
+                        xhr.setRequestHeader("X-CSRFToken", csrf_token);
+                    }
+                }
+            });
+            $.ajax({
+                url: '/iwms/_get_bin_locations',
+                type: 'POST',
+                dataType: 'json',
+                data: JSON.stringify({'fast_slow':fast_slow,'warehouse':warehouse}),
+                contentType: "application/json; charset=utf-8",
+                success: function(data){
+                    if(data.bins.length>0){
+                        $("#bin_location").empty();
+                        var option = $('<option></option>').attr("value", "").text("Choose...");
+                        $("#bin_location").append(option);
+                        var i = 0;
+                        for (i; i < data.bins.length; ++i){
+                            var option = $('<option></option>').attr("value", data.bins[i].id).text(data.bins[i].code);
+                            $("#bin_location").append(option);
+                        }
+                    }
+                }
+            });
         });
 
         $("#btn_add_sr_line").click(function(){
@@ -655,6 +715,14 @@
                 contentType: "application/json; charset=utf-8",
                 success: function(data){
                     for (i=0; i < data.items.length; ++i){
+                        var fast_slow = "";
+                        if(data.items[i].fast_slow == 'FAST'){
+                            fast_slow = '<div class="mb-2 mr-2 badge badge-success">FAST</div>';
+                        }else if(data.items[i].fast_slow == 'SLOW'){
+                            fast_slow = '<div class="mb-2 mr-2 badge badge-danger">SLOW</div>'
+                        }else{
+                            fast_slow = '<div></div>'
+                        }
                         var row = table_sr_line.row.add([
                         data.items[i].id,
                         data.items[i].number,
@@ -663,7 +731,8 @@
                         data.items[i].expiry_date,
                         data.items[i].uom,
                         data.items[i].received_qty,
-                        data.items[i].prev_stored
+                        data.items[i].prev_stored,
+                        fast_slow
                         ]);
                         table_sr_line.row(row).column(0).nodes().to$().addClass('myHiddenColumn');
                         if (data.items[i].is_putaway){
@@ -744,7 +813,7 @@
                                 }
                             }
                         });
-
+                    var _trim_item_available_qty = $.trim(item_available_qty);
                     $('#tbl_so_line tr:last').after(
                         `<tr>
                             <td style="display:none;"><input name="products[]" type="hidden" value="${item_id}"></td>
@@ -754,7 +823,7 @@
                             <td class='text-center'>${item_no}</td>
                             <td class='text-center'>${item_name}</td>
                             <td class='text-center'>${item_uom}</td>
-                            <td class='text-center'><input class="input_qty" name="qty_${item_id}" type="number" style="width:100px" value="0"></td>
+                            <td class='text-center'><input class="input_qty" max="${_trim_item_available_qty}" name="qty_${item_id}" type="number" style="width:100px" value="0"></td>
                             <td class='text-center'>${item_available_qty}</td>
                             <td class='text-center'><input class="input_price" name="price_${item_id}" type="number" value="${item_price}" style="width:100px"></td>
                             <td class='text-center'><input class="input_subtotal" name="subtotal_${item_id}" type="number" value="0.00" style="width:100px" readonly></td>
@@ -853,7 +922,10 @@
             $("#bin_location").val($("#tbl_so_line_modal tr.selected td:nth-child(4)").html());
             if (!($("#item_name").val() == '')){
                 $('#btn_add_so_line').prop('disabled', false);
-            }
+            }  
+            
+            var _unit_qty = $("#tbl_so_line_modal tr.selected td:nth-child(8)").html();
+            $("#quantity").attr('max',_unit_qty);
         });
 
 

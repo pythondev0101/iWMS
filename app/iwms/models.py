@@ -143,8 +143,8 @@ class StockItem(Base,Admin):
     stock_item_type = db.relationship('StockItemType',backref='type_stock_items')
     category_id = db.Column(db.Integer,db.ForeignKey('iwms_category.id',ondelete="SET NULL"),nullable=True)
     category = db.relationship('Category',backref='stockitem_category')
-    has_serial = db.Column(db.Boolean,default="0")
-    monitor_expiration = db.Column(db.Boolean,default=None)
+    has_serial = db.Column(db.Boolean,default=0)
+    monitor_expiration = db.Column(db.Boolean,default=0)
     brand = db.Column(db.String(255),nullable=True,default="")
     name = db.Column(db.String(255),nullable=True,default="")
     description = db.Column(db.String(255),nullable=True,default="")
@@ -539,3 +539,10 @@ class PickingItemLine(db.Model):
     uom = db.Column(db.String(255),nullable=True, default="")
     qty = db.Column(db.Integer,nullable=True,default=None)
     timestamp = db.Column(db.String(255),nullable=True)
+
+
+class StockTransfer(Base,Admin):
+    __tablename__ = 'iwms_stock_transfer'
+    __amname__ = 'stock_transfer'
+    __amdescription__ = 'Stock Transfer'
+    __amicon__ = 'pe-7s-upload'
