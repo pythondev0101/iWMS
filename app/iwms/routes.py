@@ -1600,9 +1600,16 @@ def putaway_create():
                     if srp.is_putaway == False:
                         _remaining = True
 
+                _po_remaining = False
+
+                for pol in sr.purchase_order.product_line:
+                    if pol.remaining_qty > 0 :
+                        _po_remaining = True
+
                 if _remaining == False:
                     sr.status = "COMPLETED"
-                    sr.purchase_order.status = "COMPLETED"
+                    if _po_remaining == False:
+                        sr.purchase_order.status = "COMPLETED"
                 else:
                     sr.status = "PENDING"
 
@@ -1725,6 +1732,8 @@ def purchase_order_create():
 @bp_iwms.route('/purchase_order_edit/<int:oid>',methods=['GET','POST'])
 @login_required
 def purchase_order_edit(oid):
+    import platform
+
     po = PurchaseOrder.query.get_or_404(oid)
     f = PurchaseOrderCreateForm(obj=po)
     if request.method == "GET":
