@@ -1753,48 +1753,62 @@ def purchase_order_edit(oid):
             context=context,form=f,title="Edit purchase order",warehouses=warehouses,suppliers=suppliers)
     elif request.method == "POST":
         if f.validate_on_submit():
-            po.supplier_id = f.supplier_id.data if not f.supplier_id.data == '' else None
-            po.warehouse_id = f.warehouse_id.data if not f.warehouse_id.data == '' else None
-            po.ship_to = f.ship_to.data
-            po.address = f.address.data
-            po.remarks = f.remarks.data
-            po.ordered_date = f.ordered_date.data if not f.ordered_date.data == '' else None
-            po.delivery_date = f.delivery_date.data if not f.delivery_date.data == '' else None
-            po.approved_by = f.approved_by.data
-            po.updated_by = "{} {}".format(current_user.fname,current_user.lname)
+            try:
+                po.supplier_id = f.supplier_id.data if not f.supplier_id.data == '' else None
+                po.warehouse_id = f.warehouse_id.data if not f.warehouse_id.data == '' else None
+                po.ship_to = f.ship_to.data
+                po.address = f.address.data
+                po.remarks = f.remarks.data
+                po.ordered_date = f.ordered_date.data if not f.ordered_date.data == '' else None
+                po.delivery_date = f.delivery_date.data if not f.delivery_date.data == '' else None
+                po.approved_by = f.approved_by.data
+                po.updated_by = "{} {}".format(current_user.fname,current_user.lname)
 
-            product_list = request.form.getlist('products[]')
-            if product_list:
-                po.product_line = []
-                for product_id in product_list:
-                    product = StockItem.query.get(product_id)
-                    qty = request.form.get("qty_{}".format(product_id))
-                    cost = request.form.get("cost_{}".format(product_id))
-                    amount = request.form.get("amount_{}".format(product_id))
-                    uom = UnitOfMeasure.query.get(request.form.get("uom_{}".format(product_id)))
-                    line = PurchaseOrderProductLine(stock_item=product,qty=qty,unit_cost=cost,amount=amount,uom=uom,remaining_qty=qty)
-                    po.product_line.append(line)
+                product_list = request.form.getlist('products[]')
+                if product_list:
+                    po.product_line = []
+                    for product_id in product_list:
+                        product = StockItem.query.get(product_id)
+                        qty = request.form.get("qty_{}".format(product_id))
+                        cost = request.form.get("cost_{}".format(product_id))
+                        amount = request.form.get("amount_{}".format(product_id))
+                        uom = UnitOfMeasure.query.get(request.form.get("uom_{}".format(product_id)))
+                        line = PurchaseOrderProductLine(stock_item=product,qty=qty,unit_cost=cost,amount=amount,uom=uom,remaining_qty=qty)
+                        po.product_line.append(line)
 
-            db.session.commit()
-            _log_create('Purchase order update','POID={}'.format(po.id))
-            
-            if request.form['btn_submit'] == 'Save and Print':
-                file_name = po.po_number + '.pdf'
-                file_path = current_app.config['PDF_FOLDER'] + po.po_number + '.pdf'
-                """ CONVERT HTML STRING TO PDF THEN RETURN PDF TO BROWSER TO PRINT
-                """
-                if platform.system() == "Windows":
-                    path_wkhtmltopdf = r'C:\Program Files\wkhtmltopdf\bin\wkhtmltopdf.exe' # CHANGE THIS to the location of wkhtmltopdf
-                    config = pdfkit.configuration(wkhtmltopdf=path_wkhtmltopdf)
-                    pdfkit.from_string(_makePOPDF(po.supplier,po.product_line),file_path,configuration=config)
-                else:
-                    pdfkit.from_string(_makePOPDF(po.supplier,po.product_line),file_path)
+                db.session.commit()
+                _log_create('Purchase order update','POID={}'.format(po.id))
+                
+                if request.form['btn_submit'] == 'Save and Print':
+                    file_name = po.po_number + '.pdf'
+                    file_path = current_app.config['PDF_FOLDER'] + po.po_number + '.pdf'
+                    """ CONVERT HTML STRING TO PDF THEN RETURN PDF TO BROWSER TO PRINT
+                    """
+                    if platform.system() == "Windows":
+                        path_wkhtmltopdf = r'C:\Program Files\wkhtmltopdf\bin\wkhtmltopdf.exe' # CHANGE THIS to the location of wkhtmltopdf
+                        config = pdfkit.configuration(wkhtmltopdf=path_wkhtmltopdf)
+                        pdfkit.from_string(_makePOPDF(po.supplier,po.product_line),file_path,configuration=config)
+                    else:
+                        pdfkit.from_string(_makePOPDF(po.supplier,po.product_line),file_path)
                     
-                flash('Purchase Order updated Successfully!','success')
-                return send_from_directory(directory=current_app.config['PDF_FOLDER'],filename=file_name,as_attachment=True)
+                    """ SEND EMAIL TO SUPPLIER'S EMAIL ADDRESS AND ATTACHED THE SAVED PDF IN /STATIC/PDFS FOLDER
+                    """
 
-            flash('Purchase Order updated Successfully!','success')
-            return redirect(url_for('bp_iwms.purchase_orders'))
+                    msg = Message('Purchase Order', sender = current_app.config['MAIL_USERNAME'], recipients = [po.supplier.email_address])
+                    msg.body = "Here attached purchase order quotation"
+
+                    with open(file_path,'rb') as pdf_file:
+                        msg.attach(filename=file_path,disposition="attachment",content_type="application/pdf",data=pdf_file.read())
+                    mail.send(msg)
+                                
+                    flash('Purchase Order updated Successfully!','success')
+                    return send_from_directory(directory=current_app.config['PDF_FOLDER'],filename=file_name,as_attachment=True)
+
+                flash('Purchase Order updated Successfully!','success')
+                return redirect(url_for('bp_iwms.purchase_orders'))
+            except Exception as e:
+                flash(str(e),'error')
+                return redirect(url_for('bp_iwms.purchase_orders'))            
         else:
             for key, value in f.errors.items():
                 flash(str(key) + str(value), 'error')
