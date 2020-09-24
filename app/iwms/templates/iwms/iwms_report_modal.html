@@ -1,0 +1,69 @@
+<div class="modal fade" id="changepasswordmodal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true" style="display: none;">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">Export to Excel</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">×</span>
+                </button>
+            </div>
+            <div class="modal-body">
+              <div class="main-card mb-3 card">
+                  <div class="card-body">
+                    <form action="{{ url_for('bp_iwms.excel') }}" id="excel_form"
+                    class="needs-validation" method="POST" novalidate>
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                      <div class="form-row">
+                          <div class="col-md-8 mb-3">
+                            <label for="from_date" class="">From</label>
+                            <input name="from_date" id="from_date" type="date" class="form-control">
+                            <div class="valid-feedback">
+                                Looks good!
+                            </div>
+                            <div class="invalid-feedback">
+                                Please provide a valid ordered date
+                            </div>
+                          </div>
+                          <div class="col-md-8 mb-3">
+                            <label for="to_date" class="">To</label>
+                            <input name="to_date" id="to_date" type="date" class="form-control">
+                            <div class="valid-feedback">
+                                Looks good!
+                            </div>
+                            <div class="invalid-feedback">
+                                Please provide a valid ordered date
+                            </div>
+                          </div>
+                    </form>
+                      </div>
+                      <script>
+                  // Example starter JavaScript for disabling form submissions if there are invalid fields
+                  (function() {
+                  'use strict';
+                  window.addEventListener('load', function() {
+                  // Fetch all the forms we want to apply custom Bootstrap validation styles to
+                  var forms = document.getElementsByClassName('needs-validation');
+                  // Loop over them and prevent submission
+                  var validation = Array.prototype.filter.call(forms, function(form) {
+                  form.addEventListener('submit', function(event) {
+                  if (form.checkValidity() === false) {
+                      event.preventDefault();
+                      event.stopPropagation();
+                  }
+                  form.classList.add('was-validated');
+                  }, false);
+                  });
+                  }, false);
+                  })();
+                      </script>
+                  </div>
+              </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                <button form="excel_form" type="submit" class="btn btn-primary">Confirm</button>
+            </div>
+        </div>
+    </div>
+
+

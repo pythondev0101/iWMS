@@ -2663,3 +2663,84 @@ def picking_create():
             for key, value in f.errors.items():
                 flash(str(key) + str(value), 'error')
             return redirect(url_for('bp_iwms.pickings'))
+
+
+@bp_iwms.route('/excel', methods=['POST'])
+def excel():
+    import pymysql.cursors
+    from xlsxwriter.workbook import Workbook
+    import os
+    import datetime
+
+    _from_date = request.form['from_date']
+    _to_date = request.form['to_date']
+
+    # Connect to the database
+    connection = pymysql.connect(host=os.environ.get('DATABASE_HOST'),
+                                user=os.environ.get('DATABASE_USER'),
+                                password=os.environ.get('DATABASE_PASSWORD'),
+                                db=os.environ.get('DATABASE_NAME'),
+                                charset='utf8mb4',
+                                cursorclass=pymysql.cursors.DictCursor)
+
+    with connection.cursor() as cursor:
+        sql = "SELECT po_number, status, ship_to, address, remarks, ordered_date, delivery_date FROM `iwms_purchase_order` WHERE `ordered_date` between '{}' and '{}'".format(_from_date, _to_date)
+        print(sql)
+        cursor.execute(sql)
+        results = cursor.fetchall()
+
+        workbook_name = "po" + str(datetime.datetime.now())
+        file_path = current_app.config['PDF_FOLDER'] + workbook_name + '.xlsx'
+        print(file_path)
+
+        workbook = Workbook(file_path)
+        sheet = workbook.add_worksheet()
+        for r, row in enumerate(results):
+            print(row)
+            for c, col in enumerate(row):
+                sheet.write(r, c, row[col])
+        workbook.close()
+
+    connection.close()
+    return redirect(url_for('bp_iwms.reports'))
+
+
+@bp_iwms.route('/excel_so', methods=['POST'])
+def excel_so():
+    import pymysql.cursors
+    from xlsxwriter.workbook import Workbook
+    import os
+    import datetime
+
+    _from_date = request.form['from_date']
+    _to_date = request.form['to_date']
+
+    # Connect to the database
+    connection = pymysql.connect(host=os.environ.get('DATABASE_HOST'),
+                                user=os.environ.get('DATABASE_USER'),
+                                password=os.environ.get('DATABASE_PASSWORD'),
+                                db=os.environ.get('DATABASE_NAME'),
+                                charset='utf8mb4',
+                                cursorclass=pymysql.cursors.DictCursor)
+
+    with connection.cursor() as cursor:
+        sql = "SELECT * FROM `iwms_sales_order` WHERE `ordered_date` between '{}' and '{}'".format(_from_date, _to_date)
+        print(sql)
+        cursor.execute(sql)
+        results = cursor.fetchall()
+
+        workbook_name = "po" + str(datetime.datetime.now())
+        file_path = current_app.config['PDF_FOLDER'] + workbook_name + '.xlsx'
+        print(file_path)
+
+        workbook = Workbook(file_path)
+        sheet = workbook.add_worksheet()
+        for r, row in enumerate(results):
+            print(row)
+            for c, col in enumerate(row):
+                sheet.write(r, c, row[col])
+        workbook.close()
+
+    connection.close()
+    return redirect(url_for('bp_iwms.reports'))
+

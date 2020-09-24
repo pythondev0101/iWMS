@@ -15,6 +15,32 @@
                     </div>
                 </div>
             </div>
+            <div class="page-title-actions">
+                <div class="d-inline-block dropdown">
+                    <button type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"
+                            class="btn-shadow dropdown-toggle btn btn-info">
+                                    <span class="btn-icon-wrapper pr-2 opacity-7">
+                                        <i class="fa fa-list-alt fa-w-20"></i>
+                                    </span>
+                        Actions
+                    </button>
+                    <div tabindex="-1" role="menu" aria-hidden="true" class="dropdown-menu dropdown-menu-right">
+                        <ul class="nav flex-column">
+                            <li id="nav_action_btns" class="nav-item">
+                                <button type="button" class="dropdown-item" data-toggle="modal" data-target="#changepasswordmodal">
+                                    Purchase Order Report (excel)
+                                </button>
+                                
+                            </li>
+                            <!-- <li class="nav-item">
+                                <button type="button" class="dropdown-item" data-toggle="modal" data-target="#so_report_modal">
+                                    Sales Order Report (excel)
+                                </button>
+                            </li> -->
+                        </ul>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -402,6 +428,11 @@
 {% endblock %}
 {% block sidebar %}
     {% include 'iwms/iwms_sidebar.html' %}
+{% endblock %}
+
+{% block modals %}
+{% include 'iwms/iwms_report_modal.html' %}
+{% include 'iwms/iwms_report_so_modal.html' %}
 {% endblock %}
 
 {% block scripts %}
