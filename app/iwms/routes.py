@@ -2711,6 +2711,8 @@ def excel_so():
     from xlsxwriter.workbook import Workbook
     import os
     import datetime
+    import platform
+    from config import basedir
 
     _from_date = request.form['from_date']
     _to_date = request.form['to_date']
@@ -2730,7 +2732,12 @@ def excel_so():
         results = cursor.fetchall()
 
         workbook_name = "po" + str(datetime.datetime.now())
+        
         file_path = current_app.config['PDF_FOLDER'] + workbook_name + '.xlsx'
+        
+        if platform.system() == 'Windows':
+            file_path = basedir + '\\app\\static\\pdfs\\' + workbook_name + '.xlsx'
+
         print(file_path)
 
         workbook = Workbook(file_path)
