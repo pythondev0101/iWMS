@@ -1,28 +1,47 @@
-<div class="modal fade" id="so_report_modal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+<div class="modal fade" id="soreportmodal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
     <div class="modal-dialog" role="document">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="exampleModalLabel">Receive item</h5>
+                <h5 class="modal-title">Export to Excel(SO)</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">×</span>
+                </button>
             </div>
             <div class="modal-body">
-                <ul>
-                    <li>
-                        <p id="p_item_name"> </p>
-                    </li>
-                    <li>
-                        <p id="p_qty"> </p>
-                    </li>
-                    <li>
-                        <p id="p_lot_no"> </p>
-                    </li>
-                    <li>
-                        <p id="p_expiry_date"> </p>
-                    </li>
-                </ul>
-            </div>
+                <div class="main-card mb-3 card">
+                    <div class="card-body">
+                      <form action="{{ url_for('bp_iwms.excel_so') }}" id="so_excel_form"
+                      class="needs-validation" method="POST" novalidate>
+                      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                        <div class="form-row">
+                            <div class="col-md-8 mb-3">
+                              <label for="so_from_date" class="">From</label>
+                              <input name="so_from_date" id="so_from_date" type="date" class="form-control">
+                              <div class="valid-feedback">
+                                  Looks good!
+                              </div>
+                              <div class="invalid-feedback">
+                                  Please provide a valid ordered date
+                              </div>
+                            </div>
+                            <div class="col-md-8 mb-3">
+                              <label for="so_to_date" class="">To</label>
+                              <input name="so_to_date" id="so_to_date" type="date" class="form-control">
+                              <div class="valid-feedback">
+                                  Looks good!
+                              </div>
+                              <div class="invalid-feedback">
+                                  Please provide a valid ordered date
+                              </div>
+                            </div>
+                          </div>
+                      </form>
+                        </div>
+                    </div>
+                </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-                <button id="btn_confirm_po_line" type="button" class="btn btn-primary" data-dismiss="modal">Confirm</button>
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                <button form="so_excel_form" type="submit" class="btn btn-primary">Confirm</button>
             </div>
         </div>
     </div>
